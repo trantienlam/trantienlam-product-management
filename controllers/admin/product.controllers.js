@@ -36,9 +36,20 @@ module.exports.index = async (req, res) => {
     req.query,
     countProducts
   );
+  // end Pagination
+
+  //sort
+  let sort = {};
+
+  if (req.query.sortKey && req.query.sortValue) {
+    sort[req.query.sortKey] = req.query.sortValue;
+  } else {
+    sort.position = "desc";
+  }
+  // end sort
 
   const products = await Product.find(find)
-    .sort({ position: "desc" })
+    .sort(sort)
     .limit(objectPagination.limitItems)
     .skip(objectPagination.skip);
 
@@ -89,11 +100,8 @@ module.exports.changeMulti = async (req, res) => {
         let [id, position] = item.split("-");
         position = parseInt(position);
         await Product.updateOne({ _id: id }, { position: position });
-        req.flash(
-          "success",
-          `Đã đổi vị trí thành công ${ids.length} sản phẩm!`
-        );
       }
+      req.flash("success", `Đã đổi vị trí thành công ${ids.length} sản phẩm!`);
       break;
     default:
       break;

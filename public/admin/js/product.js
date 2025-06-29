@@ -26,10 +26,10 @@ if (buttonChangeStatus.length > 0) {
 // end change status
 
 //checkbox multi
-const checkbocMulti = document.querySelector("[checkbox-multi]");
-if (checkbocMulti) {
-  const inputCheckAll = checkbocMulti.querySelector("input[name='checkall']");
-  const inputsId = checkbocMulti.querySelectorAll("input[name='id']");
+const checkboxMulti = document.querySelector("[checkbox-multi]");
+if (checkboxMulti) {
+  const inputCheckAll = checkboxMulti.querySelector("input[name='checkall']");
+  const inputsId = checkboxMulti.querySelectorAll("input[name='ids']");
 
   inputCheckAll.addEventListener("click", () => {
     if (inputCheckAll.checked) {
@@ -45,7 +45,7 @@ if (checkbocMulti) {
 
   inputsId.forEach((input) => {
     input.addEventListener("click", () => {
-      const countChecked = checkbocMulti.querySelectorAll(
+      const countChecked = checkboxMulti.querySelectorAll(
         "input[name='id']:checked"
       ).length;
 

@@ -1,6 +1,7 @@
 const express = require("express");
 require("dotenv").config();
 
+const path = require("path");
 const methodOverride = require("method-override");
 const bodyParser = require("body-parser");
 
@@ -29,7 +30,13 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.set("views", `${__dirname}/views`);
 app.set("view engine", "pug");
 
-//slash thông báo
+//tinyMCE
+app.use(
+  "/tinymce",
+  express.static(path.join(__dirname, "node_modules", "tinymce"))
+);
+// end tinyMCE
+//flash thông báo
 app.use(cookieParser("lam231204"));
 app.use(session({ cookie: { maxAge: 60000 } }));
 app.use(flash());
