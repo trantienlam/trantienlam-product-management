@@ -2,6 +2,7 @@ const ProductCategory = require("../../models/product-category.model");
 const systemConfig = require("../../config/system");
 
 const createTreeHelpers = require("../../helpers/createTree");
+const searchHelper = require("../../helpers/search");
 
 // [GET] /admin/products-category
 module.exports.index = async (req, res) => {
@@ -9,11 +10,29 @@ module.exports.index = async (req, res) => {
     deleted: false,
   };
 
-  const records = await ProductCategory.find(find);
+  const objectSearch = searchHelper(req.query);
+  // console.log(objectSearch);
+  if (objectSearch.regex) {
+    find.title = objectSearch.regex;
+  }
+  //sort
+  let sort = {};
+
+  if (req.query.sortKey && req.query.sortValue) {
+    const sortMG = req.query.sortValue === "asc" ? 1 : -1;
+    sort[req.query.sortKey] = sortMG;
+  } else {
+    sort.position = -1;
+  }
+  // end sort
+
+  const records = await ProductCategory.find(find).sort(sort);
+
   const newRecords = createTreeHelpers.tree(records);
 
   res.render("admin/pages/products-category/index", {
     pageTitle: "Danh mục sản phẩm",
+    keyword: objectSearch.keyword,
     records: newRecords,
   });
 };
@@ -52,9 +71,80 @@ module.exports.changeStatus = async (req, res) => {
   const status = req.params.status;
   const id = req.params.id;
 
-  await Product.updateOne({ _id: id }, { status: status });
+  await ProductCategory.updateOne({ _id: id }, { status: status });
 
   req.flash("success", "Cập nhật thành công!");
 
   res.redirect("back");
+};
+
+//[DELETE] /admin/products-category/delete/:id
+module.exports.deleteItem = async (req, res) => {
+  const status = req.params.status;
+  const id = req.params.id;
+
+  await ProductCategory.deleteOne(
+    { _id: id },
+    { deleted: true, deletedAt: new Date() }
+  );
+  req.flash("success", `Đã xóa thành công sản phẩm!`);
+  res.redirect("back");
+};
+
+//[GET] /admin/products-category/detail/:id
+module.exports.detailCategory = async (req, res) => {
+  try {
+    const find = {
+      deleted: false,
+      _id: req.params.id,
+    };
+    const product = await ProductCategory.findOne(find);
+
+    res.render("admin/pages/products-category/detail", {
+      pageTitle: product.title,
+      product: product,
+    });
+  } catch (error) {
+    res.redirect(`${systemConfig.prefixAdmin}/products-category`);
+  }
+};
+
+//[GET] /admin/products/edit/:id
+module.exports.editCategory = async (req, res) => {
+  try {
+    const product = await ProductCategory.findOne({
+      _id: req.params.id,
+      deleted: false,
+    });
+    const records = await ProductCategory.find({
+      deleted: false,
+    });
+    const newRecords = createTreeHelpers.tree(records);
+    res.render("admin/pages/products-category/edit", {
+      pageTitle: "Chỉnh sửa danh mục",
+      product: product,
+      records: newRecords,
+    });
+  } catch (error) {
+    res.redirect(`${systemConfig.prefixAdmin}/products-category`);
+  }
+};
+
+//[PATCH] /admin/products/edit/:id
+module.exports.editPatchCategory = async (req, res) => {
+  const id = req.params.id;
+  req.body.position = parseInt(req.body.position);
+
+  if (req.file && req.file.path) {
+    req.body.thumbnail = req.file.path; // SAI nếu không có req.file.path
+  }
+
+  try {
+    await ProductCategory.updateOne({ _id: id }, req.body);
+    req.flash("success", " Cập nhật thành công");
+  } catch (error) {
+    req.flash("error", "Cập nhật thất bại");
+  }
+  const redirectUrl = `${systemConfig.prefixAdmin}/products-category`;
+  res.redirect(redirectUrl);
 };

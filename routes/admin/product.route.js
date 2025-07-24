@@ -4,10 +4,10 @@ const multer = require("multer");
 
 const router = express.Router();
 
-const upload = multer();
 const controller = require("../../controllers/admin/product.controllers");
-const valiDate = require("../../validates/admin/product.validate");
 
+const valiDate = require("../../validates/admin/product.validate");
+const upload = multer();
 const uploadCloud = require("../../middlewares/admin/uploadCloud.middleware");
 
 router.get("/", controller.index);

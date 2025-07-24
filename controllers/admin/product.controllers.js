@@ -1,10 +1,11 @@
 const Product = require("../../models/product.model");
+const ProductCategory = require("../../models/product-category.model");
 
 const systemConfig = require("../../config/system");
 
 const filterStatusHelper = require("../../helpers/filterStatus");
 const searchHelper = require("../../helpers/search");
-
+const createTreeHelpers = require("../../helpers/createTree");
 const paginationHelper = require("../../helpers/pagination");
 const pagination = require("../../helpers/pagination");
 // [GET] /admin/products
@@ -114,7 +115,7 @@ module.exports.deleteItem = async (req, res) => {
   const status = req.params.status;
   const id = req.params.id;
 
-  await Product.updateOne(
+  await Product.deleteOne(
     { _id: id },
     { deleted: true, deletedAt: new Date() }
   );
@@ -124,8 +125,14 @@ module.exports.deleteItem = async (req, res) => {
 
 //[GET] /admin/products/create
 module.exports.create = async (req, res) => {
+  let find = {
+    deleted: false,
+  };
+  const category = await ProductCategory.find(find);
+  const newCategory = createTreeHelpers.tree(category);
   res.render("admin/pages/products/create", {
     pageTitle: "Thêm mới sản phẩm",
+    category: newCategory,
   });
 };
 
@@ -156,10 +163,15 @@ module.exports.edit = async (req, res) => {
       _id: req.params.id,
     };
     const product = await Product.findOne(find);
+    const category = await ProductCategory.find({
+      deleted: false,
+    });
+    const newCategory = createTreeHelpers.tree(category);
 
     res.render("admin/pages/products/edit", {
       pageTitle: "Chỉnh sửa sản phẩm",
       product: product,
+      category: newCategory,
     });
   } catch (error) {
     res.redirect(`${systemConfig.prefixAdmin}/products`);
@@ -175,10 +187,9 @@ module.exports.editPatch = async (req, res) => {
 
   req.body.position = parseInt(req.body.position);
 
-  if (req.file) {
-    req.body.thumbnail = `/uploads/${req.file.filename}`;
+  if (req.file && req.file.path) {
+    req.body.thumbnail = req.file.path; // SAI nếu không có req.file.path
   }
-
   try {
     await Product.updateOne({ _id: id }, req.body);
     req.flash("success", " Cập nhật thành công");

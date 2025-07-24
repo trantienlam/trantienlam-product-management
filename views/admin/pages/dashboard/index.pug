@@ -1,4 +1,25 @@
 extends ../../layouts/default.pug
 
 block main
-  h1 Trang tổng quan
+  .container.my-3 
+    .row 
+      .col-12 
+        .box-head 
+          h2.inner-title #{title}
+
+    .row 
+      if products && products.length
+        each item in products    
+          .col-4.mb-4 
+            .product-item 
+              .inner-image 
+                img(src=item.thumbnail, alt=item.title)
+              .inner-content 
+                h3.inner-title 
+                  a(href=`/products/${item.slug}`) #{item.title}
+                .inner-price-new.text-danger #{item.priceNew}$
+                .inner-price-old.text-muted.text-decoration-line-through #{item.price}$
+                .inner-discount.text-success #{item.discountPercentage}% giảm
+      else
+        .col-12
+          p.text-muted Không có sản phẩm nào để hiển thị.
