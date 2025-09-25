@@ -1,6 +1,11 @@
 extends ../../layouts/default.pug
 
 block main
+
+  div #{user}
+  div ------------
+  div #{role.title}
+  div #{role.permission}
   .container.my-3 
     .row 
       .col-12 
@@ -23,3 +28,7 @@ block main
       else
         .col-12
           p.text-muted Không có sản phẩm nào để hiển thị.
+
+
+    
+  
