@@ -16,7 +16,7 @@ const routeAdmin = require("./routes/admin/index.route");
 const route = require("./routes/client/index.route");
 
 const flash = require("express-flash");
-
+const moment = require("moment");
 database.connect();
 
 const app = express();
@@ -44,7 +44,7 @@ app.use(flash());
 
 // App Locals Varibles
 app.locals.prefixAdmin = systemConfig.prefixAdmin;
-
+app.locals.moment = moment;
 app.use(express.static(`${__dirname}/public`));
 
 // routes
