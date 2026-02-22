@@ -46,7 +46,7 @@ if (checkboxMulti) {
   inputsId.forEach((input) => {
     input.addEventListener("click", () => {
       const countChecked = checkboxMulti.querySelectorAll(
-        "input[name='id']:checked"
+        "input[name='id']:checked",
       ).length;
 
       if (countChecked == inputsId.length) {
@@ -81,3 +81,46 @@ if (buttonsDelete.length > 0) {
   });
 }
 // end delete item
+
+// // OCR
+// const btnOCR = document.getElementById("btn-ocr");
+// const ocrInput = document.getElementById("ocrImage");
+
+// if (btnOCR && ocrInput) {
+//   btnOCR.addEventListener("click", () => {
+//     ocrInput.click();
+//   });
+
+//   ocrInput.addEventListener("change", async () => {
+//     const file = ocrInput.files[0];
+//     if (!file) return;
+
+//     const formData = new FormData();
+//     formData.append("image", file);
+
+//     try {
+//       const res = await fetch("/admin/ocr/read", {
+//         method: "POST",
+//         body: formData,
+//       });
+
+//       const data = await res.json();
+
+//       // Đổ dữ liệu vào form
+//       if (data.title) document.getElementById("title").value = data.title;
+//       if (data.price) document.getElementById("price").value = data.price;
+//       if (data.stock) document.getElementById("stock").value = data.stock;
+//       if (data.discount)
+//         document.getElementById("discount").value = data.discount;
+//       if (data.description) {
+//         document.getElementById("desc").value = data.description;
+//       }
+
+//       alert("OCR thành công!");
+//     } catch (err) {
+//       alert("OCR thất bại!");
+//     }
+//   });
+// }
+
+// //End OCR

@@ -170,3 +170,31 @@
   }
 }
 /* end detail category */
+
+/* admin product list */
+.product-item {
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  overflow: hidden;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.product-item .inner-image {
+  width: 100%;
+  height: 160px; /* 🔑 ÉP ẢNH ĐỀU */
+  overflow: hidden;
+  background: #f5f5f5;
+}
+
+.product-item .inner-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* 🔑 KHÔNG MÉO */
+}
+
+.product-item .inner-content {
+  padding: 10px;
+  flex: 1;
+}
