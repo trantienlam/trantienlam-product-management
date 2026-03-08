@@ -25,8 +25,8 @@ module.exports.registerPost = async (req, res) => {
   await user.save();
 
   console.log(user);
-  res.cookie("tokenUser", user.tokenUser);
-  res.redirect("/");
+  // res.cookie("tokenUser", user.tokenUser);
+  res.redirect("/user/login");
 };
 
 //[GET] /user/login
@@ -64,4 +64,17 @@ module.exports.loginPost = async (req, res) => {
   res.cookie("tokenUser", user.tokenUser);
 
   res.redirect("/");
+};
+
+//[GET] /user/logout
+module.exports.logout = async (req, res) => {
+  res.clearCookie("tokenUser");
+  res.redirect("/");
+};
+
+//[GET] /user/password/forgot
+module.exports.forgotPassword = async (req, res) => {
+  res.render("client/pages/user/forgot-password", {
+    pageTitle: "lấy lại mật khẩu",
+  });
 };
