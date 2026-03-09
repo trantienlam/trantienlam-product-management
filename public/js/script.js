@@ -14,3 +14,24 @@ if (showAlert) {
 }
 
 // end show alert
+
+// số lượng còn lại
+
+const stockElement = document.getElementById("stock");
+const quantityInput = document.getElementById("quantity");
+
+let stock = parseInt(stockElement.innerText);
+
+quantityInput.addEventListener("change", function () {
+  let quantity = parseInt(this.value);
+
+  if (quantity > stock) {
+    alert("Không đủ sản phẩm");
+    this.value = stock;
+    quantity = stock;
+  }
+
+  stockElement.innerText = stock - quantity;
+});
+
+//end

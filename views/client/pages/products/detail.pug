@@ -28,7 +28,10 @@ block main
             divv(class="inner-percent") Giảm tới <span>#{product.discountPercentage}%</span>
           
           if(product.stock)
-            div(class="inner-stock") Còn lại <span>#{product.stock}</span> Sản Phẩm
+            div(class="inner-stock")
+              | Còn lại 
+              span(id="stock") #{product.stock}
+              |  Sản Phẩm
 
           form(
             action=`/cart/add/${product.id}`
@@ -40,6 +43,7 @@ block main
               name="quantity"
               value="1"
               min="1"
+              id="quantity"
               max= product.stock 
             )
             button(

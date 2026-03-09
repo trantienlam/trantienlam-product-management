@@ -42,18 +42,24 @@ module.exports.order = async (req, res) => {
   });
   let products = [];
   for (const product of cart.products) {
-    const objectProduct = {
-      product_id: product.product_id,
-      price: 0,
-      discountPercentage: 0,
-      quantity: product.quantity,
-    };
-
     const productInfo = await Product.findOne({
       _id: product.product_id,
     });
-    objectProduct.price = productInfo.price;
-    objectProduct.discountPercentage = productInfo.discountPercentage;
+
+    const objectProduct = {
+      product_id: product.product_id,
+      price: productInfo.price,
+      discountPercentage: productInfo.discountPercentage,
+      quantity: product.quantity,
+    };
+
+    await Product.updateOne(
+      { _id: product.product_id },
+      {
+        $inc: { stock: -product.quantity },
+      },
+    );
+
     products.push(objectProduct);
   }
   const objectOrder = {
@@ -100,7 +106,7 @@ module.exports.success = async (req, res) => {
     0,
   );
 
-  console.log(order);
+  // console.log(order);
   res.render("client/pages/checkout/success", {
     pageTitle: "Đặt hàng thành công",
     order: order,

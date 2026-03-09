@@ -33,7 +33,7 @@ app.set("view engine", "pug");
 //tinyMCE
 app.use(
   "/tinymce",
-  express.static(path.join(__dirname, "node_modules", "tinymce"))
+  express.static(path.join(__dirname, "node_modules", "tinymce")),
 );
 // end tinyMCE
 //flash thông báo
@@ -50,6 +50,14 @@ app.use(express.static(`${__dirname}/public`));
 // routes
 route(app);
 routeAdmin(app);
-app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`);
-});
+// chạy local
+if (process.env.NODE_ENV !== "production") {
+  const port = process.env.PORT || 3000;
+  app.listen(port, () => {
+    console.log(`App listening on port ${port}`);
+  });
+}
+module.exports = app;
+// app.listen(port, () => {
+//   console.log(`Example app listening on port ${port}`);
+// });

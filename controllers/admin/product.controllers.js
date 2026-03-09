@@ -32,10 +32,10 @@ module.exports.index = async (req, res) => {
   let objectPagination = paginationHelper(
     {
       currentPage: 1,
-      limitItems: 5,
+      limitItems: 10,
     },
     req.query,
-    countProducts
+    countProducts,
   );
   // end Pagination
 
@@ -91,7 +91,7 @@ module.exports.changeStatus = async (req, res) => {
     {
       status: status,
       $push: { updatedBy: updatedBy },
-    }
+    },
   );
 
   req.flash("success", "Cập nhật thành công!");
@@ -111,14 +111,14 @@ module.exports.changeMulti = async (req, res) => {
     case "active":
       await Product.updateMany(
         { _id: { $in: ids } },
-        { status: "active", $push: { updatedBy: updatedBy } }
+        { status: "active", $push: { updatedBy: updatedBy } },
       );
       req.flash("success", `Cập nhật thành công ${ids.length} sản phẩm!`);
       break;
     case "inactive":
       await Product.updateMany(
         { _id: { $in: ids } },
-        { status: "inactive", $push: { updatedBy: updatedBy } }
+        { status: "inactive", $push: { updatedBy: updatedBy } },
       );
       req.flash("success", `Cập nhật thành công ${ids.length} sản phẩm!`);
       break;
@@ -131,7 +131,7 @@ module.exports.changeMulti = async (req, res) => {
             account_id: res.locals.user.id,
             deletedAt: new Date(),
           },
-        }
+        },
       );
       req.flash("success", `Đã xóa thành công ${ids.length} sản phẩm!`);
       break;
@@ -142,7 +142,7 @@ module.exports.changeMulti = async (req, res) => {
         position = parseInt(position);
         await Product.updateOne(
           { _id: id },
-          { position: position, $push: { updatedBy: updatedBy } }
+          { position: position, $push: { updatedBy: updatedBy } },
         );
       }
       req.flash("success", `Đã đổi vị trí thành công ${ids.length} sản phẩm!`);
@@ -166,7 +166,7 @@ module.exports.deleteItem = async (req, res) => {
         account_id: res.locals.user.id,
         deletedAt: new Date(),
       },
-    }
+    },
   );
   req.flash("success", `Đã xóa thành công sản phẩm!`);
   res.redirect("back");
@@ -253,7 +253,7 @@ module.exports.editPatch = async (req, res) => {
       {
         ...req.body,
         $push: { updatedBy: updatedBy },
-      }
+      },
     );
     req.flash("success", " Cập nhật thành công");
   } catch (error) {
