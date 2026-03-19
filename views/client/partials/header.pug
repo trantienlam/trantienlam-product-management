@@ -6,7 +6,7 @@ header.header
       .col-3  
         .inner-logo 
           a(href="/")
-            img(src="/images/logo1.jpg", alt="Logo")
+            img(src=settingGeneral.logo, alt="Logo")
 
       
       .col-5 
@@ -28,7 +28,7 @@ header.header
               class="btn btn-primary"
             ) Tìm
 
-      .col-4 
+      .col-4
         .inner-menu 
           ul  
             li 
@@ -42,6 +42,8 @@ header.header
                 i(class="bi bi-cart3 mr-1")
                 | (#{miniCart ? miniCart.totalQuantity : "0"})
             if(user)
+              li 
+                a(href="/user/info") #{user.fullName}
               li 
                 a(href="/user/logout") Đăng xuất
             else 

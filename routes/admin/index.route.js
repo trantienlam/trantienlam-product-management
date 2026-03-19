@@ -12,6 +12,7 @@ const myAccountRoute = require("./my-account.route");
 
 const ocrRoute = require("./ocr.route");
 
+const settingRoute = require("./setting.route");
 module.exports = (app) => {
   const PATH_ADMIN = systemConfig.prefixAdmin;
 
@@ -41,5 +42,7 @@ module.exports = (app) => {
     myAccountRoute,
   );
 
-  app.use("/admin/ocr", ocrRoute);
+  app.use(PATH_ADMIN + "/ocr", ocrRoute);
+
+  app.use(PATH_ADMIN + "/settings", authMiddleware.requireAuth, settingRoute);
 };

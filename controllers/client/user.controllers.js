@@ -2,6 +2,8 @@ const md5 = require("md5");
 const User = require("../../models/user.model");
 const ForgotPassword = require("../../models/forgot-password.model");
 const generaHelper = require("../../helpers/generate");
+const sendMailHelper = require("../../helpers/sendMail");
+const Cart = require("../../models/cart.model");
 //[GET] /user/register
 module.exports.register = async (req, res) => {
   res.render("client/pages/user/register", {
@@ -11,7 +13,7 @@ module.exports.register = async (req, res) => {
 
 // [POST] /user/regiter
 module.exports.registerPost = async (req, res) => {
-  console.log(req.body);
+  // console.log(req.body);
   const exitsEmail = await User.findOne({
     email: req.body.email,
     deleted: false,
@@ -26,7 +28,7 @@ module.exports.registerPost = async (req, res) => {
   const user = new User(req.body);
   await user.save();
 
-  console.log(user);
+  // console.log(user);
   // res.cookie("tokenUser", user.tokenUser);
   res.redirect("/user/login");
 };
@@ -49,7 +51,7 @@ module.exports.loginPost = async (req, res) => {
   });
 
   if (!user) {
-    req.flash("error", `Email đã tồn tại`);
+    req.flash("error", `Email không tồn tại`);
     res.redirect("back");
     return;
   }
@@ -65,6 +67,15 @@ module.exports.loginPost = async (req, res) => {
   }
   res.cookie("tokenUser", user.tokenUser);
 
+  // lưu user id vào cart
+  await Cart.updateOne(
+    {
+      _id: req.cookies.cartId,
+    },
+    {
+      user_id: user.id,
+    },
+  );
   res.redirect("/");
 };
 
@@ -107,6 +118,11 @@ module.exports.forgotPasswordPost = async (req, res) => {
   await forgotPassword.save();
 
   //b2 gửi mã otp về email
+  const subject = "Mã OTP xác minh của bạn ";
+  const html = `
+  Mã OTP xác minh của bạn là: <b>${otp}</b>. Thời hạn sửa dụng là 3 phút. Lưu ý không để lộ mã OTP  
+  `;
+  sendMailHelper.sendMail(email, subject, html);
 
   res.redirect(`/user/password/otp?email=${email}`);
 };
@@ -143,4 +159,67 @@ module.exports.otpPasswordPost = async (req, res) => {
   res.cookie("tokenUser", user.tokenUser);
 
   res.redirect("/user/password/reset");
+};
+
+//[Get] /user /password/reset
+module.exports.resetPassword = async (req, res) => {
+  res.render("client/pages/user/reset-password", {
+    pageTitle: "Đổi mật khẩu",
+  });
+};
+
+//[POST] /user /password/reset
+module.exports.resetPasswordPost = async (req, res) => {
+  const password = req.body.password;
+  const tokenUser = req.cookies.tokenUser;
+
+  // console.log(password);
+  // console.log(tokenUser);
+
+  await User.updateOne(
+    {
+      tokenUser: tokenUser,
+    },
+    {
+      password: md5(password),
+    },
+  );
+  req.flash("success", "Đổi mật khẩu thành công");
+  res.redirect("/user/login");
+};
+
+//[GET] /user/info
+module.exports.info = async (req, res) => {
+  res.render("client/pages/user/info", {
+    pageTitle: "Thông tin cá nhân",
+  });
+};
+
+//[POST]/user/infoPost
+module.exports.infoPatch = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const updateData = {
+      fullName: req.body.fullName,
+      phone: req.body.phone,
+    };
+
+    // 👉 avatar đã có sẵn trong req.body nếu upload
+    if (req.body.avatar) {
+      updateData.avatar = req.body.avatar;
+    }
+
+    // password
+    if (req.body.password && req.body.password.trim() !== "") {
+      updateData.password = md5(req.body.password);
+    }
+
+    await User.updateOne({ _id: userId, deleted: false }, updateData);
+
+    res.redirect("/user/info");
+  } catch (error) {
+    console.log("Lỗi update user:", error);
+    res.redirect("/user/info");
+  }
 };

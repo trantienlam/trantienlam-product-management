@@ -50,6 +50,13 @@ app.use(express.static(`${__dirname}/public`));
 // routes
 route(app);
 routeAdmin(app);
+
+app.get("*", (req, res) => {
+  res.render("client/pages/errors/404", {
+    pageTitle: "404 Not Found",
+  });
+});
+
 // chạy local
 if (process.env.NODE_ENV !== "production") {
   const port = process.env.PORT || 3000;

@@ -1,29 +1,60 @@
 extends ../../layouts/default.pug
 
 block main
-  .container.my-3 
-    .row 
-      .col-12 
-        .box-head 
-          h2.inner-title #{title}
-
-    .row 
-      if products && products.length
-        each item in products    
-          .col-4.mb-4 
-            .product-item 
-              .inner-image 
-                img(src=item.thumbnail, alt=item.title)
-              .inner-content 
-                h3.inner-title 
-                  a(href=`/products/${item.slug}`) #{item.title}
-                .inner-price-new.text-danger #{item.priceNew}$
-                .inner-price-old.text-muted.text-decoration-line-through #{item.price}$
-                .inner-discount.text-success #{item.discountPercentage}% giảm
-      else
-        .col-12
-          p.text-muted Không có sản phẩm nào để hiển thị.
+  h1 Trang tổng quan 
 
 
+  .row.mt-4
+    .col-12
+      .card.mb-4
+        .card-header Thông tin tài khoản
+        .card-body
+          if(user.avatar)
+            img(
+            src=user.avatar
+            style="height: 180px; margin-bottom: 15px;"
+            )
+          if (user.fullName)
+            p Họ tên: <b> #{user.fullName}</b>    
+          if (user.email)
+            p Email:  <b> #{user.email}</b>
+          if (user.phone)
+            p Số điện thoại: <b> #{user.phone}</b>
+          if (role.title)
+            p Phân quyền: <b> #{role.title}</b>
+
+
+    .col-6
+      .card.mb-4
+        .card-header Danh mục sản phẩm
+        .card-body
+          p Số lượng: <b>#{statistic.categoryProduct.total}</b>
+          p Hoạt động: <b>#{statistic.categoryProduct.active}</b>
+          p Dừng hoạt động: <b>#{statistic.categoryProduct.inactive}</b>
+
+    .col-6
+      .card.mb-4
+        .card-header Sản phẩm
+        .card-body
+          p Số lượng: <b>#{statistic.product.total}</b>
+          p Hoạt động: <b>#{statistic.product.active}</b>
+          p Dừng hoạt động: <b>#{statistic.product.inactive}</b>
+
+    .col-6
+      .card.mb-4
+        .card-header Tài khoản admin
+        .card-body
+          p Số lượng: <b>#{statistic.account.total}</b>
+          p Hoạt động: <b>#{statistic.account.active}</b>
+          p Dừng hoạt động: <b>#{statistic.account.inactive}</b>       
+
+    .col-6
+      .card.mb-4
+        .card-header Tài khoản client
+        .card-body
+          p Số lượng: <b>#{statistic.user.total}</b>
+          p Hoạt động: <b>#{statistic.user.active}</b>
+          p Dừng hoạt động: <b>#{statistic.user.inactive}</b>      
+                
+        
     
-  

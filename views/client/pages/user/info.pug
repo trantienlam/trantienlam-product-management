@@ -1,0 +1,80 @@
+extends ../../layouts/default.pug
+include ../../mixins/box-head.pug
+
+block main
+  .container.my-4
+    .row
+      .col-md-8.offset-md-2
+
+        +box-head("Thông tin tài khoản")
+
+        .card.shadow-sm
+          .card-body
+
+            form(
+              action="/user/info?_method=PATCH"
+              method="POST"
+              enctype="multipart/form-data"
+            )
+              
+              // Avatar
+              .text-center.mb-4(upload-image)
+                label(for="avatarInput" style="cursor:pointer;")
+
+                  img(
+                    upload-image-preview
+                    src= user.avatar || "https://cdn-icons-png.flaticon.com/512/149/149071.png"
+                    style="height:180px; width:180px; object-fit:cover; border-radius:50%; margin-bottom:15px;"
+                  )
+
+                input#avatarInput(
+                  type="file"
+                  name="avatar"
+                  accept="image/*"
+                  style="display:none"
+                  upload-image-input
+                )
+
+              // Họ tên
+              .mb-3
+                label.form-label Họ tên
+                input.form-control(
+                  type="text",
+                  name="fullName",
+                  value=user.fullName,
+                  placeholder="Nhập họ tên"
+                )
+
+              // Email (readonly)
+              .mb-3
+                label.form-label Email
+                input.form-control(
+                  type="email",
+                  value=user.email,
+                  readonly
+                )
+
+              // SĐT
+              .mb-3
+                label.form-label Số điện thoại
+                input.form-control(
+                  type="text",
+                  name="phone",
+                  value=user.phone,
+                  placeholder="Nhập số điện thoại"
+                )
+
+              // Password mới
+              .mb-3
+                label.form-label Mật khẩu mới
+                input.form-control(
+                  type="password",
+                  name="password",
+                  placeholder="Để trống nếu không đổi"
+                )
+
+              // Submit
+              button.btn.btn-primary.w-100(type="submit")
+                | Cập nhật thông tin
+
+  script(src="/admin/js/script.js")

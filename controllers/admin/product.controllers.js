@@ -78,7 +78,7 @@ module.exports.index = async (req, res) => {
     pagination: objectPagination,
   });
 };
-//[PATCH] change-status/:status/:id
+//[PATCH] change-status/:stat us/:id
 module.exports.changeStatus = async (req, res) => {
   const status = req.params.status;
   const id = req.params.id;

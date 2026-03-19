@@ -1,0 +1,23 @@
+extends ../../layouts/default.pug
+
+block main
+  .container.d-flex.align-items-center.justify-content-center(style="min-height: 80vh;")
+    .text-center
+
+      // Icon
+      i.fa-solid.fa-face-sad-tear(style="font-size:80px; color:#dc3545; margin-bottom:20px;")
+
+      // Title
+      h1.display-3.fw-bold.text-danger 404
+
+      // Message
+      p.fs-4.mb-4 Trang bạn tìm kiếm không tồn tại hoặc đã bị ẩn.
+
+      // Button
+      button.btn.btn-primary.me-2(
+        onclick="history.back()"
+      )
+        | ⬅ Quay lại
+
+      a.btn.btn-outline-secondary(href="/")
+        | 🏠 Trang chủ

@@ -56,13 +56,13 @@ module.exports.category = async (req, res) => {
     status: "active",
     deleted: false,
   });
-  // if (!category) {
-  //   return res.status(404).render("client/pages/errors/404", {
-  //     pageTitle: "Danh mục không tồn tại",
-  //   });
-  // }
+  if (!category) {
+    return res.status(404).render("client/pages/errors/404", {
+      pageTitle: "Danh mục không tồn tại",
+    });
+  }
   const listSubCategory = await productsCategoryHelper.getSubCategory(
-    category.id
+    category.id,
   );
 
   const listSubCategoryId = listSubCategory.map((item) => item.id);
