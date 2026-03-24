@@ -1,6 +1,15 @@
 extends ../../layouts/default.pug
 include ../../mixins/alert.pug
 
+block styles
+  style.
+    .btn-delete-session:hover {
+      background: rgba(220, 38, 38, 0.3) !important;
+    }
+    .btn-delete-session:hover i {
+      color: #dc2626 !important;
+    }
+
 block main
   +alert-success(5000)
 
@@ -199,3 +208,48 @@ append scripts
       el.textContent = dayName + ', ' + dd + '/' + mm + '/' + yyyy;
     }
     initDashboardDate();
+
+  //- Mini Chat Widget
+  //- Mini Chat Floating Button
+  .mini-chat-float-btn(onclick="toggleMiniChatPanel()")
+    i.fa-solid.fa-comments
+    .mini-chat-badge#miniChatCountBadge 0
+
+  //- Mini Chat Notification Toast
+  .mini-chat-notification#miniChatNotification
+    .mini-chat-notification-inner
+      i.fa-solid.fa-bell
+      span.notification-guest-name
+
+  //- Mini Chat Panel
+  .mini-chat-panel.mini-chat-hidden#miniChatPanel
+    .mini-chat-header
+      .mini-chat-header-info
+        i.fa-solid.fa-headset
+        span#miniChatHeaderTitle Phiên chat mới
+      .mini-chat-header-actions
+        button.btn-delete-session(onclick="deleteMiniChatSession()", title="Xóa đoạn chat")
+          i.fa-solid.fa-trash
+        button(onclick="closeMiniChat()")
+          i.fa-solid.fa-times
+    .mini-chat-body
+      // Session List
+      .mini-chat-session-list#miniChatSessionList
+      // Chat Area
+      .mini-chat-area#miniChatArea(style="display: none;")
+        .mini-chat-messages#miniChatBody
+        .mini-chat-input-area
+          input#miniChatImageInput(type="file", accept="image/*", style="display: none;", onchange="handleMiniChatImageSelect(this)")
+          input(type="text", placeholder="Nhập tin nhắn...", id="miniChatInput")
+          button(onclick="sendMiniChatMessage()")
+            i.fa-solid.fa-paper-plane
+          button(onclick="document.getElementById('miniChatImageInput').click()", title="Gửi ảnh")
+            i.fa-solid.fa-image
+          button.btn-close-chat(onclick="closeMiniChatSession()", title="Đóng chat")
+            i.fa-solid.fa-power-off
+
+  script(src="https://cdn.socket.io/4.7.2/socket.io.min.js")
+  script.
+    document.body.dataset.adminName = "#{user ? user.fullName : 'Admin'}";
+    document.body.dataset.adminAvatar = !{JSON.stringify((user && user.avatar) ? user.avatar : '')};
+  script(src="/admin/js/chat-admin-mini.js")

@@ -13,6 +13,9 @@ const myAccountRoute = require("./my-account.route");
 const ocrRoute = require("./ocr.route");
 
 const settingRoute = require("./setting.route");
+const chatRoute = require("./chat.route");
+const chatUploadRoute = require("./chat-upload.route");
+
 module.exports = (app) => {
   const PATH_ADMIN = systemConfig.prefixAdmin;
 
@@ -45,4 +48,7 @@ module.exports = (app) => {
   app.use(PATH_ADMIN + "/ocr", ocrRoute);
 
   app.use(PATH_ADMIN + "/settings", authMiddleware.requireAuth, settingRoute);
+
+  app.use(PATH_ADMIN + "/chat", authMiddleware.requireAuth, chatRoute);
+  app.use(PATH_ADMIN + "/chat", authMiddleware.requireAuth, chatUploadRoute);
 };

@@ -1,0 +1,83 @@
+//- Logged-in client: stable id + name for chat (no name form)
+- const chatLabel = user ? ((user.fullName && user.fullName.trim()) || (user.email && user.email.split('@')[0]) || 'Khách') : ''
+if user
+  script.
+    window.__CHAT_ACCOUNT__ = !{JSON.stringify({ id: String(user._id), fullName: user.fullName || "", email: user.email || "", avatar: user.avatar || "" })};
+else
+  script.
+    window.__CHAT_ACCOUNT__ = null;
+
+// Chat Widget - Floating Button & Popup (Messenger icon)
+.chat-floating-btn#chatFloatingBtn(onclick="toggleChatWidget()", type="button", aria-label="Mở chat hỗ trợ")
+  i.fa-brands.fa-facebook-messenger.chat-floating-btn__icon
+  .notification-dot#chatNotificationDot
+
+.chat-widget#chatWidget
+  // Header
+  .chat-header
+    .chat-header-info
+      .chat-avatar
+        i.fa-solid.fa-headset
+      .chat-info-text
+        h4 Hỗ trợ khách hàng
+        .chat-status-indicator
+          span.status-dot.online
+          span#chatStatusText Đang trực tuyến
+    .chat-header-actions
+      button.chat-header-btn#chatMinimizeBtn(onclick="toggleChatWidget()", title="Thu nhỏ")
+        i.fa-solid.fa-minus
+
+  // Welcome Screen (shown before joining)
+  .chat-welcome#chatWelcome
+    .chat-welcome-icon
+      i.fa-solid.fa-comments
+    if user
+      h3 Xin chào, #{chatLabel}!
+      p Bạn đang chat với hỗ trợ viên bằng tên tài khoản — không cần nhập thêm.
+      p.chat-welcome-connecting#chatWelcomeConnecting(style="display: none;") Đang kết nối...
+    else
+      h3 Chào mừng bạn!
+      p Vui lòng nhập tên để bắt đầu trò chuyện với chúng tôi
+      .chat-welcome-form
+        input#guestNameInput(type="text", placeholder="Nhập tên của bạn...", maxlength="50")
+        button(type="button", onclick="joinChat()")
+          i.fa-solid.fa-paper-plane
+          | Bắt đầu chat
+
+  // Chat Area (hidden before joining)
+  #chatArea(style="display: none; flex-direction: column; flex: 1; overflow: hidden;")
+    .chat-body#chatBody
+      // Messages will be inserted here
+
+    // Typing Indicator
+    .typing-indicator#typingIndicator
+      .message-avatar
+        i.fa-solid.fa-headset
+      .typing-dots
+        span
+        span
+        span
+
+    // Chat Closed State (hidden by default)
+    .chat-closed#chatClosedState(style="display: none;")
+      .chat-closed-icon
+        i.fa-solid.fa-check-circle
+      h4 Phiên chat đã kết thúc
+      p Cảm ơn bạn đã trò chuyện với chúng tôi!
+      button.chat-restart-btn(onclick="restartChat()")
+        i.fa-solid.fa-redo
+        | Bắt đầu lại
+
+    // Input Area
+    .chat-input-area#chatInputArea
+      .chat-input-wrapper
+        textarea.chat-input#chatInput(
+          placeholder="Nhập tin nhắn...",
+          rows="1",
+          maxlength="1000"
+        )
+        input#chatImageInput(type="file", accept="image/*", style="display: none;", onchange="handleChatImageSelect(this)")
+        button.chat-image-btn#chatImageBtn(type="button", onclick="document.getElementById('chatImageInput').click()", title="Gửi ảnh")
+          i.fa-solid.fa-image
+        button.chat-send-btn#chatSendBtn(onclick="sendMessage()", disabled)
+          i.fa-solid.fa-paper-plane

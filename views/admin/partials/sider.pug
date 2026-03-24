@@ -3,6 +3,8 @@
     ul 
       li 
         a(href=`${prefixAdmin}/dashboard`) Tổng quan 
+      li 
+        a(href=`${prefixAdmin}/chat`) Chat Hỗ trợ
       if(role.permission.includes("products_view"))
         li 
           a(href=`${prefixAdmin}/products`) Danh sách sản phẩm

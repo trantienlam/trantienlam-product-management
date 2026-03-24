@@ -1,6 +1,9 @@
 const express = require("express");
 require("dotenv").config();
 
+const http = require("http");
+const { Server } = require("socket.io");
+
 const path = require("path");
 const methodOverride = require("method-override");
 const bodyParser = require("body-parser");
@@ -20,6 +23,8 @@ const moment = require("moment");
 database.connect();
 
 const app = express();
+const server = http.createServer(app);
+const io = new Server(server);
 const port = process.env.PORT;
 
 app.use(methodOverride("_method"));
@@ -45,6 +50,13 @@ app.use(flash());
 // App Locals Varibles
 app.locals.prefixAdmin = systemConfig.prefixAdmin;
 app.locals.moment = moment;
+app.locals.formatTime = (date) => {
+  if (!date) return '';
+  const d = moment(date);
+  const now = moment();
+  const isToday = d.isSame(now, 'day');
+  return isToday ? d.format('HH:mm') : d.format('DD/MM HH:mm');
+};
 app.use(express.static(`${__dirname}/public`));
 
 // routes
@@ -57,10 +69,14 @@ app.get("*", (req, res) => {
   });
 });
 
+// Socket.io
+const socketHandler = require("./socket");
+socketHandler(io);
+
 // chạy local
 if (process.env.NODE_ENV !== "production") {
   const port = process.env.PORT || 3000;
-  app.listen(port, () => {
+  server.listen(port, () => {
     console.log(`App listening on port ${port}`);
   });
 }
