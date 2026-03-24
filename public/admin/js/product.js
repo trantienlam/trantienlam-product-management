@@ -68,7 +68,7 @@ if (buttonsDelete.length > 0) {
 
   buttonsDelete.forEach((button) => {
     button.addEventListener("click", () => {
-      const isConfirm = confirm("bạn có chắ muoobs xóa sản phẩm này");
+      const isConfirm = confirm("bạn có chắ muốn xóa sản phẩm này");
       if (isConfirm) {
         const id = button.getAttribute("data-id");
 

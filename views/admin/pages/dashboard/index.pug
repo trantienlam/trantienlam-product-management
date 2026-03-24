@@ -1,60 +1,201 @@
 extends ../../layouts/default.pug
+include ../../mixins/alert.pug
 
 block main
-  h1 Trang tổng quan 
+  +alert-success(5000)
 
+  //- Page header
+  .dashboard-header
+    .container
+      .dashboard-header-content
+        .dashboard-header-icon
+          i.fa-solid.fa-chart-line
+        .dashboard-header-text
+          h1.page-title Trang Tổng quan
+          p.page-subtitle
+            | Chào mừng, 
+            strong= user ? user.fullName : "Quản trị viên"
+        .dashboard-header-time
+          i.fa-solid.fa-calendar-day
+          br
+          span#dashboard-date
 
-  .row.mt-4
-    .col-12
-      .card.mb-4
-        .card-header Thông tin tài khoản
-        .card-body
-          if(user.avatar)
-            img(
-            src=user.avatar
-            style="height: 180px; margin-bottom: 15px;"
-            )
-          if (user.fullName)
-            p Họ tên: <b> #{user.fullName}</b>    
-          if (user.email)
-            p Email:  <b> #{user.email}</b>
-          if (user.phone)
-            p Số điện thoại: <b> #{user.phone}</b>
-          if (role.title)
-            p Phân quyền: <b> #{role.title}</b>
+  //- Main content
+  .container.mt-4
 
+    //- Welcome card
+    .dashboard-welcome-card
+      .dashboard-welcome-card__inner
+        if(user && user.avatar)
+          img.dashboard-welcome-avatar(src=user.avatar alt=(user.fullName || "Admin"))
+        else
+          .dashboard-welcome-avatar-placeholder
+            i.fa-solid.fa-user-shield
+        .dashboard-welcome-info
+          h3= user && user.fullName ? user.fullName : "Quản trị viên"
+          if(user && user.email)
+            p
+              i.fa-solid.fa-envelope
+              | #{user.email}
+          if(user && user.phone)
+            p
+              i.fa-solid.fa-phone
+              | #{user.phone}
+          if(role && role.title)
+            .dashboard-welcome-badge
+              i.fa-solid.fa-shield-halved
+              | #{role.title}
+        .dashboard-welcome-actions
+          if(role.permission.includes("products_view"))
+            a.btn.btn-primary(href=`${prefixAdmin}/products`)
+              i.fa-solid.fa-box
+              | Quản lý sản phẩm
+          if(role.permission.includes("accounts_view"))
+            a.btn.btn-outline-primary(href=`${prefixAdmin}/accounts`)
+              i.fa-solid.fa-users
+              | Quản lý tài khoản
 
-    .col-6
-      .card.mb-4
-        .card-header Danh mục sản phẩm
-        .card-body
-          p Số lượng: <b>#{statistic.categoryProduct.total}</b>
-          p Hoạt động: <b>#{statistic.categoryProduct.active}</b>
-          p Dừng hoạt động: <b>#{statistic.categoryProduct.inactive}</b>
+    //- Stat cards
+    .stat-cards-grid
 
-    .col-6
-      .card.mb-4
-        .card-header Sản phẩm
-        .card-body
-          p Số lượng: <b>#{statistic.product.total}</b>
-          p Hoạt động: <b>#{statistic.product.active}</b>
-          p Dừng hoạt động: <b>#{statistic.product.inactive}</b>
+      //- Danh mục sản phẩm
+      .stat-card.stat-card--category
+        .stat-card__header
+          .stat-card__icon
+            i.fa-solid.fa-layer-group
+          .stat-card__count
+            i.fa-solid.fa-layer-group
+            |  #{statistic.categoryProduct.total} danh mục
+        h3.stat-card__title Danh mục sản phẩm
+        .stat-card__number= statistic.categoryProduct.total
+        .stat-card__breakdown
+          .stat-card__breakdown-item.stat-card__breakdown-item--active
+            span.stat-card__breakdown-dot
+            | Hoạt động #{statistic.categoryProduct.active}
+          .stat-card__breakdown-item.stat-card__breakdown-item--inactive
+            span.stat-card__breakdown-dot
+            | Dừng #{statistic.categoryProduct.inactive}
+        if(statistic.categoryProduct.total > 0)
+          .stat-card__progress
+            .progress-bar
+              .progress-bar__fill(style=`width: ${Math.round(statistic.categoryProduct.active / statistic.categoryProduct.total * 100)}%`)
 
-    .col-6
-      .card.mb-4
-        .card-header Tài khoản admin
-        .card-body
-          p Số lượng: <b>#{statistic.account.total}</b>
-          p Hoạt động: <b>#{statistic.account.active}</b>
-          p Dừng hoạt động: <b>#{statistic.account.inactive}</b>       
+      //- Sản phẩm
+      .stat-card.stat-card--product
+        .stat-card__header
+          .stat-card__icon
+            i.fa-solid.fa-box-open
+          .stat-card__count
+            i.fa-solid.fa-box
+            |  #{statistic.product.total} sản phẩm
+        h3.stat-card__title Sản phẩm
+        .stat-card__number= statistic.product.total
+        .stat-card__breakdown
+          .stat-card__breakdown-item.stat-card__breakdown-item--active
+            span.stat-card__breakdown-dot
+            | Hoạt động #{statistic.product.active}
+          .stat-card__breakdown-item.stat-card__breakdown-item--inactive
+            span.stat-card__breakdown-dot
+            | Dừng #{statistic.product.inactive}
+        if(statistic.product.total > 0)
+          .stat-card__progress
+            .progress-bar
+              .progress-bar__fill(style=`width: ${Math.round(statistic.product.active / statistic.product.total * 100)}%`)
 
-    .col-6
-      .card.mb-4
-        .card-header Tài khoản client
-        .card-body
-          p Số lượng: <b>#{statistic.user.total}</b>
-          p Hoạt động: <b>#{statistic.user.active}</b>
-          p Dừng hoạt động: <b>#{statistic.user.inactive}</b>      
-                
-        
-    
+      //- Tài khoản admin
+      .stat-card.stat-card--admin
+        .stat-card__header
+          .stat-card__icon
+            i.fa-solid.fa-user-shield
+          .stat-card__count
+            i.fa-solid.fa-users-cog
+            |  #{statistic.account.total} tài khoản
+        h3.stat-card__title Tài khoản Admin
+        .stat-card__number= statistic.account.total
+        .stat-card__breakdown
+          .stat-card__breakdown-item.stat-card__breakdown-item--active
+            span.stat-card__breakdown-dot
+            | Hoạt động #{statistic.account.active}
+          .stat-card__breakdown-item.stat-card__breakdown-item--inactive
+            span.stat-card__breakdown-dot
+            | Dừng #{statistic.account.inactive}
+        if(statistic.account.total > 0)
+          .stat-card__progress
+            .progress-bar
+              .progress-bar__fill(style=`width: ${Math.round(statistic.account.active / statistic.account.total * 100)}%`)
+
+      //- Tài khoản client
+      .stat-card.stat-card--user
+        .stat-card__header
+          .stat-card__icon
+            i.fa-solid.fa-users
+          .stat-card__count
+            i.fa-solid.fa-user-friends
+            |  #{statistic.user.total} tài khoản
+        h3.stat-card__title Tài khoản Client
+        .stat-card__number= statistic.user.total
+        .stat-card__breakdown
+          .stat-card__breakdown-item.stat-card__breakdown-item--active
+            span.stat-card__breakdown-dot
+            | Hoạt động #{statistic.user.active}
+          .stat-card__breakdown-item.stat-card__breakdown-item--inactive
+            span.stat-card__breakdown-dot
+            | Dừng #{statistic.user.inactive}
+        if(statistic.user.total > 0)
+          .stat-card__progress
+            .progress-bar
+              .progress-bar__fill(style=`width: ${Math.round(statistic.user.active / statistic.user.total * 100)}%`)
+
+    //- Quick links
+    .dashboard-quick-links
+      if(role.permission.includes("products_view"))
+        a.quick-link-card.quick-link-card--products(
+          href=`${prefixAdmin}/products`
+        )
+          .quick-link-card__icon
+            i.fa-solid.fa-box-open
+          .quick-link-card__text
+            .quick-link-card__title Quản lý sản phẩm
+            .quick-link-card__desc #{statistic.product.total} sản phẩm trong hệ thống
+          .quick-link-card__arrow
+            i.fa-solid.fa-chevron-right
+
+      if(role.permission.includes("products-category_view"))
+        a.quick-link-card.quick-link-card--category(
+          href=`${prefixAdmin}/products-category`
+        )
+          .quick-link-card__icon
+            i.fa-solid.fa-sitemap
+          .quick-link-card__text
+            .quick-link-card__title Danh mục sản phẩm
+            .quick-link-card__desc #{statistic.categoryProduct.total} danh mục đang quản lý
+          .quick-link-card__arrow
+            i.fa-solid.fa-chevron-right
+
+      if(role.permission.includes("accounts_view"))
+        a.quick-link-card.quick-link-card--accounts(
+          href=`${prefixAdmin}/accounts`
+        )
+          .quick-link-card__icon
+            i.fa-solid.fa-users-cog
+          .quick-link-card__text
+            .quick-link-card__title Quản lý tài khoản
+            .quick-link-card__desc #{statistic.account.total} tài khoản admin
+          .quick-link-card__arrow
+            i.fa-solid.fa-chevron-right
+
+append scripts
+  script.
+    // Hiển thị ngày hiện tại
+    function initDashboardDate() {
+      var el = document.getElementById('dashboard-date');
+      if (!el) return;
+      var now = new Date();
+      var days = ['Chủ nhật', 'Thứ hai', 'Thứ ba', 'Thứ tư', 'Thứ năm', 'Thứ sáu', 'Thứ bảy'];
+      var dayName = days[now.getDay()];
+      var dd = String(now.getDate()).padStart(2, '0');
+      var mm = String(now.getMonth() + 1).padStart(2, '0');
+      var yyyy = now.getFullYear();
+      el.textContent = dayName + ', ' + dd + '/' + mm + '/' + yyyy;
+    }
+    initDashboardDate();

@@ -1,80 +1,147 @@
 extends ../../layouts/default.pug
+include ../../mixins/alert.pug
 include ../../mixins/box-head.pug
 
 block main
-  .container.my-4
-    .row
-      .col-md-8.offset-md-2
+  +alert-success(3000)
 
-        +box-head("Thông tin tài khoản")
+  .account-page
+    .container
+      .account-layout
 
-        .card.shadow-sm
-          .card-body
+        //- Sidebar
+        aside.account-sidebar
+          .account-sidebar__card
+            .account-sidebar__user
+              img.account-sidebar__avatar(
+                src=user.avatar || "https://cdn-icons-png.flaticon.com/512/149/149071.png"
+                alt=user.fullName
+              )
+              p.account-sidebar__name #{user.fullName}
+              p.account-sidebar__email #{user.email}
+            nav.account-sidebar__nav
+              a.account-nav-item.is-active(href="/user/info")
+                i.bi.bi-person-fill
+                | Thông tin tài khoản
+              a.account-nav-item(href="/cart")
+                i.bi.bi-cart3
+                | Giỏ hàng
+              a.account-nav-item(href="/user/password/forgot")
+                i.bi.bi-shield-lock
+                | Đổi mật khẩu
+              a.account-nav-item(href="/user/logout")
+                i.bi.bi-box-arrow-right
+                | Đăng xuất
 
-            form(
-              action="/user/info?_method=PATCH"
-              method="POST"
-              enctype="multipart/form-data"
-            )
-              
-              // Avatar
-              .text-center.mb-4(upload-image)
-                label(for="avatarInput" style="cursor:pointer;")
+        //- Main content
+        main.account-content
+          .account-card
 
-                  img(
-                    upload-image-preview
-                    src= user.avatar || "https://cdn-icons-png.flaticon.com/512/149/149071.png"
-                    style="height:180px; width:180px; object-fit:cover; border-radius:50%; margin-bottom:15px;"
+            .account-card__header
+              .account-card__header-icon
+                i.bi.bi-pencil-square
+              div
+                h1.account-card__title Thông tin tài khoản
+                p.account-card__subtitle Quản lý thông tin cá nhân của bạn
+
+            .account-card__body
+              form.account-form(
+                action="/user/info?_method=PATCH"
+                method="POST"
+                enctype="multipart/form-data"
+              )
+
+                //- Avatar upload
+                .account-avatar-section(upload-image)
+                  .account-avatar-upload
+                    img.account-avatar-upload__img(
+                      src=user.avatar || "https://cdn-icons-png.flaticon.com/512/149/149071.png"
+                      alt="Avatar"
+                      upload-image-preview
+                    )
+                    .account-avatar-upload__overlay
+                      i.bi.bi-camera-fill
+                    input#avatarInput.account-avatar-upload__input(
+                      type="file"
+                      name="avatar"
+                      accept="image/*"
+                      upload-image-input
+                    )
+                  .account-avatar-info
+                    p.account-avatar-info__hint Nhấn vào ảnh để thay đổi avatar.<br>Định dạng: JPG, PNG, GIF — tối đa 2MB.
+                    label.account-avatar-info__btn(for="avatarInput")
+                      i.bi.bi-upload
+                      | Chọn ảnh
+
+                //- Họ tên
+                .form-group
+                  label.form-label
+                    | Họ và tên
+                    span.required  *
+                  input.form-control(
+                    type="text",
+                    name="fullName",
+                    value=user.fullName,
+                    placeholder="Nhập họ và tên",
+                    required
                   )
 
-                input#avatarInput(
-                  type="file"
-                  name="avatar"
-                  accept="image/*"
-                  style="display:none"
-                  upload-image-input
-                )
+                //- Email (readonly)
+                .form-group
+                  label.form-label Email
+                  input.form-control(
+                    type="email",
+                    value=user.email,
+                    readonly
+                  )
+                  span.form-text Email không thể thay đổi
 
-              // Họ tên
-              .mb-3
-                label.form-label Họ tên
-                input.form-control(
-                  type="text",
-                  name="fullName",
-                  value=user.fullName,
-                  placeholder="Nhập họ tên"
-                )
+                //- Số điện thoại
+                .form-group
+                  label.form-label Số điện thoại
+                  .auth-form__input-wrap
+                    i.bi.bi-telephone-fill.input-icon
+                    input.form-control(
+                      type="tel",
+                      name="phone",
+                      value=user.phone || "",
+                      placeholder="Nhập số điện thoại"
+                      style="padding-left: 42px"
+                    )
 
-              // Email (readonly)
-              .mb-3
-                label.form-label Email
-                input.form-control(
-                  type="email",
-                  value=user.email,
-                  readonly
-                )
+                //- Đổi mật khẩu
+                p.account-form__section-title
+                  i.bi.bi-key-fill
+                  | Đổi mật khẩu
+                .form-group
+                  label.form-label Mật khẩu mới
+                  .auth-form__input-wrap
+                    i.bi.bi-lock-fill.input-icon
+                    input.form-control(
+                      type="password",
+                      name="password",
+                      placeholder="Để trống nếu không đổi"
+                      style="padding-left: 42px; padding-right: 42px"
+                      id="newPassword"
+                    )
+                    button.auth-form__toggle-pass(
+                      type="button"
+                      onclick="this.classList.toggle('bi-eye'); this.classList.toggle('bi-eye-slash'); var p=document.getElementById('newPassword'); p.type=p.type==='password'?'text':'password';"
+                    )
+                      i.bi.bi-eye-slash
+                .form-group
+                  label.form-label Xác nhận mật khẩu
+                  .auth-form__input-wrap
+                    i.bi.bi-lock-fill.input-icon
+                    input.form-control(
+                      type="password",
+                      placeholder="Nhập lại mật khẩu mới"
+                      style="padding-left: 42px"
+                      id="confirmPassword"
+                    )
 
-              // SĐT
-              .mb-3
-                label.form-label Số điện thoại
-                input.form-control(
-                  type="text",
-                  name="phone",
-                  value=user.phone,
-                  placeholder="Nhập số điện thoại"
-                )
-
-              // Password mới
-              .mb-3
-                label.form-label Mật khẩu mới
-                input.form-control(
-                  type="password",
-                  name="password",
-                  placeholder="Để trống nếu không đổi"
-                )
-
-              // Submit
-              button.btn.btn-primary.w-100(type="submit")
-                | Cập nhật thông tin
+                button.btn.btn-primary.auth-btn-primary(type="submit")
+                  i.bi.bi-check-circle-fill.mr-2
+                  | Lưu thay đổi
 
   script(src="/admin/js/script.js")

@@ -20,7 +20,10 @@ if (showAlert) {
 const stockElement = document.getElementById("stock");
 const quantityInput = document.getElementById("quantity");
 
-let stock = parseInt(stockElement.innerText);
+if (!stockElement || !quantityInput) {
+  // Trang không có form số lượng (vd: trang chủ)
+} else {
+let stock = parseInt(stockElement.innerText, 10);
 
 quantityInput.addEventListener("change", function () {
   let quantity = parseInt(this.value);
@@ -33,5 +36,6 @@ quantityInput.addEventListener("change", function () {
 
   stockElement.innerText = stock - quantity;
 });
+}
 
 //end

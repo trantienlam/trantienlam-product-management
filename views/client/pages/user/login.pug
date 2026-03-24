@@ -1,39 +1,66 @@
 extends ../../layouts/default.pug
-include ../../mixins/alert.pug  
-block main  
+include ../../mixins/alert.pug
+
+block main
   +alert-error(5000)
 
-  .container.my-5 
-    .row.justify-content-center 
-      .col-8 
-        h1(class="text-center") Đăng nhập tài khoản
-        form(
-          action="/user/login"
-          method="POST"
-        )
-          div(class="form-group")
-            label(for="email") Email 
-            input(
-              type="email"
-              class="form-control"
-              id="email"
-              name="email"
-              required
-            )
+  .auth-page
+    .container
+      .auth-card
 
-          div(class="form-group")
-            label(for="password") Mật khẩu 
-            input(
-              type="password"
-              class="form-control"
-              id="password"
-              name="password"
-              required
-            )
+        .auth-card__header
+          .auth-card__logo
+            i.bi.bi-person-circle
+          h1.auth-card__title Đăng nhập
+          p.auth-card__subtitle Chào mừng bạn quay trở lại
 
-          div(class="form-group")
-            button(
-              type = "submit"
-              class="btn btn-primary btn-block"
-            ) Đăng nhập
-        a(href="/user/password/forgot") Quên mật khẩu
+        .auth-card__body
+          form.auth-form(action="/user/login" method="POST")
+
+            .form-group
+              label.form-label(for="email") Email
+              .auth-form__input-wrap
+                i.bi.bi-envelope-fill.input-icon
+                input#email.form-control(
+                  type="email"
+                  name="email"
+                  placeholder="Nhập địa chỉ email"
+                  required
+                  autocomplete="email"
+                )
+
+            .form-group
+              label.form-label.d-flex.justify-content-between(for="password")
+                span Mật khẩu
+                a.auth-forgot-link(href="/user/password/forgot") Quên mật khẩu?
+              .auth-form__input-wrap
+                i.bi.bi-lock-fill.input-icon
+                input#password.form-control(
+                  type="password"
+                  name="password"
+                  placeholder="Nhập mật khẩu"
+                  required
+                  autocomplete="current-password"
+                  style="padding-right: 42px"
+                )
+                button.auth-form__toggle-pass(
+                  type="button"
+                  onclick="this.classList.toggle('bi-eye'); this.classList.toggle('bi-eye-slash'); var p=document.getElementById('password'); p.type=p.type==='password'?'text':'password';"
+                )
+                  i.bi.bi-eye-slash
+
+            button.auth-btn-primary(type="submit") Đăng nhập
+
+          .auth-divider hoặc
+
+          .auth-social
+            button.auth-social__btn(type="button")
+              i.bi.bi-google
+              | Đăng nhập với Google
+            button.auth-social__btn(type="button")
+              i.bi.bi-facebook
+              | Facebook
+
+        .auth-card__footer
+          | Chưa có tài khoản?
+          a(href="/user/register") Đăng ký ngay

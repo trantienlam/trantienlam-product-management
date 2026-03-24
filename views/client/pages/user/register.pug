@@ -1,49 +1,77 @@
 extends ../../layouts/default.pug
 include ../../mixins/alert.pug
 
-block main 
+block main
   +alert-error(3000)
 
-  .container.my-5 
-    .row.justify-content-center 
-      .col-8 
-        h3(class="text-center") Đăng ký tài khoản 
-        form(
-          action="/user/register"
-          method="POST"
-        )
-          div(class="form-group")
-            label(for="fullName") Họ và tên 
-            input(
-              type="text"
-              class="form-control"
-              id="fullName"
-              name="fullName"
-              required
-            )
-          div(class="form-group")
-            label(for="email") Email
-            input(
-              type="email"
-              class="form-control"
-              id="email"
-              name="email"
-              required
-            )
-          div(class="form-group")
-            label(for="password") Mật khẩu
-            input(
-              type="password"
-              class="form-control"
-              id="password"
-              name="password"
-              required
-            )
-          div(class="form-group")
-            button(
-              type="submit"
-              class="btn btn-primary btn-block"
-            ) Đăng ký
+  .auth-page
+    .container
+      .auth-card
 
+        .auth-card__header
+          .auth-card__logo
+            i.bi.bi-person-plus-fill
+          h1.auth-card__title Đăng ký
+          p.auth-card__subtitle Tạo tài khoản mới để mua sắm
 
+        .auth-card__body
+          form.auth-form(action="/user/register" method="POST")
 
+            .form-group
+              label.form-label(for="fullName") Họ và tên
+              .auth-form__input-wrap
+                i.bi.bi-person-fill.input-icon
+                input#fullName.form-control(
+                  type="text"
+                  name="fullName"
+                  placeholder="Nhập họ và tên của bạn"
+                  required
+                  autocomplete="name"
+                )
+
+            .form-group
+              label.form-label(for="email") Email
+              .auth-form__input-wrap
+                i.bi.bi-envelope-fill.input-icon
+                input#email.form-control(
+                  type="email"
+                  name="email"
+                  placeholder="Nhập địa chỉ email"
+                  required
+                  autocomplete="email"
+                )
+
+            .form-group
+              label.form-label(for="password") Mật khẩu
+              .auth-form__input-wrap
+                i.bi.bi-lock-fill.input-icon
+                input#password.form-control(
+                  type="password"
+                  name="password"
+                  placeholder="Tối thiểu 6 ký tự"
+                  required
+                  minlength="6"
+                  autocomplete="new-password"
+                  style="padding-right: 42px"
+                )
+                button.auth-form__toggle-pass(
+                  type="button"
+                  onclick="this.classList.toggle('bi-eye'); this.classList.toggle('bi-eye-slash'); var p=document.getElementById('password'); p.type=p.type==='password'?'text':'password';"
+                )
+                  i.bi.bi-eye-slash
+
+            button.auth-btn-primary(type="submit") Tạo tài khoản
+
+          .auth-divider hoặc
+
+          .auth-social
+            button.auth-social__btn(type="button")
+              i.bi.bi-google
+              | Đăng ký với Google
+            button.auth-social__btn(type="button")
+              i.bi.bi-facebook
+              | Facebook
+
+        .auth-card__footer
+          | Đã có tài khoản?
+          a(href="/user/login") Đăng nhập ngay

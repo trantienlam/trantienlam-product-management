@@ -94,15 +94,27 @@ module.exports.deleteItem = async (req, res) => {
 //[GET] /admin/products-category/detail/:id
 module.exports.detailCategory = async (req, res) => {
   try {
-    const find = {
+    const category = await ProductCategory.findOne({
       deleted: false,
       _id: req.params.id,
-    };
-    const product = await ProductCategory.findOne(find);
+    });
+
+    if (!category) {
+      return res.redirect(`${systemConfig.prefixAdmin}/products-category`);
+    }
+
+    let parentCategory = null;
+    if (category.parent_id) {
+      parentCategory = await ProductCategory.findOne({
+        _id: category.parent_id,
+        deleted: false,
+      });
+    }
 
     res.render("admin/pages/products-category/detail", {
-      pageTitle: product.title,
-      product: product,
+      pageTitle: category.title,
+      category: category,
+      parentCategory: parentCategory,
     });
   } catch (error) {
     res.redirect(`${systemConfig.prefixAdmin}/products-category`);

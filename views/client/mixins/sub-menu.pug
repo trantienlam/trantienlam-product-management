@@ -1,7 +1,9 @@
-mixin sub-menu(items, path )
-  ul 
-    each item in items 
-      li 
+mixin sub-menu(items, path, depth)
+  - depth = depth || 1
+  ul(class=depth === 1 ? "sub-menu__panel sub-menu__panel--root" : "sub-menu__panel sub-menu__panel--flyout")
+    each item in items
+      - const hasKids = item.children && item.children.length > 0
+      li(class=hasKids ? "sub-menu__item--has-children" : "")
         a(href=`${path}/${item.slug}`) #{item.title}
-        if item.children && item.children.length > 0 
-          +sub-menu(item.children, path)
+        if hasKids
+          +sub-menu(item.children, path, depth + 1)

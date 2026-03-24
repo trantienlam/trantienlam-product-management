@@ -41,6 +41,12 @@ module.exports.addPost = async (req, res) => {
     );
   }
 
+  const next = req.body.next;
+  if (next === "checkout") {
+    req.flash("success", "Đã thêm sản phẩm. Tiếp tục thanh toán.");
+    return res.redirect("/checkout");
+  }
+
   req.flash("success", "Thêm vào giỏ hàng thành công");
   res.redirect("back");
 };

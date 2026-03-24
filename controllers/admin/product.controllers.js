@@ -271,6 +271,33 @@ module.exports.detail = async (req, res) => {
     };
     const product = await Product.findOne(find);
 
+    // Lấy danh mục sản phẩm
+    if (product.product_category_id) {
+      const category = await ProductCategory.findOne({
+        _id: product.product_category_id,
+        deleted: false,
+      });
+      product.category = category;
+    }
+
+    // Lấy người tạo
+    if (product.createdBy && product.createdBy.account_id) {
+      const creator = await Account.findOne({
+        _id: product.createdBy.account_id,
+      }).select("fullName email avatar");
+      product.creator = creator;
+    }
+
+    // Lấy người cập nhật gần nhất
+    if (product.updatedBy && product.updatedBy.length > 0) {
+      const lastUpdater = product.updatedBy[product.updatedBy.length - 1];
+      const updater = await Account.findOne({
+        _id: lastUpdater.account_id,
+      }).select("fullName email avatar");
+      product.lastUpdater = updater;
+      product.lastUpdatedAt = lastUpdater.updatedAt;
+    }
+
     res.render("admin/pages/products/detail", {
       pageTitle: product.title,
       product: product,

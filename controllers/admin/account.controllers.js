@@ -94,3 +94,71 @@ module.exports.editPatch = async (req, res) => {
   }
   res.redirect("back");
 };
+
+//[PATCH] change-status/:stat us/:id
+module.exports.changeStatus = async (req, res) => {
+  try {
+    if (!req.user.role_id?.permission?.includes("accounts_change_status")) {
+      return res.status(403).send("Không có quyền");
+    } else {
+      const status = req.params.status;
+      const id = req.params.id;
+      const updatedBy = {
+        account_id: res.locals.user.id,
+        updatedAt: new Date(),
+      };
+      await Account.updateOne(
+        { _id: id },
+        {
+          status: status,
+          $push: { updatedBy: updatedBy },
+        },
+      );
+
+      req.flash("success", "Cập nhật thành công!");
+
+      res.redirect("back");
+    }
+  } catch (error) {
+    console.log(error);
+    res.redirect("back");
+  }
+};
+
+//[GET] admin/account/detail/id
+module.exports.detail = async (req, res) => {
+  try {
+    const find = {
+      deleted: false,
+      _id: req.params.id,
+    };
+    const account = await Account.findOne(find).populate("role_id");
+
+    res.render("admin/pages/accounts/detail", {
+      pageTitle: "Chi tiết tài khoản",
+      account: account,
+    });
+  } catch (error) {
+    console.log(error);
+    res.redirect(`${systemConfix.prefixAdmin}/accounts`);
+  }
+};
+
+//[DELETE] admin/account/delete/id
+module.exports.deleteId = async (req, res) => {
+  const status = req.params.status;
+  const id = req.params.id;
+
+  await Account.updateOne(
+    { _id: id },
+    {
+      deleted: true,
+      deletedBy: {
+        account_id: res.locals.user.id,
+        deletedAt: new Date(),
+      },
+    },
+  );
+  req.flash("success", `Đã xóa thành công sản phẩm!`);
+  res.redirect("back");
+};

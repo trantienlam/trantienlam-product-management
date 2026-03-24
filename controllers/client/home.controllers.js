@@ -20,9 +20,20 @@ module.exports.index = async (req, res) => {
     .limit(6);
   const newProductsNew = productsHelper.priceNewProducts(productsNew);
   //end
+
+  // lấy tất cả sản phẩm
+  const productsAll = await Product.find({
+    deleted: false,
+    status: "active",
+  })
+    .sort({ position: "desc" });
+  const newProductsAll = productsHelper.priceNewProducts(productsAll);
+  //end
+
   res.render("client/pages/home/index", {
     pageTitle: "Trang chủ",
     productsFeatured: newProductsFeatured,
     productsNew: newProductsNew,
+    productsAll: newProductsAll,
   });
 };

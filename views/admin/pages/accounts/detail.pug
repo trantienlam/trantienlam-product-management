@@ -1,0 +1,141 @@
+extends ../../layouts/default.pug
+
+block main
+  .page-header
+    .container
+      .page-header-content
+        .page-header-icon
+          i.fa-solid.fa-user-circle
+        .page-header-text
+          h1.page-title Chi tiết tài khoản
+          p.page-subtitle Xem thông tin và quyền hạn của tài khoản
+
+  .container.mt-4
+    .row
+
+      //- Left: Avatar & Quick Actions
+      .col-lg-4.mb-4
+        .card-profile
+          .card-profile-header
+            if(account.avatar)
+              img.card-profile-avatar(src=account.avatar alt=account.fullName)
+            else
+              .card-profile-avatar-placeholder
+                i.fa-solid.fa-user
+            .card-profile-status
+              if(account.status === "active")
+                span.status-badge.status-active
+                  i.fa-solid.fa-circle
+                  | Hoạt động
+              else
+                span.status-badge.status-inactive
+                  i.fa-solid.fa-circle
+                  | Dừng hoạt động
+          .card-profile-body
+            h3.card-profile-name= account.fullName
+            p.card-profile-email= account.email
+            if(account.role_id)
+              span.card-profile-role
+                i.fa-solid.fa-shield-halved
+                | #{account.role_id.title}
+
+          .card-profile-footer
+            .profile-stat
+              span.stat-value
+                i.fa-solid.fa-calendar
+              span.stat-label Ngày tạo
+              span.stat-info= account.createdAt.toLocaleDateString("vi-VN")
+
+            if(account.updatedAt)
+              .profile-stat
+                span.stat-value
+                  i.fa-solid.fa-clock-rotate-left
+                span.stat-label Cập nhật
+                span.stat-info= account.updatedAt.toLocaleDateString("vi-VN")
+
+          .card-profile-actions
+            if(role.permission.includes("accounts_edit"))
+              a.btn.btn-primary.btn-block(
+                href=`${prefixAdmin}/accounts/edit/${account._id}`
+              )
+                i.fa-solid.fa-pen-to-square
+                | Chỉnh sửa tài khoản
+
+            a.btn.btn-outline-secondary.btn-block(
+              href=`${prefixAdmin}/accounts`
+            )
+              i.fa-solid.fa-arrow-left
+              | Quay lại danh sách
+
+      //- Right: Info Cards
+      .col-lg-8
+        .info-card.mb-4
+          .info-card-header
+            i.fa-solid.fa-id-card
+            h3 Thông tin cá nhân
+          .info-card-body
+            .row
+              .col-md-6.mb-3
+                .info-item
+                  label.info-label Họ và tên
+                  .info-value= account.fullName
+
+              .col-md-6.mb-3
+                .info-item
+                  label.info-label Email
+                  .info-value= account.email
+
+              .col-md-6.mb-3
+                .info-item
+                  label.info-label Số điện thoại
+                  .info-value= account.phone || "Chưa cập nhật"
+
+              .col-md-6.mb-3
+                .info-item
+                  label.info-label Vai trò
+                  .info-value
+                    if(account.role_id)
+                      span.badge-role= account.role_id.title
+                    else
+                      span.text-muted Chưa phân quyền
+
+        .info-card.mb-4
+          .info-card-header
+            i.fa-solid.fa-shield-halved
+            h3 Quyền hạn
+          .info-card-body
+            //- Model Role dùng trường permission (mảng), không phải permissions
+            if(account.role_id && account.role_id.permission && account.role_id.permission.length)
+              .permissions-grid
+                each perm in account.role_id.permission
+                  .permission-item
+                    i.fa-solid.fa-check
+                    span= typeof perm === "string" ? perm.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase()) : String(perm)
+            else
+              .text-muted.text-center.py-4
+                i.fa-solid.fa-lock(style="font-size: 32px;")
+                p.mt-2 Không có thông tin quyền hạn
+
+        .info-card
+          .info-card-header
+            i.fa-solid.fa-clock
+            h3 Hoạt động gần đây
+          .info-card-body
+            .timeline
+              .timeline-item
+                .timeline-icon.timeline-icon-create
+                  i.fa-solid.fa-user-plus
+                .timeline-content
+                  .timeline-title Tài khoản được tạo
+                  .timeline-date
+                    i.fa-solid.fa-calendar-plus
+                    | #{account.createdAt.toLocaleDateString("vi-VN")} lúc #{account.createdAt.toLocaleTimeString("vi-VN")}
+              if(account.updatedAt)
+                .timeline-item
+                  .timeline-icon.timeline-icon-update
+                    i.fa-solid.fa-pen
+                  .timeline-content
+                    .timeline-title Cập nhật gần nhất
+                    .timeline-date
+                      i.fa-solid.fa-clock
+                      | #{account.updatedAt.toLocaleDateString("vi-VN")} lúc #{account.updatedAt.toLocaleTimeString("vi-VN")}

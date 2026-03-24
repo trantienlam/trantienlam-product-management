@@ -1,13 +1,24 @@
 mixin product-item(item)
-  .col-4.mb-3 
-    .product-item 
-      .inner-image 
-        img(src=item.thumbnail, alt=item.tile)
-        if(item.featured =="1")
-          .inner-featured Nổi bật 
-      .inner-content 
-        h3.inner-title 
-          a(href=`/products/detail/${item.slug}`) #{item.title} 
-        .inner-price-new #{item.priceNew}$
-        .inner-price-old #{item.price}$ 
-        .inner-discount -#{item.discountPercentage}%
+  .col-4.mb-3
+    .product-item
+      .inner-image
+        img(src=item.thumbnail, alt=item.title)
+        if(item.featured == "1")
+          .inner-featured
+            i.bi.bi-star-fill
+            |  Nổi bật
+        if(item.discountPercentage > 0)
+          .inner-discount-tag -#{item.discountPercentage}%
+      .inner-content
+        h3.inner-title
+          a(href=`/products/detail/${item.slug}`) #{item.title}
+        .inner-bottom
+          .inner-prices
+            if(item.priceNew)
+              span.inner-price-new #{item.priceNew.toLocaleString("vi-VN")} đ
+            if(item.price && item.priceNew)
+              span.inner-price-old #{item.price.toLocaleString("vi-VN")} đ
+        .inner-actions
+          a.btn-quick-view(href=`/products/detail/${item.slug}`)
+            i.bi.bi-eye
+            |  Xem chi tiết

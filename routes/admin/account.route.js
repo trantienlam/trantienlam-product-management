@@ -5,6 +5,7 @@ const valiDate = require("../../validates/admin/account.validate");
 const upload = multer();
 const controller = require("../../controllers/admin/account.controllers");
 const uploadCloud = require("../../middlewares/admin/uploadCloud.middleware");
+
 router.get("/", controller.index);
 router.get("/create", controller.create);
 
@@ -13,7 +14,7 @@ router.post(
   upload.single("avatar"),
   uploadCloud.upload,
   valiDate.createPost,
-  controller.createPost
+  controller.createPost,
 );
 
 router.get("/edit/:id", controller.edit);
@@ -23,7 +24,13 @@ router.patch(
   upload.single("avatar"),
   uploadCloud.upload,
   valiDate.editPatch,
-  controller.editPatch
+  controller.editPatch,
 );
+
+router.patch("/change-status/:status/:id", controller.changeStatus);
+
+router.get("/detail/:id", controller.detail);
+
+router.delete("/delete/:id", controller.deleteId);
 
 module.exports = router;

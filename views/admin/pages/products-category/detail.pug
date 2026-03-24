@@ -1,29 +1,195 @@
 extends ../../layouts/default.pug
+include ../../mixins/alert.pug
 
-block main 
-  .product-detail
-    if(product.title)
-      h1 #{product.title}
+block main
+  +alert-success(5000)
 
-    if(product.thumbnail)
-      div(class="mb-4")
-        img(src=product.thumbnail)
+  //- Page header
+  .page-header
+    .container
+      .page-header-content
+        .page-header-icon
+          i.fa-solid.fa-layer-group
+        .page-header-text
+          h1.page-title Chi tiết danh mục
+          p.page-subtitle= category.title
 
-    if(product.status)
-      div(class="mb-4")
-        span Trạng thái: 
-        if(product.status === "active")
-          span(class="badge badge-success") Hoạt động
-        else 
-          span(class="badge badge-danger") Dừng hoạt động
-    
-    if(product.position)
-      div(class="mb-4") Vị trí: <b>#{product.position}</b>
+  .container.mt-4
+    .row
 
-    if(product.description)
-      div(class="mb-4") !{product.description}
+      //- LEFT: Card ảnh + trạng thái + hành động nhanh
+      .col-lg-4.mb-4
+        .category-card
+          .category-card__image
+            if(category.thumbnail)
+              img(src=category.thumbnail, alt=category.title)
+            else
+              .category-card__image-placeholder
+                i.fa-solid.fa-image
 
-    a(
-      href=`${prefixAdmin}/products-category/edit/${product.id}`
-      class="btn btn-warning"
-    ) Chỉnh sửa
+          .category-card__body
+            .category-card__status
+              if(category.status === "active")
+                span.status-badge.status-active
+                  i.fa-solid.fa-circle
+                  | Hoạt động
+              else
+                span.status-badge.status-inactive
+                  i.fa-solid.fa-circle
+                  | Dừng hoạt động
+
+            h3.category-card__title= category.title
+
+            if(parentCategory)
+              .category-card__parent
+                i.fa-solid.fa-folder-open
+                | Danh mục cha:
+                a(href=`${prefixAdmin}/products-category/detail/${parentCategory._id}`)= parentCategory.title
+            else if(category.parent_id === "")
+              .category-card__parent.category-card__parent--none
+                i.fa-solid.fa-folder-tree
+                | Dananh mục gốc (không có danh mục cha)
+
+            .category-card__meta
+              .meta-item
+                i.fa-solid.fa-hashtag
+                span.meta-label Vị trí
+                span.meta-value= category.position
+
+              .meta-item
+                i.fa-solid.fa-sitemap
+                span.meta-label Slug
+                span.meta-value= category.slug
+
+          .category-card__footer
+            if(role.permission.includes("products-category_edit"))
+              a.btn.btn-primary.btn-block(
+                href=`${prefixAdmin}/products-category/edit/${category._id}`
+              )
+                i.fa-solid.fa-pen-to-square
+                | Chỉnh sửa danh mục
+
+            a.btn.btn-outline-secondary.btn-block(
+              href=`${prefixAdmin}/products-category`
+            )
+              i.fa-solid.fa-arrow-left
+              | Quay lại danh sách
+
+      //- RIGHT: Thông tin chi tiết
+      .col-lg-8
+
+        //- Thông tin cơ bản
+        .info-card.mb-4
+          .info-card-header
+            i.fa-solid.fa-info-circle
+            h3 Thông tin cơ bản
+          .info-card-body
+            .row
+              .col-md-6.mb-3
+                .info-item
+                  label.info-label Tên danh mục
+                  .info-value= category.title
+
+              .col-md-6.mb-3
+                .info-item
+                  label.info-label Slug
+                  .info-value
+                    code= category.slug
+
+              .col-md-6.mb-3
+                .info-item
+                  label.info-label Danh mục cha
+                  .info-value
+                    if(parentCategory)
+                      a.badge-category(
+                        href=`${prefixAdmin}/products-category/detail/${parentCategory._id}`
+                      )
+                        i.fa-solid.fa-folder
+                        | #{parentCategory.title}
+                    else
+                      span.text-muted Không có
+
+              .col-md-6.mb-3
+                .info-item
+                  label.info-label Vị trí
+                  .info-value
+                    span.badge-position= category.position
+
+              .col-md-6.mb-3
+                .info-item
+                  label.info-label Trạng thái
+                  .info-value
+                    if(category.status === "active")
+                      span.status-badge.status-active
+                        i.fa-solid.fa-circle
+                        | Hoạt động
+                    else
+                      span.status-badge.status-inactive
+                        i.fa-solid.fa-circle
+                        | Dừng hoạt động
+
+              .col-md-6.mb-3
+                .info-item
+                  label.info-label Ảnh đại diện
+                  .info-value
+                    if(category.thumbnail)
+                      a.thumbnail-link(
+                        href=category.thumbnail
+                        target="_blank"
+                      )
+                        i.fa-solid.fa-external-link-alt
+                        | Xem ảnh
+                    else
+                      span.text-muted Chưa có ảnh
+
+        //- Mô tả
+        .info-card.mb-4
+          .info-card-header
+            i.fa-solid.fa-align-left
+            h3 Mô tả
+          .info-card-body
+            if(category.description)
+              .description-content!= category.description
+            else
+              p.text-muted.text-center.py-3
+                i.fa-solid fa-file-circle-xmark
+                | Chưa có mô tả
+
+        //- Timeline hoạt động
+        .info-card
+          .info-card-header
+            i.fa-solid.fa-clock
+            h3 Hoạt động
+          .info-card-body
+            .timeline
+              .timeline-item
+                .timeline-icon.timeline-icon-create
+                  i.fa-solid.fa-folder-plus
+                .timeline-content
+                  .timeline-title Danh mục được tạo
+                  .timeline-date
+                    i.fa-solid.fa-calendar-plus
+                    if(category.createdAt)
+                      | #{category.createdAt.toLocaleDateString("vi-VN")} lúc #{category.createdAt.toLocaleTimeString("vi-VN")}
+                    else
+                      | —
+
+              if(category.updatedAt)
+                .timeline-item
+                  .timeline-icon.timeline-icon-update
+                    i.fa-solid.fa-pen
+                  .timeline-content
+                    .timeline-title Cập nhật gần nhất
+                    .timeline-date
+                      i.fa-solid.fa-clock
+                      | #{category.updatedAt.toLocaleDateString("vi-VN")} lúc #{category.updatedAt.toLocaleTimeString("vi-VN")}
+
+              if(category.status === "inactive")
+                .timeline-item
+                  .timeline-icon.timeline-icon-inactive
+                    i.fa-solid.fa-ban
+                  .timeline-content
+                    .timeline-title Trạng thái: Dừng hoạt động
+                    .timeline-date
+                      i.fa-solid fa-circle-exclamation
+                      | Danh mục hiện không hiển thị trên trang chính

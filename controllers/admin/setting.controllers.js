@@ -3,7 +3,7 @@ const SettingGeneral = require("../../models/settings-general.model");
 // [GET]/admin/setting/general
 module.exports.general = async (req, res) => {
   const settingGeneral = await SettingGeneral.findOne({});
-  console.log(settingGeneral);
+  // console.log(settingGeneral);
   res.render("admin/pages/settings/general", {
     pageTitle: "Cài đặt chung",
     settingGeneral: settingGeneral,

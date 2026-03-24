@@ -9,45 +9,45 @@ header.header
             img(src=settingGeneral.logo, alt="Logo")
 
       
-      .col-5 
-        form(
+      .col-5
+        form.header-search(
           action="/search"
           method="GET"
         )
-
-          div(class="form-group d-flex mb-0")
-            input(
+          .header-search__inner
+            input.header-search__input(
               type="text"
               placeholder="Nhập từ khóa..."
-              class="form-control"
               name="keyword"
               value=keyword
+              aria-label="Tìm kiếm"
             )
-            button(
-              type="submit"
-              class="btn btn-primary"
-            ) Tìm
+            button.header-search__btn(type="submit")
+              i.bi.bi-search(aria-hidden="true")
+              span Tìm
 
       .col-4
-        .inner-menu 
-          ul  
-            li 
-              a(href="/") Trang chủ 
-            li(class="sub-menu")
+        .inner-menu
+          ul.inner-menu__list
+            li.inner-menu__item
+              a.inner-menu__link(href="/") Trang chủ
+            li.inner-menu__item.sub-menu
               -const pathProduct = "/products";
-              a(href=pathProduct) Sản phẩm  
-                +sub-menu(layoutProductsCategory, pathProduct)
-            li  
-              a(href="/cart")
-                i(class="bi bi-cart3 mr-1")
+              a.inner-menu__link.sub-menu__trigger(href=pathProduct)
+                | Sản phẩm
+                i.bi.bi-chevron-down.sub-menu__caret(aria-hidden="true")
+              +sub-menu(layoutProductsCategory, pathProduct)
+            li.inner-menu__item
+              a.inner-menu__link(href="/cart")
+                i.bi.bi-cart3.mr-1(aria-hidden="true")
                 | (#{miniCart ? miniCart.totalQuantity : "0"})
             if(user)
-              li 
-                a(href="/user/info") #{user.fullName}
-              li 
-                a(href="/user/logout") Đăng xuất
-            else 
-              li 
-                a(href="/user/login") Đăng nhập
-              li 
-                a(href="/user/register") Đăng ký
+              li.inner-menu__item
+                a.inner-menu__link(href="/user/info") #{user.fullName}
+              li.inner-menu__item
+                a.inner-menu__link.inner-menu__link--muted(href="/user/logout") Đăng xuất
+            else
+              li.inner-menu__item
+                a.inner-menu__link(href="/user/login") Đăng nhập
+              li.inner-menu__item
+                a.inner-menu__link(href="/user/register") Đăng ký

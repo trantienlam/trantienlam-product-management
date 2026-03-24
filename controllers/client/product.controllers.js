@@ -4,6 +4,7 @@ const ProductCategory = require("../../models/product-category.model");
 const productsHelper = require("../../helpers/products");
 
 const productsCategoryHelper = require("../../helpers/products-category");
+const { htmlToPlainExcerpt } = require("../../helpers/html-plain");
 // [GET] products
 module.exports.index = async (req, res) => {
   const products = await Product.find({
@@ -40,9 +41,41 @@ module.exports.detail = async (req, res) => {
     }
 
     product.priceNew = productsHelper.priceNewProduct(product);
+
+    let saveAmount = 0;
+    if (
+      product.discountPercentage > 0 &&
+      product.price != null &&
+      product.priceNew != null
+    ) {
+      saveAmount = Math.max(
+        0,
+        Number(product.price) - Number(product.priceNew),
+      );
+    }
+
+    const descriptionExcerpt = htmlToPlainExcerpt(product.description, 200);
+
+    // Sản phẩm liên quan: cùng danh mục (trừ sản phẩm hiện tại)
+    let relatedProducts = [];
+    if (product.product_category_id) {
+      const related = await Product.find({
+        deleted: false,
+        status: "active",
+        product_category_id: product.product_category_id,
+        _id: { $ne: product._id },
+      })
+        .sort({ position: "desc" })
+        .limit(12);
+      relatedProducts = productsHelper.priceNewProducts(related);
+    }
+
     res.render("client/pages/products/detail", {
       pageTitle: product.title,
       product: product,
+      relatedProducts: relatedProducts,
+      saveAmount,
+      descriptionExcerpt,
     });
   } catch (error) {
     // res.redirect(`/products`);
