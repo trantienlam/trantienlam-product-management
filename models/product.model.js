@@ -11,7 +11,10 @@ const productSchema = new mongoose.Schema(
       default: "",
     },
     description: String,
-    price: Number,
+    price: {
+      type: Number,
+      required: true,
+    },
     discountPercentage: Number,
     stock: Number,
     thumbnail: String,
@@ -44,7 +47,7 @@ const productSchema = new mongoose.Schema(
         updatedAt: Date,
       },
     ],
-  }
+  },
   // {
   //   timestamps: true,
   // }

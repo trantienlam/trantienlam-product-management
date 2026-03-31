@@ -1,0 +1,47 @@
+extends ../layouts/default.pug
+
+block main
+  .container.mt-5
+    if status === "success"
+      .alert.alert-success.text-center
+        h2 🎉 Thanh toán thành công!
+        p Đơn hàng của bạn đã được thanh toán thành công qua VNPAY.
+
+    else
+      .alert.alert-danger.text-center
+        h2 ❌ Thanh toán thất bại!
+        p Có lỗi xảy ra trong quá trình thanh toán.
+
+    // ===== THÔNG TIN CHI TIẾT =====
+    .card.mt-4
+      .card-header
+        h4 Thông tin giao dịch
+      .card-body
+        ul.list-group
+          li.list-group-item
+            strong Mã đơn hàng:
+            |  #{data.vnp_TxnRef}
+
+          li.list-group-item
+            strong Số tiền:
+            |  #{(data.vnp_Amount / 100).toLocaleString()} VND
+
+          li.list-group-item
+            strong Ngân hàng:
+            |  #{data.vnp_BankCode}
+
+          li.list-group-item
+            strong Mã giao dịch VNPAY:
+            |  #{data.vnp_TransactionNo}
+
+          li.list-group-item
+            strong Thời gian:
+            |  #{data.vnp_PayDate}
+
+          li.list-group-item
+            strong Mã phản hồi:
+            |  #{data.vnp_ResponseCode}
+
+    // ===== BUTTON =====
+    .text-center.mt-4
+      a.btn.btn-primary(href="/") Về trang chủ

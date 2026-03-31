@@ -37,21 +37,28 @@ module.exports.order = async (req, res) => {
   const cartId = req.cookies.cartId;
   const userInfo = req.body;
 
-  const cart = await Cart.findOne({
-    _id: cartId,
-  });
+  const cart = await Cart.findOne({ _id: cartId });
+
   let products = [];
+  let totalPrice = 0; // 🔥 thêm
+
   for (const product of cart.products) {
     const productInfo = await Product.findOne({
       _id: product.product_id,
     });
+
+    const priceNew = productHelper.priceNewProduct(productInfo);
 
     const objectProduct = {
       product_id: product.product_id,
       price: productInfo.price,
       discountPercentage: productInfo.discountPercentage,
       quantity: product.quantity,
+      totalPrice: priceNew * product.quantity, // 🔥 thêm
     };
+
+    // 🔥 cộng tổng tiền
+    totalPrice += objectProduct.totalPrice;
 
     await Product.updateOne(
       { _id: product.product_id },
@@ -62,22 +69,27 @@ module.exports.order = async (req, res) => {
 
     products.push(objectProduct);
   }
+
+  // 🔥 FIX CHÍNH Ở ĐÂY
   const objectOrder = {
     cart_id: cartId,
     userInfo: userInfo,
     products: products,
+    amount: totalPrice, // ✅ THÊM DÒNG NÀY
+    paymentMethod: userInfo.paymentMethod || "cod", // thêm luôn
+    status: "pending",
   };
+
   const order = new Order(objectOrder);
   await order.save();
 
-  await Cart.updateOne(
-    {
-      _id: cartId,
-    },
-    {
-      products: [],
-    },
-  );
+  await Cart.updateOne({ _id: cartId }, { products: [] });
+
+  // 🔥 nếu dùng VNPAY
+  if (userInfo.paymentMethod === "vnpay") {
+    return res.redirect(`/payment/create?orderId=${order._id}`);
+  }
+
   res.redirect(`/checkout/success/${order.id}`);
 };
 

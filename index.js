@@ -27,6 +27,8 @@ const server = http.createServer(app);
 const io = new Server(server);
 const port = process.env.PORT;
 
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(methodOverride("_method"));
 
 // parse application/x-www-form-urlencoded
@@ -51,14 +53,21 @@ app.use(flash());
 app.locals.prefixAdmin = systemConfig.prefixAdmin;
 app.locals.moment = moment;
 app.locals.formatTime = (date) => {
-  if (!date) return '';
+  if (!date) return "";
   const d = moment(date);
   const now = moment();
-  const isToday = d.isSame(now, 'day');
-  return isToday ? d.format('HH:mm') : d.format('DD/MM HH:mm');
+  const isToday = d.isSame(now, "day");
+  return isToday ? d.format("HH:mm") : d.format("DD/MM HH:mm");
 };
 app.use(express.static(`${__dirname}/public`));
 
+//////
+// Nếu thêm trực tiếp vào app.js
+app.get("/payment/check-payment-vnpay", (req, res) => {
+  console.log("VNPAY callback params:", req.query); // in ra toàn bộ params gửi từ VNPAY
+  res.send("Đã nhận callback từ VNPAY"); // trả response đơn giản
+});
+///////////
 // routes
 route(app);
 routeAdmin(app);

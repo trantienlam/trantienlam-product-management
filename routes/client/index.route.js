@@ -13,7 +13,8 @@ const checkoutRoutes = require("./checkout.route");
 const userRoutes = require("./user.route");
 const chatRoutes = require("./chat.route");
 const chatUploadRoutes = require("./chat-upload.route");
-
+const paymentModel = require("../../models/payment.model.js");
+const paymentRoutes = require("./payment.route.js");
 module.exports = (app) => {
   app.use(categoryMiddleware.category);
 
@@ -36,5 +37,8 @@ module.exports = (app) => {
   app.use("/user", userRoutes);
 
   app.use("/chat", chatRoutes);
+
   app.use("/chat", chatUploadRoutes);
+
+  app.use("/payment", paymentRoutes);
 };

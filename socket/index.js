@@ -20,9 +20,9 @@ async function reopenSessionIfClosed(sessionId) {
   return session;
 }
 
-module.exports = function(io) {
+module.exports = function (io) {
   io.on("connection", (socket) => {
-    console.log(`[Socket.io] Client connected: ${socket.id}`);
+    //console.log(`[Socket.io] Client connected: ${socket.id}`);
 
     // Guest joins chat
     socket.on("guest:join", async (data) => {
@@ -42,7 +42,7 @@ module.exports = function(io) {
               sessionId: existing._id,
               guestName: existing.guestName,
               guestAvatar: existing.guestAvatar || "",
-              createdAt: existing.createdAt
+              createdAt: existing.createdAt,
             });
           }
           await syncGuestAvatarOnSession(existing, guestAvatar);
@@ -53,7 +53,7 @@ module.exports = function(io) {
             guestName: existing.guestName,
             isRestore: true,
             guestAvatar: existing.guestAvatar || "",
-            adminAvatar: existing.adminAvatar || ""
+            adminAvatar: existing.adminAvatar || "",
           });
         }
       }
@@ -61,14 +61,14 @@ module.exports = function(io) {
       // Priority 2: find an open session for this guest
       let session = await ChatSession.findOne({
         guestId,
-        status: { $in: ["waiting", "active"] }
+        status: { $in: ["waiting", "active"] },
       });
       if (!session) {
         session = new ChatSession({
           guestId,
           guestName: guestName || `Khách ${Date.now() % 10000}`,
           status: "waiting",
-          guestAvatar: guestAvatar || ""
+          guestAvatar: guestAvatar || "",
         });
         await session.save();
       }
@@ -84,7 +84,7 @@ module.exports = function(io) {
         guestName: session.guestName,
         createdAt: session.createdAt,
         guestAvatar: session.guestAvatar || "",
-        status: session.status
+        status: session.status,
       });
 
       // Send session info back to guest
@@ -93,7 +93,7 @@ module.exports = function(io) {
         guestName: session.guestName,
         isRestore: false,
         guestAvatar: session.guestAvatar || "",
-        adminAvatar: session.adminAvatar || ""
+        adminAvatar: session.adminAvatar || "",
       });
     });
 
@@ -108,7 +108,7 @@ module.exports = function(io) {
           sessionId: reopened._id,
           guestName: reopened.guestName,
           guestAvatar: reopened.guestAvatar || "",
-          createdAt: reopened.createdAt
+          createdAt: reopened.createdAt,
         });
       }
 
@@ -122,15 +122,15 @@ module.exports = function(io) {
           _id: message._id,
           content: message.content,
           sender: "guest",
-          createdAt: message.createdAt
-        }
+          createdAt: message.createdAt,
+        },
       });
     });
 
     // Admin joins
     socket.on("admin:join", () => {
       socket.join("admin-room");
-      console.log(`[Socket.io] Admin joined: ${socket.id}`);
+      //console.log(`[Socket.io] Admin joined: ${socket.id}`);
     });
 
     // Admin accepts chat session
@@ -142,9 +142,9 @@ module.exports = function(io) {
         {
           status: "active",
           adminName: adminName || "Admin",
-          adminAvatar: adminAvatar || ""
+          adminAvatar: adminAvatar || "",
         },
-        { new: true }
+        { new: true },
       );
 
       const avatar = updated?.adminAvatar || adminAvatar || "";
@@ -152,14 +152,14 @@ module.exports = function(io) {
       // Notify guest
       io.to(`session:${sessionId}`).emit("session:accepted", {
         adminName: adminName || "Admin",
-        adminAvatar: avatar
+        adminAvatar: avatar,
       });
 
       // Notify all admins
       io.to("admin-room").emit("admin:session-accepted", {
         sessionId,
         adminName,
-        adminAvatar: avatar
+        adminAvatar: avatar,
       });
     });
 
@@ -175,7 +175,7 @@ module.exports = function(io) {
         _id: message._id,
         content: message.content,
         sender: "admin",
-        createdAt: message.createdAt
+        createdAt: message.createdAt,
       });
 
       // Notify other admins
@@ -185,20 +185,20 @@ module.exports = function(io) {
           _id: message._id,
           content: message.content,
           sender: "admin",
-          createdAt: message.createdAt
-        }
+          createdAt: message.createdAt,
+        },
       });
     });
 
     // Admin closes chat
     socket.on("admin:close", async (data) => {
       const { sessionId } = data;
-      
+
       await ChatSession.findByIdAndUpdate(sessionId, { status: "closed" });
 
       // Notify guest
       io.to(`session:${sessionId}`).emit("session:closed");
-      
+
       // Notify admins
       io.to("admin-room").emit("admin:session-closed", { sessionId });
 
@@ -223,8 +223,12 @@ module.exports = function(io) {
     // Guest closes chat
     socket.on("guest:close", async () => {
       if (socket.sessionId) {
-        await ChatSession.findByIdAndUpdate(socket.sessionId, { status: "closed" });
-        io.to("admin-room").emit("admin:session-closed", { sessionId: socket.sessionId });
+        await ChatSession.findByIdAndUpdate(socket.sessionId, {
+          status: "closed",
+        });
+        io.to("admin-room").emit("admin:session-closed", {
+          sessionId: socket.sessionId,
+        });
       }
     });
 
@@ -239,7 +243,7 @@ module.exports = function(io) {
           sessionId: reopened._id,
           guestName: reopened.guestName,
           guestAvatar: reopened.guestAvatar || "",
-          createdAt: reopened.createdAt
+          createdAt: reopened.createdAt,
         });
       }
 
@@ -252,8 +256,8 @@ module.exports = function(io) {
           _id: message._id,
           content: message.content,
           sender: "guest",
-          createdAt: message.createdAt
-        }
+          createdAt: message.createdAt,
+        },
       });
     });
 
@@ -269,7 +273,7 @@ module.exports = function(io) {
         _id: message._id,
         content: message.content,
         sender: "admin",
-        createdAt: message.createdAt
+        createdAt: message.createdAt,
       });
 
       socket.broadcast.to("admin-room").emit("admin:new-message", {
@@ -278,13 +282,13 @@ module.exports = function(io) {
           _id: message._id,
           content: message.content,
           sender: "admin",
-          createdAt: message.createdAt
-        }
+          createdAt: message.createdAt,
+        },
       });
     });
 
     socket.on("disconnect", () => {
-      console.log(`[Socket.io] Client disconnected: ${socket.id}`);
+      //console.log(`[Socket.io] Client disconnected: ${socket.id}`);
     });
   });
 };
