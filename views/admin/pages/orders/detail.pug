@@ -1,0 +1,282 @@
+extends ../../layouts/default.pug
+include ../../mixins/moment.pug
+
+block main
+  .order-detail-page
+    .container-fluid.py-4
+      //- Header
+      - const orderId = order._id.toString()
+      .d-flex.justify-content-between.align-items-center.mb-4
+        div
+          a.btn.btn-outline-secondary(href=`${prefixAdmin}/orders`)
+            i.fas.fa-arrow-left.me-2
+            | Quay lại danh sách
+        div
+          select.form-select.d-inline-block.w-auto(
+            onchange="window.location.href=this.value"
+          )
+            option(value="") -- Đổi trạng thái --
+            option(value=`${prefixAdmin}/orders/change-status/processing/${orderId}` disabled=(order.status === 'processing' || order.status === 'completed' || order.status === 'cancelled' || order.status === 'failed')) Đang xử lý
+            option(value=`${prefixAdmin}/orders/change-status/shipping/${orderId}` disabled=(order.status === 'shipping' || order.status === 'completed' || order.status === 'cancelled' || order.status === 'failed')) Đang vận chuyển
+            option(value=`${prefixAdmin}/orders/change-status/delivered/${orderId}` disabled=(order.status === 'delivered' || order.status === 'completed' || order.status === 'cancelled' || order.status === 'failed')) Đã giao hàng
+            option(value=`${prefixAdmin}/orders/change-status/completed/${orderId}` disabled=(order.status === 'completed' || order.status === 'cancelled' || order.status === 'failed')) Hoàn thành
+            option(value=`${prefixAdmin}/orders/change-status/cancelled/${orderId}` disabled=(order.status === 'completed' || order.status === 'cancelled')) Hủy đơn
+
+      //- Order Header Card
+      .card.mb-4
+        .card-header.bg-primary.text-white
+          .d-flex.justify-content-between.align-items-center
+            div
+              h4.mb-0
+                i.fas.fa-receipt.me-2
+                | Đơn hàng #
+                = orderId.slice(-8).toUpperCase()
+            div.d-flex.gap-2
+              case order.status
+                when "pending"
+                  span.badge.bg-secondary.p-2 Chờ xác nhận
+                when "processing"
+                  span.badge.bg-info.p-2 Đang xử lý
+                when "shipping"
+                  span.badge.bg-primary.p-2 Đang vận chuyển
+                when "delivered"
+                  span.badge.bg-success.p-2 Đã giao hàng
+                when "completed"
+                  span.badge.bg-success.p-2 Hoàn thành
+                when "failed"
+                  span.badge.bg-danger.p-2 Thất bại
+                when "cancelled"
+                  span.badge.bg-dark.p-2 Đã hủy
+              case order.paymentStatus
+                when "paid"
+                  span.badge.bg-success
+                    i.fas.fa-check.me-1
+                    | Đã TT
+                when "unpaid"
+                  span.badge.bg-warning.text-dark
+                    i.fas.fa-clock.me-1
+                    | Chưa TT
+                when "refunded"
+                  span.badge.bg-info
+                    i.fas.fa-undo.me-1
+                    | Hoàn tiền
+        .card-body
+          .row
+            .col-md-4
+              .info-group
+                .info-label Ngày đặt
+                .info-value
+                  +formatDateTime(order.createdAt)
+            .col-md-4
+              .info-group
+                .info-label Cập nhật lần cuối
+                .info-value
+                  if order.updatedAt
+                    +formatDateTime(order.updatedAt)
+                  else
+                    | Chưa cập nhật
+            .col-md-4
+              .info-group
+                .info-label Phương thức thanh toán
+                .info-value
+                  if order.paymentMethod === 'vnpay'
+                    i.fab fa-cc-visa.text-primary.me-1
+                    | VNPAY
+                  else
+                    i.fas.fa-money-bill-wave.text-success.me-1
+                    | COD (Thanh toán khi nhận hàng)
+
+      .row
+        .col-lg-8
+          //- Customer Info Card
+          .card.mb-4
+            .card-header
+              h5.mb-0
+                i.fas.fa-user.me-2
+                | Thông tin người nhận
+            .card-body
+              .row
+                .col-md-4.mb-3
+                  .info-label Họ tên
+                  .info-value.fw-medium= order.userInfo ? order.userInfo.fullName : 'N/A'
+                .col-md-4.mb-3
+                  .info-label Số điện thoại
+                  .info-value.fw-medium= order.userInfo ? order.userInfo.phone : 'N/A'
+                .col-md-4.mb-3
+                  .info-label Địa chỉ
+                  .info-value.fw-medium= order.userInfo ? order.userInfo.address : 'N/A'
+
+          //- Products Card
+          .card.mb-4
+            .card-header
+              h5.mb-0
+                i.fas.fa-box-open.me-2
+                | Sản phẩm (#{order.products ? order.products.length : 0})
+            .card-body.p-0
+              table.table.table-hover.align-middle.mb-0
+                thead.table-light
+                  tr
+                    th.px-4 Sản phẩm
+                    th.text-center Số lượng
+                    th.text-end Đơn giá
+                    th.text-end.px-4 Thành tiền
+                tbody
+                  each item in order.products
+                    tr
+                      td.px-4
+                        .d-flex.align-items-center
+                          if item.productInfo && item.productInfo.thumbnail
+                            img(src=item.productInfo.thumbnail, alt=item.productInfo.title, width="50", height="50", class="rounded me-3 object-fit-cover")
+                          else
+                            .no-image.me-3: i.fas.fa-image
+                          .product-info.d-block
+                            .product-name.fw-medium.d-block= item.productInfo ? item.productInfo.title : 'Sản phẩm đã xóa'
+                            .product-id.small.text-muted.d-block
+                              | ID: 
+                              = item.product_id ? item.product_id.toString().slice(-6).toUpperCase() : 'N/A'
+                      td.text-center= item.quantity
+                      td.text-end
+                        = item.priceNew ? item.priceNew.toLocaleString('vi-VN') : (item.price || 0).toLocaleString('vi-VN')
+                        |  đ
+                      td.text-end.px-4.fw-bold
+                        = item.totalPrice ? item.totalPrice.toLocaleString('vi-VN') : '0'
+                        |  đ
+                tfoot
+                  tr.table-light
+                    td(colspan="3", class="text-end fw-bold px-4") Tổng cộng:
+                    td.text-end.px-4.fw-bold.fs-5.text-danger
+                      = order.amount ? order.amount.toLocaleString('vi-VN') : '0'
+                      |  đ
+
+        .col-lg-4
+          //- Payment Status Card
+          .card.mb-4
+            .card-header
+              h5.mb-0
+                i.fas.fa-credit-card.me-2
+                | Thanh toán
+            .card-body
+              .payment-info.mb-3
+                .d-flex.justify-content-between.align-items-center.mb-2
+                  span.text-muted Phương thức:
+                  span.fw-medium
+                    if order.paymentMethod === 'vnpay'
+                      i.fab.fa-cc-visa.text-primary.me-1
+                      | VNPAY
+                    else
+                      i.fas.fa-money-bill-wave.text-success.me-1
+                      | COD
+                .d-flex.justify-content-between.align-items-center
+                  span.text-muted Trạng thái:
+                  case order.paymentStatus
+                    when "paid"
+                      span.badge.bg-success.px-3.py-2 Đã thanh toán
+                    when "unpaid"
+                      span.badge.bg-warning.text-dark.px-3.py-2 Chưa thanh toán
+                    when "refunded"
+                      span.badge.bg-info.px-3.py-2 Đã hoàn tiền
+                    default
+                      span.badge.bg-secondary.px-3.py-2= order.paymentStatus || 'N/A'
+
+              //- Form đổi trạng thái thanh toán (chỉ hiện cho đơn COD)
+              if order.paymentMethod === 'cod'
+                hr.my-3
+                h6.mb-3
+                  i.fas.fa-edit.me-1
+                  | Đổi trạng thái thanh toán
+                .payment-status-buttons
+                  if order.paymentStatus !== 'paid'
+                    a.btn.btn-success.btn-sm.w-100.mb-2(
+                      href=`${prefixAdmin}/orders/change-payment-status/paid/${orderId}`
+                    )
+                      i.fas.fa-check-circle.me-1
+                      | Xác nhận đã thanh toán
+                  if order.paymentStatus !== 'refunded'
+                    a.btn.btn-info.btn-sm.w-100.mb-2(
+                      href=`${prefixAdmin}/orders/change-payment-status/refunded/${orderId}`
+                    )
+                      i.fas.fa-undo.me-1
+                      | Hoàn tiền
+                  if order.paymentStatus !== 'unpaid'
+                    a.btn.btn-warning.btn-sm.w-100(
+                      href=`${prefixAdmin}/orders/change-payment-status/unpaid/${orderId}`
+                    )
+                      i.fas.fa-times-circle.me-1
+                      | Chưa thanh toán
+
+              if order.vnpTransactionNo
+                hr.my-3
+                p.mb-0.small
+                  i.fas.fa-receipt.me-1
+                  | Mã giao dịch: 
+                  strong= order.vnpTransactionNo
+
+          //- Order Timeline Card
+          .card.mb-4
+            .card-header
+              h5.mb-0
+                i.fas.fa-history.me-2
+                | Timeline đơn hàng
+            .card-body
+              .timeline
+                - const cd = order.createdAt ? new Date(order.createdAt) : null
+                - const vc = cd && !isNaN(cd.getTime())
+                .timeline-item(class=order.status === 'pending' ? 'active' : 'completed')
+                  .timeline-marker
+                  .timeline-content
+                    .timeline-title Chờ xác nhận
+                    .timeline-time #{vc ? moment(cd).format('HH:mm DD/MM/YYYY') : 'N/A'}
+                - const ud = order.status !== 'pending' && order.updatedAt ? new Date(order.updatedAt) : null
+                - const vu = ud && !isNaN(ud.getTime())
+                .timeline-item(class=(order.status === 'processing' || order.status === 'shipping' || order.status === 'delivered' || order.status === 'completed') ? 'active' : '')
+                  .timeline-marker
+                  .timeline-content
+                    .timeline-title Đang xử lý
+                    .timeline-time #{vu ? moment(ud).format('HH:mm DD/MM/YYYY') : 'N/A'}
+                .timeline-item(class=(order.status === 'shipping' || order.status === 'delivered' || order.status === 'completed') ? 'active' : '')
+                  .timeline-marker
+                  .timeline-content
+                    .timeline-title Đang vận chuyển
+                .timeline-item(class=(order.status === 'delivered' || order.status === 'completed') ? 'active' : '')
+                  .timeline-marker
+                  .timeline-content
+                    .timeline-title Đã giao hàng
+                .timeline-item(class=(order.status === 'completed') ? 'active' : '')
+                  .timeline-marker
+                  .timeline-content
+                    .timeline-title Hoàn thành
+
+          //- Action Card
+          .card
+            .card-header
+              h5.mb-0
+                i.fas.fa-cog.me-2
+                | Thao tác
+            .card-body
+              a.btn.btn-primary.w-100.mb-2(href=`${prefixAdmin}/orders`)
+                i.fas.fa-list.me-2
+                | Danh sách đơn hàng
+              button.btn.btn-danger.w-100(type="button" data-toggle="modal" data-target="#deleteModal")
+                i.fas.fa-trash.me-2
+                | Xóa đơn hàng
+
+  //- Delete Modal
+  .modal.fade(id="deleteModal" tabindex="-1")
+    .modal-dialog
+      .modal-content
+        .modal-header.bg-danger.text-white
+          h5.modal-title Xác nhận xóa
+          button.close(type="button" data-dismiss="modal")
+            span &times;
+        .modal-body
+          p
+            | Bạn có chắc chắn muốn xóa đơn hàng #
+            = order._id.toString().slice(-8).toUpperCase()
+            |  không?
+          p.text-muted Hành động này không thể hoàn tác.
+        .modal-footer
+          button.btn.btn-secondary(type="button" data-dismiss="modal") Hủy
+          button.btn.btn-danger(type="button" onclick="document.getElementById('form-delete').submit()") Xóa
+
+  //- Hidden delete form
+  form(id="form-delete" action=`${prefixAdmin}/orders/delete/${orderId}?_method=DELETE` method="POST")

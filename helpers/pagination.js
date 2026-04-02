@@ -8,6 +8,7 @@ module.exports = (objectPagination, query, countProducts) => {
 
   const totalPage = Math.ceil(countProducts / objectPagination.limitItems);
   objectPagination.totalPage = totalPage;
+  objectPagination.totalItems = countProducts;
 
   return objectPagination;
 };

@@ -2,53 +2,47 @@ const mongoose = require("mongoose");
 
 const orderSchema = new mongoose.Schema(
   {
-    // 👉 liên kết
-    cart_id: String,
-    user_id: String, // nếu có login thì dùng
-
-    // 👉 thông tin người nhận
+    user_id: String,
     userInfo: {
       fullName: String,
       phone: String,
       address: String,
     },
-
-    // 👉 danh sách sản phẩm
     products: [
       {
         product_id: String,
         price: Number,
         discountPercentage: Number,
+        priceNew: Number,
         quantity: Number,
-        totalPrice: Number, // 🔥 nên lưu luôn
+        totalPrice: Number,
       },
     ],
-
-    // 👉 tổng tiền đơn hàng
     amount: {
       type: Number,
       required: true,
     },
-
-    // 👉 trạng thái đơn hàng
     status: {
       type: String,
-      enum: ["pending", "paid", "failed", "cancel"],
+      enum: ["pending", "processing", "shipping", "delivered", "completed", "failed", "cancelled"],
       default: "pending",
     },
-
-    // 👉 phương thức thanh toán
     paymentMethod: {
       type: String,
       enum: ["cod", "vnpay"],
       default: "cod",
     },
-
-    // 👉 mã giao dịch VNPAY
-    vnp_TxnRef: String,
-
-    // 👉 mã response từ VNPAY
-    vnp_ResponseCode: String,
+    paymentStatus: {
+      type: String,
+      enum: ["unpaid", "paid", "failed"],
+      default: "unpaid",
+    },
+    vnpTransactionNo: String,
+    vnpBankCode: String,
+    updatedBy: {
+      account_id: String,
+      updatedAt: Date,
+    },
   },
   {
     timestamps: true,

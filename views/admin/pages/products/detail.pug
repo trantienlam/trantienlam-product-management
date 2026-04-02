@@ -188,12 +188,15 @@ block main
               i.fa-solid.fa-clock-rotate-left
               h3 Lịch sử cập nhật (#{product.updatedBy.length})
             .product-info-body
+              - const updateHistoryPreview = product.updatedBy.slice().reverse().slice(0, 5)
+              - const updateHistoryTotal = product.updatedBy.length
               .update-history-list
-                each item, index in product.updatedBy.reverse().slice(0, 5)
+                each item, index in updateHistoryPreview
+                  - const updateOrdinal = updateHistoryTotal - index
                   .update-history-item
-                    .update-history-index #{index + 1}
+                    .update-history-index #{updateOrdinal}
                     .update-history-content
-                      .update-history-title Cập nhật lần #{index + 1}
+                      .update-history-title Cập nhật lần #{updateOrdinal}
                       if(item.updatedAt)
                         .update-history-date
                           i.fa-solid.fa-calendar

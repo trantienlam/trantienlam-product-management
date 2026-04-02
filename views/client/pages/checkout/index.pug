@@ -6,6 +6,7 @@ block main
   +alert-success(5000)
   +alert-error(5000)
 
+  
   .container.my-3
     .row
       .col-12
@@ -35,8 +36,8 @@ block main
                     )
                   td #{item.productInfo.title}
                   td #{item.productInfo.priceNew.toLocaleString()} đ
-                  td #{item.totalPrice.toLocaleString()} đ
                   td #{item.quantity}
+                  td #{item.totalPrice.toLocaleString()} đ
                   
             else
               tr
@@ -50,7 +51,7 @@ block main
       .row
         .col-12
           .card.p-4.my-4
-            form(action="/payment/checkout/order" method="POST")
+            form(action="/checkout/order" method="POST")
 
               .mb-3
                 label.form-label Họ tên

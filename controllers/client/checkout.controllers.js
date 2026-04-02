@@ -5,27 +5,54 @@ const productHelper = require("../../helpers/products");
 
 //[GET] /checkout/
 module.exports.index = async (req, res) => {
-  const cartId = req.cookies.cartId;
-  const cart = await Cart.findOne({
-    _id: cartId,
+  if (!req.user) {
+    return res.redirect("/user/login");
+  }
+
+  const userId = req.user._id;
+
+  // 🔥 luôn có cart
+  let cart = await Cart.findOne({ user_id: userId });
+
+  if (!cart) {
+    cart = await Cart.create({
+      user_id: userId,
+      products: [],
+    });
+  }
+
+  // 🔥 lấy danh sách product 1 lần (tối ưu)
+  const productIds = cart.products.map((p) => p.product_id);
+
+  const products = await Product.find({
+    _id: { $in: productIds },
   });
 
-  if (cart.products.length > 0) {
-    for (const item of cart.products) {
-      const productId = item.product_id;
-      const productInfo = await Product.findOne({
-        _id: productId,
-      });
-      productInfo.priceNew = productHelper.priceNewProduct(productInfo);
-      item.productInfo = productInfo;
-      item.totalPrice = item.quantity * productInfo.priceNew;
-    }
+  const productMap = {};
+  products.forEach((p) => {
+    productMap[p._id.toString()] = p;
+  });
+
+  // 🔥 gán dữ liệu
+  for (const item of cart.products) {
+    const productInfo = productMap[item.product_id.toString()];
+
+    if (!productInfo) continue;
+
+    productInfo.priceNew = productHelper.priceNewProduct(productInfo);
+
+    item.productInfo = productInfo;
+    item.totalPrice = item.quantity * productInfo.priceNew;
   }
+
+  // 🔥 tổng tiền
   cart.totalPriceCart = cart.products.reduce(
-    (sum, item) => sum + item.totalPrice,
+    (sum, item) => sum + (item.totalPrice || 0),
     0,
   );
+
   cart.totalPriceCartFormat = cart.totalPriceCart.toLocaleString("vi-VN");
+
   res.render("client/pages/checkout/index", {
     pageTitle: "Đặt hàng",
     cartDetail: cart,
@@ -34,63 +61,74 @@ module.exports.index = async (req, res) => {
 
 //[POST] /checkout/order
 module.exports.order = async (req, res) => {
-  const cartId = req.cookies.cartId;
-  const userInfo = req.body;
+  try {
+    if (!req.user) {
+      return res.redirect("/user/login");
+    }
 
-  const cart = await Cart.findOne({ _id: cartId });
+    const userId = req.user._id;
+    const { fullName, phone, address, paymentMethod } = req.body;
 
-  let products = [];
-  let totalPrice = 0; // 🔥 thêm
+    const cart = await Cart.findOne({ user_id: userId });
 
-  for (const product of cart.products) {
-    const productInfo = await Product.findOne({
-      _id: product.product_id,
+    if (!cart || cart.products.length === 0) {
+      req.flash("error", "Giỏ hàng trống");
+      return res.redirect("/cart");
+    }
+
+    const products = [];
+    let totalPrice = 0;
+
+    for (const item of cart.products) {
+      const productInfo = await Product.findOne({ _id: item.product_id });
+      if (!productInfo) continue;
+
+      const priceNew = productHelper.priceNewProduct(productInfo);
+
+      const objectProduct = {
+        product_id: item.product_id,
+        price: productInfo.price,
+        discountPercentage: productInfo.discountPercentage,
+        quantity: item.quantity,
+        totalPrice: priceNew * item.quantity,
+      };
+
+      totalPrice += objectProduct.totalPrice;
+
+      await Product.updateOne(
+        { _id: item.product_id },
+        { $inc: { stock: -item.quantity } }
+      );
+
+      products.push(objectProduct);
+    }
+
+    const order = new Order({
+      user_id: userId,
+      userInfo: { fullName, phone, address },
+      products: products,
+      amount: totalPrice,
+      paymentMethod: paymentMethod || "cod",
+      status: "pending",
+      paymentStatus: paymentMethod === "vnpay" ? "paid" : "unpaid",
     });
 
-    const priceNew = productHelper.priceNewProduct(productInfo);
+    await order.save();
 
-    const objectProduct = {
-      product_id: product.product_id,
-      price: productInfo.price,
-      discountPercentage: productInfo.discountPercentage,
-      quantity: product.quantity,
-      totalPrice: priceNew * product.quantity, // 🔥 thêm
-    };
+    // COD: clear cart immediately
+    if (paymentMethod === "cod") {
+      await Cart.updateOne({ user_id: userId }, { products: [] });
+      req.flash("success", "Đặt hàng thành công!");
+      return res.redirect(`/checkout/success/${order._id}`);
+    }
 
-    // 🔥 cộng tổng tiền
-    totalPrice += objectProduct.totalPrice;
-
-    await Product.updateOne(
-      { _id: product.product_id },
-      {
-        $inc: { stock: -product.quantity },
-      },
-    );
-
-    products.push(objectProduct);
+    // VNPAY: redirect to payment
+    res.redirect(`/payment/create?orderId=${order._id}&amount=${totalPrice}`);
+  } catch (error) {
+    console.error("[Checkout Order] Error:", error);
+    req.flash("error", "Lỗi đặt hàng");
+    res.redirect("/checkout");
   }
-
-  // 🔥 FIX CHÍNH Ở ĐÂY
-  const objectOrder = {
-    cart_id: cartId,
-    userInfo: userInfo,
-    products: products,
-    amount: totalPrice, // ✅ THÊM DÒNG NÀY
-    paymentMethod: userInfo.paymentMethod || "cod", // thêm luôn
-    status: "pending",
-  };
-
-  const order = new Order(objectOrder);
-  await order.save();
-
-  await Cart.updateOne({ _id: cartId }, { products: [] });
-
-  // 🔥 nếu dùng VNPAY
-  if (userInfo.paymentMethod === "vnpay") {
-    return res.redirect(`/payment/create?orderId=${order._id}`);
-  }
-
-  res.redirect(`/checkout/success/${order.id}`);
 };
 
 //[GET] /checkout/success/:id

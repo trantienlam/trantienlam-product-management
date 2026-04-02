@@ -1,199 +1,135 @@
 extends ../../layouts/default.pug
 include ../../mixins/alert.pug
 
-block styles
-  style.
-    .btn-delete-session:hover {
-      background: rgba(220, 38, 38, 0.3) !important;
-    }
-    .btn-delete-session:hover i {
-      color: #dc2626 !important;
-    }
-
 block main
   +alert-success(5000)
 
-  //- Page header
-  .dashboard-header
+  //- Page Header
+  .page-header
     .container
-      .dashboard-header-content
-        .dashboard-header-icon
-          i.fa-solid.fa-chart-line
-        .dashboard-header-text
-          h1.page-title Trang Tổng quan
-          p.page-subtitle
-            | Chào mừng, 
-            strong= user ? user.fullName : "Quản trị viên"
-        .dashboard-header-time
-          i.fa-solid.fa-calendar-day
-          br
-          span#dashboard-date
+      .page-header__content
+        .page-header__left
+          .page-header__icon
+            i.fa-solid.fa-chart-pie
+          .page-header__text
+            h1 Trang Tổng quan
+            p Chào mừng trở lại, #{user ? user.fullName : "Quản trị viên"}
+        .page-header__right
+          .page-header__date
+            i.fa-solid.fa-calendar
+            span#dashboard-date
 
-  //- Main content
-  .container.mt-4
+  //- Main Content
+  .container
 
-    //- Welcome card
-    .dashboard-welcome-card
-      .dashboard-welcome-card__inner
-        if(user && user.avatar)
-          img.dashboard-welcome-avatar(src=user.avatar alt=(user.fullName || "Admin"))
-        else
-          .dashboard-welcome-avatar-placeholder
-            i.fa-solid.fa-user-shield
-        .dashboard-welcome-info
-          h3= user && user.fullName ? user.fullName : "Quản trị viên"
-          if(user && user.email)
-            p
-              i.fa-solid.fa-envelope
-              | #{user.email}
-          if(user && user.phone)
-            p
-              i.fa-solid.fa-phone
-              | #{user.phone}
-          if(role && role.title)
-            .dashboard-welcome-badge
-              i.fa-solid.fa-shield-halved
-              | #{role.title}
-        .dashboard-welcome-actions
-          if(role.permission.includes("products_view"))
-            a.btn.btn-primary(href=`${prefixAdmin}/products`)
-              i.fa-solid.fa-box
-              | Quản lý sản phẩm
-          if(role.permission.includes("accounts_view"))
-            a.btn.btn-outline-primary(href=`${prefixAdmin}/accounts`)
-              i.fa-solid.fa-users
-              | Quản lý tài khoản
-
-    //- Stat cards
-    .stat-cards-grid
-
-      //- Danh mục sản phẩm
-      .stat-card.stat-card--category
+    //- Stats Cards Row
+    .stats-grid
+      .stat-card.stat-card--revenue
         .stat-card__header
           .stat-card__icon
-            i.fa-solid.fa-layer-group
-          .stat-card__count
-            i.fa-solid.fa-layer-group
-            |  #{statistic.categoryProduct.total} danh mục
-        h3.stat-card__title Danh mục sản phẩm
-        .stat-card__number= statistic.categoryProduct.total
-        .stat-card__breakdown
-          .stat-card__breakdown-item.stat-card__breakdown-item--active
-            span.stat-card__breakdown-dot
-            | Hoạt động #{statistic.categoryProduct.active}
-          .stat-card__breakdown-item.stat-card__breakdown-item--inactive
-            span.stat-card__breakdown-dot
-            | Dừng #{statistic.categoryProduct.inactive}
-        if(statistic.categoryProduct.total > 0)
-          .stat-card__progress
-            .progress-bar
-              .progress-bar__fill(style=`width: ${Math.round(statistic.categoryProduct.active / statistic.categoryProduct.total * 100)}%`)
+            i.fa-solid.fa-vnd-sign
+          .stat-card__trend(class=changes.revenue.isUp ? 'stat-card__trend--up' : 'stat-card__trend--down')
+            i.fa-solid(class=changes.revenue.isUp ? 'fa-arrow-up' : 'fa-arrow-down')
+            | #{changes.revenue.isUp ? '+' : ''}#{changes.revenue.value}%
+        .stat-card__value= statistic.order.totalRevenue.toLocaleString('vi-VN')
+        .stat-card__label Tổng doanh thu (VNĐ)
 
-      //- Sản phẩm
-      .stat-card.stat-card--product
+      .stat-card.stat-card--orders
         .stat-card__header
           .stat-card__icon
-            i.fa-solid.fa-box-open
-          .stat-card__count
+            i.fa-solid.fa-shopping-bag
+          .stat-card__trend(class=changes.orders.isUp ? 'stat-card__trend--up' : 'stat-card__trend--down')
+            i.fa-solid(class=changes.orders.isUp ? 'fa-arrow-up' : 'fa-arrow-down')
+            | #{changes.orders.isUp ? '+' : ''}#{changes.orders.value}%
+        .stat-card__value= statistic.order.total
+        .stat-card__label Tổng đơn hàng
+
+      .stat-card.stat-card--products
+        .stat-card__header
+          .stat-card__icon
             i.fa-solid.fa-box
-            |  #{statistic.product.total} sản phẩm
-        h3.stat-card__title Sản phẩm
-        .stat-card__number= statistic.product.total
-        .stat-card__breakdown
-          .stat-card__breakdown-item.stat-card__breakdown-item--active
-            span.stat-card__breakdown-dot
-            | Hoạt động #{statistic.product.active}
-          .stat-card__breakdown-item.stat-card__breakdown-item--inactive
-            span.stat-card__breakdown-dot
-            | Dừng #{statistic.product.inactive}
-        if(statistic.product.total > 0)
-          .stat-card__progress
-            .progress-bar
-              .progress-bar__fill(style=`width: ${Math.round(statistic.product.active / statistic.product.total * 100)}%`)
+          .stat-card__trend(class=changes.products.isUp ? 'stat-card__trend--up' : 'stat-card__trend--down')
+            i.fa-solid(class=changes.products.isUp ? 'fa-arrow-up' : 'fa-arrow-down')
+            | #{changes.products.isUp ? '+' : ''}#{changes.products.value}%
+        .stat-card__value= statistic.product.total
+        .stat-card__label Sản phẩm
 
-      //- Tài khoản admin
-      .stat-card.stat-card--admin
-        .stat-card__header
-          .stat-card__icon
-            i.fa-solid.fa-user-shield
-          .stat-card__count
-            i.fa-solid.fa-users-cog
-            |  #{statistic.account.total} tài khoản
-        h3.stat-card__title Tài khoản Admin
-        .stat-card__number= statistic.account.total
-        .stat-card__breakdown
-          .stat-card__breakdown-item.stat-card__breakdown-item--active
-            span.stat-card__breakdown-dot
-            | Hoạt động #{statistic.account.active}
-          .stat-card__breakdown-item.stat-card__breakdown-item--inactive
-            span.stat-card__breakdown-dot
-            | Dừng #{statistic.account.inactive}
-        if(statistic.account.total > 0)
-          .stat-card__progress
-            .progress-bar
-              .progress-bar__fill(style=`width: ${Math.round(statistic.account.active / statistic.account.total * 100)}%`)
-
-      //- Tài khoản client
-      .stat-card.stat-card--user
+      .stat-card.stat-card--users
         .stat-card__header
           .stat-card__icon
             i.fa-solid.fa-users
-          .stat-card__count
-            i.fa-solid.fa-user-friends
-            |  #{statistic.user.total} tài khoản
-        h3.stat-card__title Tài khoản Client
-        .stat-card__number= statistic.user.total
-        .stat-card__breakdown
-          .stat-card__breakdown-item.stat-card__breakdown-item--active
-            span.stat-card__breakdown-dot
-            | Hoạt động #{statistic.user.active}
-          .stat-card__breakdown-item.stat-card__breakdown-item--inactive
-            span.stat-card__breakdown-dot
-            | Dừng #{statistic.user.inactive}
-        if(statistic.user.total > 0)
-          .stat-card__progress
-            .progress-bar
-              .progress-bar__fill(style=`width: ${Math.round(statistic.user.active / statistic.user.total * 100)}%`)
+        .stat-card__value= statistic.user.total
+        .stat-card__label Khách hàng
 
-    //- Quick links
-    .dashboard-quick-links
-      if(role.permission.includes("products_view"))
-        a.quick-link-card.quick-link-card--products(
-          href=`${prefixAdmin}/products`
-        )
-          .quick-link-card__icon
+    //- Charts Row
+    .charts-row
+      //- Revenue Chart
+      .chart-card
+        .chart-card__header
+          h3
+            i.fa-solid.fa-chart-area.text-primary.me-2
+            | Doanh thu 7 ngày gần đây
+        .chart-card__body
+          canvas#revenueChart
+
+      //- Orders & Payment Charts
+      .charts-side
+        //- Orders by Status Pie Chart
+        .chart-card
+          .chart-card__header
+            h3
+              i.fa-solid.fa-chart-pie.text-success.me-2
+              | Đơn hàng theo trạng thái
+          .chart-card__body
+            canvas#ordersStatusChart
+
+        //- Payment Status Chart
+        .chart-card
+          .chart-card__header
+            h3
+              i.fa-solid.fa-credit-card.text-warning.me-2
+              | Trạng thái thanh toán
+          .chart-card__body
+            canvas#paymentChart
+
+    //- Top Products Section
+    .top-products-section
+      .top-products-section__header
+        h3.top-products-section__title
+          i.fa-solid.fa-trophy
+          | Top Sản phẩm Bán chạy
+        a.top-products-section__link(href=`${prefixAdmin}/products`)
+          | Xem tất cả
+          i.fa-solid.fa-arrow-right
+
+      if topProducts && topProducts.length > 0
+        .top-products-grid
+          each product, index in topProducts
+            .top-product-card
+              a.top-product-card__link(href=`${prefixAdmin}/products/detail/${product.slug || product.product_id}`)
+                .top-product-card__rank= index + 1
+                .top-product-card__image
+                  if product.thumbnail
+                    img(src=product.thumbnail, alt=product.title)
+                  else
+                    i.fa-solid.fa-image
+                .top-product-card__title= product.title
+                .top-product-card__stats
+                  .top-product-card__stat.top-product-card__stat--quantity
+                    span.top-product-card__stat-label Đã bán
+                    span.top-product-card__stat-value= product.totalQuantity
+                  .top-product-card__stat.top-product-card__stat--revenue
+                    span.top-product-card__stat-label Doanh thu
+                    span.top-product-card__stat-value= product.totalRevenue.toLocaleString('vi-VN') + ' đ'
+      else
+        .empty-state
+          .empty-state__icon
             i.fa-solid.fa-box-open
-          .quick-link-card__text
-            .quick-link-card__title Quản lý sản phẩm
-            .quick-link-card__desc #{statistic.product.total} sản phẩm trong hệ thống
-          .quick-link-card__arrow
-            i.fa-solid.fa-chevron-right
-
-      if(role.permission.includes("products-category_view"))
-        a.quick-link-card.quick-link-card--category(
-          href=`${prefixAdmin}/products-category`
-        )
-          .quick-link-card__icon
-            i.fa-solid.fa-sitemap
-          .quick-link-card__text
-            .quick-link-card__title Danh mục sản phẩm
-            .quick-link-card__desc #{statistic.categoryProduct.total} danh mục đang quản lý
-          .quick-link-card__arrow
-            i.fa-solid.fa-chevron-right
-
-      if(role.permission.includes("accounts_view"))
-        a.quick-link-card.quick-link-card--accounts(
-          href=`${prefixAdmin}/accounts`
-        )
-          .quick-link-card__icon
-            i.fa-solid.fa-users-cog
-          .quick-link-card__text
-            .quick-link-card__title Quản lý tài khoản
-            .quick-link-card__desc #{statistic.account.total} tài khoản admin
-          .quick-link-card__arrow
-            i.fa-solid.fa-chevron-right
+          .empty-state__title Chưa có sản phẩm bán chạy
+          .empty-state__desc Danh sách sản phẩm bán chạy sẽ hiển thị khi có đơn hàng
 
 append scripts
+  script(src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js")
   script.
     // Hiển thị ngày hiện tại
     function initDashboardDate() {
@@ -209,19 +145,249 @@ append scripts
     }
     initDashboardDate();
 
+    // Chart data from server
+    const chartLabels = !{JSON.stringify(chartData.labels)};
+    const dailyRevenue = !{JSON.stringify(chartData.dailyRevenue)};
+    const dailyOrdersCount = !{JSON.stringify(chartData.dailyOrdersCount)};
+    const ordersByStatus = !{JSON.stringify(chartData.ordersByStatus)};
+    const paymentStats = !{JSON.stringify(chartData.paymentStats)};
+
+    // Format currency
+    function formatCurrency(value) {
+      return new Intl.NumberFormat('vi-VN').format(value) + ' đ';
+    }
+
+    // Revenue Chart
+    const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+    new Chart(revenueCtx, {
+      type: 'line',
+      data: {
+        labels: chartLabels,
+        datasets: [
+          {
+            label: 'Doanh thu (VNĐ)',
+            data: dailyRevenue,
+            borderColor: '#3b82f6',
+            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            fill: true,
+            tension: 0.4,
+            pointRadius: 6,
+            pointHoverRadius: 8,
+            pointBackgroundColor: '#3b82f6',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2,
+          },
+          {
+            label: 'Số đơn hàng',
+            data: dailyOrdersCount,
+            borderColor: '#10b981',
+            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+            fill: true,
+            tension: 0.4,
+            pointRadius: 6,
+            pointHoverRadius: 8,
+            pointBackgroundColor: '#10b981',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2,
+            yAxisID: 'y1',
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: {
+          mode: 'index',
+          intersect: false,
+        },
+        plugins: {
+          legend: {
+            position: 'top',
+            labels: {
+              usePointStyle: true,
+              padding: 20,
+              font: { size: 12 }
+            }
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                if (context.datasetIndex === 0) {
+                  return 'Doanh thu: ' + formatCurrency(context.raw);
+                }
+                return 'Số đơn: ' + context.raw + ' đơn';
+              }
+            }
+          }
+        },
+        scales: {
+          y: {
+            type: 'linear',
+            display: true,
+            position: 'left',
+            title: {
+              display: true,
+              text: 'Doanh thu (VNĐ)'
+            },
+            ticks: {
+              callback: function(value) {
+                if (value >= 1000000) return (value / 1000000).toFixed(1) + 'M';
+                if (value >= 1000) return (value / 1000).toFixed(0) + 'K';
+                return value;
+              }
+            },
+            grid: {
+              drawBorder: false,
+              color: '#f0f0f0'
+            }
+          },
+          y1: {
+            type: 'linear',
+            display: true,
+            position: 'right',
+            title: {
+              display: true,
+              text: 'Số đơn hàng'
+            },
+            grid: {
+              drawOnChartArea: false,
+            },
+            min: 0,
+            ticks: {
+              stepSize: 1
+            }
+          },
+          x: {
+            grid: {
+              drawBorder: false,
+              color: '#f0f0f0'
+            }
+          }
+        }
+      }
+    });
+
+    // Orders Status Pie Chart
+    const ordersStatusCtx = document.getElementById('ordersStatusChart').getContext('2d');
+    new Chart(ordersStatusCtx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Chờ xử lý', 'Đang xử lý', 'Đang giao', 'Đã giao', 'Hoàn thành', 'Đã hủy'],
+        datasets: [{
+          data: [
+            ordersByStatus.pending,
+            ordersByStatus.processing,
+            ordersByStatus.shipping,
+            ordersByStatus.delivered,
+            ordersByStatus.completed,
+            ordersByStatus.cancelled
+          ],
+          backgroundColor: [
+            '#f59e0b',  // pending - yellow
+            '#3b82f6',  // processing - blue
+            '#6366f1',  // shipping - indigo
+            '#06b6d4',  // delivered - cyan
+            '#10b981',  // completed - green
+            '#ef4444',  // cancelled - red
+          ],
+          borderWidth: 0,
+          hoverOffset: 10
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'right',
+            labels: {
+              usePointStyle: true,
+              padding: 12,
+              font: { size: 11 }
+            }
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                const percentage = total > 0 ? ((context.raw / total) * 100).toFixed(1) : 0;
+                return context.label + ': ' + context.raw + ' (' + percentage + '%)';
+              }
+            }
+          }
+        },
+        cutout: '60%'
+      }
+    });
+
+    // Payment Status Chart
+    const paymentCtx = document.getElementById('paymentChart').getContext('2d');
+    new Chart(paymentCtx, {
+      type: 'bar',
+      data: {
+        labels: ['Đã thanh toán', 'Chưa thanh toán', 'Hoàn tiền'],
+        datasets: [{
+          label: 'Số đơn hàng',
+          data: [
+            paymentStats.paid,
+            paymentStats.unpaid,
+            paymentStats.refunded
+          ],
+          backgroundColor: [
+            '#10b981',  // paid - green
+            '#f59e0b',  // unpaid - yellow
+            '#3b82f6',  // refunded - blue
+          ],
+          borderRadius: 8,
+          borderSkipped: false,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                return context.raw + ' đơn hàng';
+              }
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              stepSize: 1
+            },
+            grid: {
+              drawBorder: false,
+              color: '#f0f0f0'
+            }
+          },
+          x: {
+            grid: {
+              drawBorder: false,
+              color: '#f0f0f0'
+            }
+          }
+        }
+      }
+    });
+
   //- Mini Chat Widget
-  //- Mini Chat Floating Button
   .mini-chat-float-btn(onclick="toggleMiniChatPanel()")
     i.fa-solid.fa-comments
     .mini-chat-badge#miniChatCountBadge 0
 
-  //- Mini Chat Notification Toast
   .mini-chat-notification#miniChatNotification
     .mini-chat-notification-inner
       i.fa-solid.fa-bell
       span.notification-guest-name
 
-  //- Mini Chat Panel
   .mini-chat-panel.mini-chat-hidden#miniChatPanel
     .mini-chat-header
       .mini-chat-header-info
@@ -233,9 +399,7 @@ append scripts
         button(onclick="closeMiniChat()")
           i.fa-solid.fa-times
     .mini-chat-body
-      // Session List
       .mini-chat-session-list#miniChatSessionList
-      // Chat Area
       .mini-chat-area#miniChatArea(style="display: none;")
         .mini-chat-messages#miniChatBody
         .mini-chat-input-area

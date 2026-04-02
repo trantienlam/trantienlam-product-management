@@ -3,14 +3,16 @@
     ul 
       li 
         a(href=`${prefixAdmin}/dashboard`) Tổng quan 
-      li 
-        a(href=`${prefixAdmin}/chat`) Chat Hỗ trợ
       if(role.permission.includes("products_view"))
         li 
           a(href=`${prefixAdmin}/products`) Danh sách sản phẩm
       if(role.permission.includes("products-category_view"))  
         li 
           a(href=`${prefixAdmin}/products-category`) Danh mục sản phẩm
+      li 
+        a(href=`${prefixAdmin}/chat`) Chat Hỗ trợ
+      li 
+        a(href=`${prefixAdmin}/orders`) Quản lý đơn hàng
       if(role.permission.includes("roles_view"))
         li 
           a(href=`${prefixAdmin}/roles`) Nhóm quyền

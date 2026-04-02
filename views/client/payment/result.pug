@@ -1,47 +1,464 @@
 extends ../layouts/default.pug
 
 block main
-  .container.mt-5
-    if status === "success"
-      .alert.alert-success.text-center
-        h2 🎉 Thanh toán thành công!
-        p Đơn hàng của bạn đã được thanh toán thành công qua VNPAY.
+  .payment-result-page
+    .container.py-5
+      if status === "success"
+        //- Success Header
+        .success-header.text-center.mb-5
+          .success-icon.mb-4
+            .checkmark-circle
+              .background
+              .checkmark
+          h1.success-title Thanh toán thành công!
+          p.success-subtitle Đơn hàng của bạn đã được thanh toán qua VNPAY
 
-    else
-      .alert.alert-danger.text-center
-        h2 ❌ Thanh toán thất bại!
-        p Có lỗi xảy ra trong quá trình thanh toán.
+        //- Transaction Info Card
+        .row.justify-content-center
+          .col-lg-8
+            .transaction-card.mb-4
+              .transaction-card-header
+                .d-flex.align-items-center
+                  i.fa-solid.fa-shield-check.me-2
+                  h4.mb-0 Thông tin giao dịch
+                span.badge.bg-success.ms-auto Đã xác nhận
 
-    // ===== THÔNG TIN CHI TIẾT =====
-    .card.mt-4
-      .card-header
-        h4 Thông tin giao dịch
-      .card-body
-        ul.list-group
-          li.list-group-item
-            strong Mã đơn hàng:
-            |  #{data.vnp_TxnRef}
+              .transaction-card-body
+                .transaction-info-grid
+                  .info-item
+                    .info-icon
+                      i.fa-solid.fa-receipt
+                    .info-content
+                      .info-label Mã đơn hàng
+                      .info-value.text-primary.fw-bold ##{data.vnp_TxnRef ? data.vnp_TxnRef.toString().slice(-8).toUpperCase() : 'N/A'}
+                  .info-item
+                    .info-icon
+                      i.fa-solid.fa-dollar-sign
+                    .info-content
+                      .info-label Số tiền thanh toán
+                      .info-value.text-success.fw-bold.fs-5 #{(data.vnp_Amount / 100).toLocaleString('vi-VN')} VND
+                  .info-item
+                    .info-icon
+                      i.fa-solid.fa-university
+                    .info-content
+                      .info-label Ngân hàng
+                      .info-value #{data.vnp_BankCode || 'N/A'}
+                  .info-item
+                    .info-icon
+                      i.fa-solid.fa-hashtag
+                    .info-content
+                      .info-label Mã giao dịch VNPAY
+                      .info-value.fw-medium #{data.vnp_TransactionNo || 'N/A'}
+                  .info-item
+                    .info-icon
+                      i.fa-solid.fa-calendar-check
+                    .info-content
+                      .info-label Thời gian thanh toán
+                      - const pd = data.vnp_PayDate ? moment(String(data.vnp_PayDate), 'yyyyMMddHHmmss').toDate() : null
+                      .info-value #{pd && !isNaN(pd.getTime()) ? moment(pd).format('DD/MM/YYYY HH:mm') : 'N/A'}
+                  .info-item
+                    .info-icon
+                      i.fa-solid.fa-check-circle
+                    .info-content
+                      .info-label Mã phản hồi
+                      .info-value.text-success #{data.vnp_ResponseCode}
 
-          li.list-group-item
-            strong Số tiền:
-            |  #{(data.vnp_Amount / 100).toLocaleString()} VND
+            //- Next Steps Card
+            .next-steps-card.mb-4
+              .next-steps-header
+                i.fa-solid.fa-clipboard-list.me-2
+                h4.mb-0 Các bước tiếp theo
+              .next-steps-body
+                .step-item
+                  .step-number 1
+                  .step-content
+                    .step-title Xác nhận đơn hàng
+                    .step-desc Chúng tôi sẽ liên hệ xác nhận đơn hàng qua điện thoại trong vòng 24 giờ
+                .step-item
+                  .step-number 2
+                  .step-content
+                    .step-title Đóng gói & Giao hàng
+                    .step-desc Đơn hàng sẽ được đóng gói và giao trong 2-5 ngày làm việc
+                .step-item
+                  .step-number 3
+                  .step-content
+                    .step-title Nhận hàng
+                    .step-desc Kiểm tra kỹ sản phẩm trước khi thanh toán cho đơn vị vận chuyển
 
-          li.list-group-item
-            strong Ngân hàng:
-            |  #{data.vnp_BankCode}
+            //- Action Buttons
+            .action-buttons.text-center
+              a.btn.btn-success.btn-lg.me-3(href="/checkout/success/" + data.vnp_TxnRef)
+                i.fa-solid.fa-receipt.me-2
+                | Xem chi tiết đơn hàng
+              a.btn.btn-outline-primary.btn-lg(href="/")
+                i.fa-solid.fa-house.me-2
+                | Về trang chủ
 
-          li.list-group-item
-            strong Mã giao dịch VNPAY:
-            |  #{data.vnp_TransactionNo}
+      else
+        //- Failed Header
+        .failed-header.text-center.mb-5
+          .failed-icon.mb-4
+            .x-circle
+              .background
+              .x-mark
+          h1.failed-title Thanh toán thất bại!
+          p.failed-subtitle Đã xảy ra sự cố trong quá trình thanh toán. Vui lòng thử lại.
 
-          li.list-group-item
-            strong Thời gian:
-            |  #{data.vnp_PayDate}
+        //- Error Info Card
+        .row.justify-content-center
+          .col-lg-6
+            .error-card.mb-4
+              .error-card-header
+                i.fa-solid.fa-circle-exclamation.me-2
+                h4.mb-0 Thông tin lỗi
+              .error-card-body
+                .error-info-grid
+                  .info-item
+                    .info-label Mã đơn hàng
+                    .info-value.fw-medium #{data.vnp_TxnRef ? data.vnp_TxnRef.toString().slice(-8).toUpperCase() : 'N/A'}
+                  .info-item
+                    .info-label Mã lỗi
+                    .info-value.text-danger.fw-bold #{data.vnp_ResponseCode}
+                  .info-item.full-width
+                    .info-label Lý do
+                    .info-value
+                      case data.vnp_ResponseCode
+                        when "01"
+                          | Giao dịch đã tồn tại
+                        when "02"
+                          | Giao dịch không tồn tại
+                        when "03"
+                          | Lỗi kết nối đến VNPAY
+                        when "04"
+                          | Lỗi gateway trung gian
+                        when "05"
+                          | Khách hàng hủy giao dịch
+                        when "06"
+                          | Lỗi xác thực OTP
+                        when "07"
+                          | Lỗi dữ liệu gửi sang VNPAY
+                        when "09"
+                          | Tài khoản không đủ tiền
+                        when "10"
+                          | Tài khoản đã bị khóa
+                        when "11"
+                          | Hết thời gian thanh toán
+                        when "12"
+                          | Giao dịch đang xử lý
+                        when "24"
+                          | Khách hàng chưa đăng ký Internet Banking
+                        when "51"
+                          | Tài khoản không đủ số dư
+                        when "65"
+                          | Tài khoản đã vượt quá hạn mức
+                        when "75"
+                          | Ngân hàng đang bảo trì
+                        when "99"
+                          | Lỗi không xác định
+                        default
+                          | Vui lòng liên hệ hỗ trợ
 
-          li.list-group-item
-            strong Mã phản hồi:
-            |  #{data.vnp_ResponseCode}
+            //- Help Card
+            .help-card.mb-4
+              .help-card-header
+                i.fa-solid.fa-circle-info.me-2
+                h4.mb-0 Bạn cần hỗ trợ?
+              .help-card-body
+                p Nếu số tiền đã bị trừ nhưng giao dịch thất bại, vui lòng liên hệ:
+                .contact-list
+                  .contact-item
+                    i.fa-solid.fa-phone.me-2
+                    span Hotline: 1900 xxxx
+                  .contact-item
+                    i.fa-solid.fa-envelope.me-2
+                    span Email: support@example.com
 
-    // ===== BUTTON =====
-    .text-center.mt-4
-      a.btn.btn-primary(href="/") Về trang chủ
+            //- Action Buttons
+            .action-buttons.text-center
+              a.btn.btn-primary.btn-lg.me-3(href="/checkout")
+                i.fa-solid.fa-rotate-left.me-2
+                | Thử lại thanh toán
+              a.btn.btn-outline-secondary.btn-lg(href="/")
+                i.fa-solid.fa-house.me-2
+                | Về trang chủ
+
+  style.
+    .payment-result-page {
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      min-height: 100vh;
+    }
+
+    /* Success Styles */
+    .success-icon, .failed-icon {
+      animation: scaleIn 0.5s ease-out;
+    }
+
+    .checkmark-circle, .x-circle {
+      position: relative;
+      width: 100px;
+      height: 100px;
+      margin: 0 auto;
+    }
+
+    .checkmark-circle .background {
+      position: absolute;
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #28a745, #20c997);
+      animation: bounceIn 0.6s ease-out;
+    }
+
+    .checkmark-circle .checkmark {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 40px;
+      height: 20px;
+      border: 4px solid #fff;
+      border-top: none;
+      border-right: none;
+      transform: translate(-50%, -60%) rotate(-45deg);
+      animation: drawCheck 0.4s ease-out 0.3s forwards;
+    }
+
+    .x-circle .background {
+      position: absolute;
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #dc3545, #c82333);
+      animation: bounceIn 0.6s ease-out;
+    }
+
+    .x-circle .x-mark {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .x-circle .x-mark::before,
+    .x-circle .x-mark::after {
+      content: '';
+      position: absolute;
+      width: 40px;
+      height: 4px;
+      background: #fff;
+      border-radius: 2px;
+      top: 0;
+      left: -20px;
+    }
+
+    .x-circle .x-mark::before {
+      transform: rotate(45deg);
+    }
+
+    .x-circle .x-mark::after {
+      transform: rotate(-45deg);
+    }
+
+    @keyframes scaleIn {
+      from { transform: scale(0); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    @keyframes bounceIn {
+      0% { transform: scale(0); }
+      50% { transform: scale(1.1); }
+      70% { transform: scale(0.95); }
+      100% { transform: scale(1); }
+    }
+
+    @keyframes drawCheck {
+      0% { opacity: 0; }
+      100% { opacity: 1; }
+    }
+
+    .success-title {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #28a745;
+      margin-bottom: 0.5rem;
+    }
+
+    .failed-title {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #dc3545;
+      margin-bottom: 0.5rem;
+    }
+
+    .success-subtitle, .failed-subtitle {
+      font-size: 1.1rem;
+      color: #6c757d;
+    }
+
+    /* Cards */
+    .transaction-card, .error-card, .next-steps-card, .help-card {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      overflow: hidden;
+      border: none;
+    }
+
+    .transaction-card-header, .error-card-header, .next-steps-header, .help-card-header {
+      background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+      color: #fff;
+      padding: 1.25rem 1.5rem;
+      display: flex;
+      align-items: center;
+    }
+
+    .transaction-card-header h4, .next-steps-header h4 {
+      font-weight: 600;
+    }
+
+    .transaction-card-body, .error-card-body, .next-steps-body, .help-card-body {
+      padding: 1.5rem;
+    }
+
+    .error-card-header {
+      background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    }
+
+    .help-card-header {
+      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    }
+
+    .info-icon {
+      font-size: 1.5rem;
+      color: #667eea;
+      margin-bottom: 0.5rem;
+    }
+
+    .transaction-info-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem;
+    }
+
+    .error-info-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .info-item {
+      display: flex;
+      align-items: flex-start;
+    }
+
+    .info-item.full-width {
+      flex-direction: column;
+    }
+
+    .info-item .info-content {
+      flex: 1;
+    }
+
+    .info-label {
+      color: #6c757d;
+      font-size: 0.875rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .info-value {
+      font-size: 1rem;
+      color: #212529;
+    }
+
+    /* Next Steps */
+    .next-steps-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .step-item {
+      display: flex;
+      align-items: flex-start;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px dashed #dee2e6;
+    }
+
+    .step-item:last-child {
+      margin-bottom: 0;
+      padding-bottom: 0;
+      border-bottom: none;
+    }
+
+    .step-number {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.9rem;
+      flex-shrink: 0;
+      margin-right: 1rem;
+    }
+
+    .step-title {
+      font-weight: 600;
+      color: #212529;
+      margin-bottom: 0.25rem;
+    }
+
+    .step-desc {
+      color: #6c757d;
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
+    /* Help Card */
+    .contact-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+
+    .contact-item {
+      display: flex;
+      align-items: center;
+      color: #495057;
+    }
+
+    .contact-item i {
+      width: 24px;
+      color: #667eea;
+    }
+
+    /* Action Buttons */
+    .action-buttons .btn {
+      padding: 0.75rem 2rem;
+      font-weight: 600;
+      border-radius: 50px;
+      transition: all 0.3s ease;
+    }
+
+    .action-buttons .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .action-buttons .btn-success {
+      background: linear-gradient(135deg, #28a745, #20c997);
+      border: none;
+    }
+
+    .action-buttons .btn-success:hover {
+      background: linear-gradient(135deg, #218838, #1abc9c);
+    }
+
+    @media (max-width: 768px) {
+      .transaction-info-grid {
+        grid-template-columns: 1fr;
+      }
+    }

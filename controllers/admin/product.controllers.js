@@ -158,7 +158,7 @@ module.exports.deleteItem = async (req, res) => {
   const status = req.params.status;
   const id = req.params.id;
 
-  await Product.updateOne(
+  await Product.deleteOne(
     { _id: id },
     {
       deleted: true,

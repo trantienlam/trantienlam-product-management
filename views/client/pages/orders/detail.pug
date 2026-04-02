@@ -1,0 +1,477 @@
+extends ../../layouts/default.pug
+
+block main
+  .order-detail-page
+    .container.py-5
+      //- Back Button & Header
+      .page-header.mb-4
+        a.btn.btn-outline-secondary.mb-3(href="/orders")
+          i.fa-solid.fa-arrow-left.me-2
+          | Quay lại danh sách đơn hàng
+        .order-header
+          .d-flex.align-items-center.justify-content-between.flex-wrap.gap-3
+            div
+              h1.page-title.mb-1 Chi tiết đơn hàng
+              .order-id # #{order.orderCode}
+            .order-status-badge
+              - let statusText = '';
+              case order.status
+                when 'pending'
+                  if order.paymentMethod === 'vnpay'
+                    span.badge.badge-processing.fs-6 Đã xác nhận
+                  else
+                    span.badge.badge-pending.fs-6 Chờ xác nhận
+                when 'processing'
+                  span.badge.badge-processing.fs-6 Đang xử lý
+                when 'shipping'
+                  span.badge.badge-shipping.fs-6 Đang vận chuyển
+                when 'delivered'
+                  span.badge.badge-delivered.fs-6 Đã giao hàng
+                when 'completed'
+                  span.badge.badge-completed.fs-6 Hoàn thành
+                when 'failed'
+                  span.badge.badge-failed.fs-6 Thanh toán thất bại
+                when 'cancelled'
+                  span.badge.badge-cancelled.fs-6 Đã hủy
+                default
+                  span.badge.fs-6 #{order.status}
+
+      //- Alert Messages
+      if(success)
+        .alert.alert-success.alert-dismissible.fade.show
+          i.fa-solid.fa-check-circle.me-2
+          | !{success}
+          button.btn-close(type="button" data-bs-dismiss="alert")
+      if(error)
+        .alert.alert-danger.alert-dismissible.fade.show
+          i.fa-solid.fa-exclamation-circle.me-2
+          | !{error}
+          button.btn-close(type="button" data-bs-dismiss="alert")
+
+      .row
+        .col-lg-8
+          //- Order Timeline
+          .card.mb-4
+            .card-header
+              i.fa-solid.fa-clock-rotate-left.me-2
+              | Trạng thái đơn hàng
+            .card-body
+              .order-timeline
+                //- Bước 1: Đặt hàng - luôn completed
+                .timeline-item.timeline-item--completed
+                  .timeline-marker
+                    i.fa-solid.fa-check
+                  .timeline-content
+                    .timeline-title Đặt hàng thành công
+                    .timeline-date #{moment(order.createdAt).format('DD/MM/YYYY HH:mm')}
+                
+                //- Bước 2: Xác nhận - VNPAY thì completed, COD thì theo status
+                - let isConfirmed = order.paymentMethod === 'vnpay' || ['processing', 'shipping', 'delivered', 'completed'].includes(order.status);
+                .timeline-item(class={completed: isConfirmed})
+                  .timeline-marker
+                    i.fa-solid.fa-check
+                  .timeline-content
+                    .timeline-title Xác nhận
+                    .timeline-date
+                      if order.paymentMethod === 'vnpay'
+                        | Thanh toán thành công
+                      else if isConfirmed
+                        | Đã xác nhận
+                      else
+                        | Chờ xác nhận
+                
+                //- Bước 3: Xử lý
+                .timeline-item(class={completed: ['processing', 'shipping', 'delivered', 'completed'].includes(order.status)})
+                  .timeline-marker
+                    i.fa-solid.fa-box
+                  .timeline-content
+                    .timeline-title Xử lý
+                    .timeline-date
+                      case order.status
+                        when 'processing'
+                          | Đang chuẩn bị hàng
+                        when 'shipping'
+                        when 'delivered'
+                        when 'completed'
+                          | Đã xử lý xong
+                        default
+                          if order.paymentMethod === 'cod'
+                            | Chờ xác nhận
+                          else
+                            | Chờ xử lý
+                
+                //- Bước 4: Vận chuyển
+                .timeline-item(class={completed: ['shipping', 'delivered', 'completed'].includes(order.status)})
+                  .timeline-marker
+                    i.fa-solid.fa-truck
+                  .timeline-content
+                    .timeline-title Vận chuyển
+                    .timeline-date
+                      case order.status
+                        when 'shipping'
+                          | Đang giao hàng
+                        when 'delivered'
+                        when 'completed'
+                          | Đã giao hàng
+                        default
+                          | Chưa vận chuyển
+                
+                //- Bước 5: Hoàn thành
+                .timeline-item(class={completed: order.status === 'completed'})
+                  .timeline-marker
+                    i.fa-solid.fa-star
+                  .timeline-content
+                    .timeline-title Hoàn thành
+                    .timeline-date
+                      if order.status === 'completed'
+                        | Cảm ơn bạn đã mua sắm!
+
+          //- Products List
+          .card.mb-4
+            .card-header
+              i.fa-solid.fa-box-open.me-2
+              | Sản phẩm (#{order.products.length})
+            .card-body.p-0
+              table.table.table-hover.align-middle.mb-0
+                thead
+                  tr
+                    th.px-4 Sản phẩm
+                    th.text-center Số lượng
+                    th.text-end.px-4 Đơn giá
+                    th.text-end.px-4 Thành tiền
+                tbody
+                  each item in order.products
+                    tr
+                      td.px-4
+                        .d-flex.align-items-center
+                          if item.productInfo && item.productInfo.thumbnail
+                            img.product-thumb(
+                              src=item.productInfo.thumbnail
+                              alt=item.productInfo.title
+                              width="60"
+                              height="60"
+                            )
+                          else
+                            img.product-thumb(
+                              src="/images/no-image.png"
+                              alt="No image"
+                              width="60"
+                              height="60"
+                            )
+                          .product-info.ms-3
+                            .product-name.fw-medium #{item.productInfo ? item.productInfo.title : 'Sản phẩm'}
+                            .product-id.small.text-muted ID: #{item.product_id.toString().slice(-6).toUpperCase()}
+                      td.text-center #{item.quantity}
+                      td.text-end.px-4
+                        if item.originalPrice && item.originalPrice > item.priceNew
+                          .original-price #{item.originalPrice.toLocaleString('vi-VN')} đ
+                        .current-price #{item.priceNew.toLocaleString('vi-VN')} đ
+                      td.text-end.px-4.fw-bold.text-primary #{item.totalPrice.toLocaleString('vi-VN')} đ
+                tfoot
+                  tr.table-light
+                    td(colspan="3", class="text-end fw-bold px-4 fs-5") Tổng cộng:
+                    td.text-end.px-4.fw-bold.fs-5.text-danger #{order.amount.toLocaleString('vi-VN')} đ
+
+        .col-lg-4
+          //- Order Info Card
+          .card.mb-4
+            .card-header
+              i.fa-solid.fa-info-circle.me-2
+              | Thông tin đơn hàng
+            .card-body
+              .info-item.mb-3
+                .info-label Mã đơn hàng
+                .info-value.text-primary.fw-bold # #{order.orderCode}
+              .info-item.mb-3
+                .info-label Ngày đặt
+                .info-value #{moment(order.createdAt).format('DD/MM/YYYY HH:mm')}
+              .info-item.mb-3
+                .info-label Phương thức thanh toán
+                .info-value
+                  if order.paymentMethod === 'cod'
+                    i.fa-solid.fa-money-bill-wave.me-1.text-success
+                    | Thanh toán khi nhận hàng (COD)
+                  else
+                    i.fa-solid.fa-credit-card.me-1.text-success
+                    | Thanh toán VNPAY
+              .info-item.mb-3
+                .info-label Trạng thái thanh toán
+                .info-value
+                  case order.paymentStatus
+                    when 'paid'
+                      span.badge.bg-success Đã thanh toán
+                    when 'unpaid'
+                      span.badge.bg-warning.text-dark Chưa thanh toán
+                    when 'failed'
+                      span.badge.bg-danger Thanh toán thất bại
+              if order.vnpTransactionNo
+                .info-item
+                  .info-label Mã giao dịch VNPAY
+                  .info-value.small #{order.vnpTransactionNo}
+
+          //- Recipient Info Card
+          if order.userInfo
+            .card.mb-4
+              .card-header
+                i.fa-solid.fa-user.me-2
+                | Thông tin người nhận
+              .card-body
+                .recipient-info
+                  .recipient-item.mb-3
+                    .recipient-label Họ tên
+                    .recipient-value.fw-medium #{order.userInfo.fullName}
+                  .recipient-item.mb-3
+                    .recipient-label Số điện thoại
+                    .recipient-value
+                      a.text-primary(href=`tel:${order.userInfo.phone}`)
+                        | #{order.userInfo.phone}
+                  .recipient-item
+                    .recipient-label Địa chỉ
+                    .recipient-value #{order.userInfo.address}
+
+          //- Action Buttons
+          if order.status === 'pending' || order.status === 'processing'
+            .card.mb-4.border-danger
+              .card-header.bg-danger.text-white
+                i.fa-solid.fa-exclamation-circle.me-2
+                | Hủy đơn hàng
+              .card-body
+                p.text-muted.small.mb-3
+                  | Bạn có thể hủy đơn hàng nếu chưa được xử lý.
+                a.btn.btn-danger.w-100(
+                  href=`/orders/cancel/${order._id}`
+                  onclick="return confirm('Bạn có chắc chắn muốn hủy đơn hàng này?');"
+                )
+                  i.fa-solid.fa-circle-xmark.me-2
+                  | Hủy đơn hàng
+
+  style.
+    .order-detail-page {
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      min-height: 100vh;
+    }
+
+    .page-header {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 16px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .page-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #212529;
+    }
+
+    .order-id {
+      font-size: 1rem;
+      color: #6c757d;
+    }
+
+    /* Status Badges */
+    .badge-pending {
+      background: #ffc107;
+      color: #000;
+    }
+
+    .badge-processing {
+      background: #0dcaf0;
+      color: #000;
+    }
+
+    .badge-shipping {
+      background: #0d6efd;
+      color: #fff;
+    }
+
+    .badge-delivered {
+      background: #6610f2;
+      color: #fff;
+    }
+
+    .badge-completed {
+      background: #198754;
+      color: #fff;
+    }
+
+    .badge-failed {
+      background: #dc3545;
+      color: #fff;
+    }
+
+    .badge-cancelled {
+      background: #6c757d;
+      color: #fff;
+    }
+
+    /* Cards */
+    .card {
+      border: none;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      overflow: hidden;
+    }
+
+    .card-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 1rem 1.25rem;
+      font-weight: 600;
+    }
+
+    .card-header i {
+      margin-right: 0.5rem;
+    }
+
+    .card-body {
+      padding: 1.25rem;
+    }
+
+    /* Order Timeline */
+    .order-timeline {
+      position: relative;
+      padding-left: 2rem;
+    }
+
+    .order-timeline::before {
+      content: '';
+      position: absolute;
+      left: 11px;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: #dee2e6;
+    }
+
+    .timeline-item {
+      position: relative;
+      padding-bottom: 1.5rem;
+    }
+
+    .timeline-item:last-child {
+      padding-bottom: 0;
+    }
+
+    .timeline-marker {
+      position: absolute;
+      left: -2rem;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #dee2e6;
+      color: #6c757d;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      z-index: 1;
+    }
+
+    .timeline-item.timeline-item--completed .timeline-marker,
+    .timeline-item.completed .timeline-marker {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .timeline-title {
+      font-weight: 600;
+      color: #212529;
+      margin-bottom: 0.25rem;
+    }
+
+    .timeline-date {
+      font-size: 0.85rem;
+      color: #6c757d;
+    }
+
+    .timeline-item:not(.completed) .timeline-content {
+      opacity: 0.5;
+    }
+
+    /* Products Table */
+    .table thead th {
+      background: #f8f9fa;
+      font-weight: 600;
+      color: #495057;
+      border: none;
+      padding: 1rem;
+    }
+
+    .table td {
+      padding: 1rem;
+      border-color: #f1f1f1;
+      vertical-align: middle;
+    }
+
+    .table tfoot td {
+      border-top: 2px solid #dee2e6;
+    }
+
+    .product-thumb {
+      object-fit: cover;
+      border-radius: 8px;
+      border: 1px solid #eee;
+    }
+
+    .product-info .product-name {
+      color: #212529;
+    }
+
+    .original-price {
+      color: #6c757d;
+      text-decoration: line-through;
+      font-size: 0.85rem;
+    }
+
+    .current-price {
+      color: #212529;
+    }
+
+    /* Info Items */
+    .info-item .info-label {
+      font-size: 0.8rem;
+      color: #6c757d;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 0.25rem;
+    }
+
+    .info-item .info-value {
+      color: #212529;
+    }
+
+    .recipient-info .recipient-label {
+      font-size: 0.8rem;
+      color: #6c757d;
+      margin-bottom: 0.25rem;
+    }
+
+    .recipient-info .recipient-value {
+      color: #212529;
+    }
+
+    /* Alert styling */
+    .alert {
+      border-radius: 12px;
+      border: none;
+    }
+
+    @media (max-width: 768px) {
+      .page-header {
+        padding: 1rem;
+      }
+
+      .card-body {
+        padding: 1rem;
+      }
+
+      .table {
+        font-size: 0.85rem;
+      }
+
+      .product-thumb {
+        width: 50px !important;
+        height: 50px !important;
+      }
+    }

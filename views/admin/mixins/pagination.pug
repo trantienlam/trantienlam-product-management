@@ -1,24 +1,36 @@
 mixin pagination(pagination)
-  nav 
-    ul(class="pagination")
+  nav
+    ul.pagination.justify-content-center
+      //- Previous
       if(pagination.currentPage > 1)
-        li(class="page-item") 
-          button(
-            class="page-link"
-            button-pagination = pagination.currentPage -1
-            ) Trang trước
+        li.page-item
+          a.page-link(href=`?page=${pagination.currentPage - 1}`, aria-label="Trang trước")
+            i.fas.fa-chevron-left
       
- 
-      - for(var i=1; i <= pagination.totalPage ; i++)
-        li(class=`page-item ${pagination.currentPage == i ? "active" : ""}`) 
-          button(
-            class="page-link"
-            button-pagination = i
-            ) #{i}
-        
+      //- Page numbers
+      - var startPage = Math.max(1, pagination.currentPage - 2);
+      - var endPage = Math.min(pagination.totalPage, pagination.currentPage + 2);
+      
+      if startPage > 1
+        li.page-item
+          a.page-link(href="?page=1") 1
+        if startPage > 2
+          li.page-item.disabled
+            span.page-link ...
+
+      - for(var i = startPage; i <= endPage; i++)
+        li.page-item(class=(pagination.currentPage == i ? "active" : ""))
+          a.page-link(href=`?page=${i}`)= i
+      
+      if endPage < pagination.totalPage
+        if endPage < pagination.totalPage - 1
+          li.page-item.disabled
+            span.page-link ...
+        li.page-item
+          a.page-link(href=`?page=${pagination.totalPage}`)= pagination.totalPage
+
+      //- Next
       if(pagination.currentPage < pagination.totalPage)
-        li(class="page-item") 
-          button(
-            class="page-link"
-            button-pagination = pagination.currentPage + 1
-            ) Kế tiếp
+        li.page-item
+          a.page-link(href=`?page=${pagination.currentPage + 1}`, aria-label="Kế tiếp")
+            i.fas.fa-chevron-right

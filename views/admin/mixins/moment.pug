@@ -1,10 +1,16 @@
 
 
 mixin formatDateTime(time)
-  span #{moment(time).format('DD/MM/YYYY HH:mm:ss')}
+  - const d = time ? new Date(time) : null
+  - const valid = d && !isNaN(d.getTime())
+  span #{valid ? moment(d).format('DD/MM/YYYY HH:mm:ss') : 'N/A'}
 
 mixin formatDate(time)
-  span #{moment(time).format('DD/MM/YYYY')}
+  - const d = time ? new Date(time) : null
+  - const valid = d && !isNaN(d.getTime())
+  span #{valid ? moment(d).format('DD/MM/YYYY') : 'N/A'}
 
 mixin formatTime(time)
-  span #{moment(time).format('HH:mm:ss')}
+  - const d = time ? new Date(time) : null
+  - const valid = d && !isNaN(d.getTime())
+  span #{valid ? moment(d).format('HH:mm:ss') : 'N/A'}

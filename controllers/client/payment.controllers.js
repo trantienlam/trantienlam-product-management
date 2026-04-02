@@ -6,7 +6,7 @@ const Order = require("../../models/order.model");
 const Cart = require("../../models/cart.model");
 const Product = require("../../models/product.model");
 const Payment = require("../../models/payment.model");
-
+const productHelper = require("../../helpers/products");
 // ================= HELPER =================
 function sortObject(obj) {
   let sorted = {};
@@ -22,15 +22,20 @@ function sortObject(obj) {
 // ================= HANDLE ORDER =================
 module.exports.handleOrder = async (req, res) => {
   try {
-    const { paymentMethod, fullName, phone, address } = req.body;
-
-    const cart = await Cart.findById(req.cookies.cartId);
-
-    if (!cart || cart.products.length === 0) {
-      return res.send("Giỏ hàng trống");
+    if (!req.user) {
+      return res.redirect("/user/login");
     }
 
-    // 🔥 LẤY GIÁ TỪ PRODUCT (KHÔNG BỊ NaN)
+    const userId = req.user._id;
+    const { paymentMethod, fullName, phone, address } = req.body;
+
+    const cart = await Cart.findOne({ user_id: userId });
+
+    if (!cart || cart.products.length === 0) {
+      req.flash("error", "Giỏ hàng trống");
+      return res.redirect("/cart");
+    }
+
     const products = [];
     let totalAmount = 0;
 
@@ -38,39 +43,46 @@ module.exports.handleOrder = async (req, res) => {
       const product = await Product.findById(item.product_id);
       if (!product) continue;
 
-      const price = product.price; // ✅ KHÔNG ép Number
+      const priceNew = productHelper.priceNewProduct(product);
       const quantity = item.quantity;
 
       products.push({
         product_id: product._id,
-        price: price,
+        price: product.price,
+        discountPercentage: product.discountPercentage,
+        priceNew: priceNew,
         quantity: quantity,
-        totalPrice: price * quantity,
+        totalPrice: priceNew * quantity,
       });
 
-      totalAmount += price * quantity;
+      totalAmount += priceNew * quantity;
+
+      // Trừ stock ngay khi đặt hàng
+      await Product.updateOne(
+        { _id: product._id },
+        { $inc: { stock: -quantity } }
+      );
     }
 
     if (!totalAmount) {
-      return res.send("Lỗi tính tiền");
+      req.flash("error", "Lỗi tính tiền");
+      return res.redirect("/cart");
     }
 
-    // 🔥 TẠO ORDER
     const order = await Order.create({
+      user_id: userId,
       amount: totalAmount,
-      status: paymentMethod === "cod" ? "confirmed" : "pending",
+      status: "pending",
       paymentMethod: paymentMethod,
+      paymentStatus: paymentMethod === "vnpay" ? "paid" : "unpaid",
       products: products,
-      cart_id: cart._id, // ✅ THÊM
-
       userInfo: {
-        fullName: fullName,
-        phone: phone,
-        address: address,
+        fullName,
+        phone,
+        address,
       },
     });
 
-    // 🔥 TẠO PAYMENT
     await Payment.create({
       order_id: order._id,
       amount: totalAmount,
@@ -80,9 +92,8 @@ module.exports.handleOrder = async (req, res) => {
 
     // ===== COD =====
     if (paymentMethod === "cod") {
-      cart.products = [];
-      await cart.save();
-
+      await Cart.updateOne({ user_id: userId }, { products: [] });
+      req.flash("success", "Đặt hàng thành công!");
       return res.redirect(`/checkout/success/${order._id}`);
     }
 
@@ -93,16 +104,28 @@ module.exports.handleOrder = async (req, res) => {
     return module.exports.createPayment(req, res);
   } catch (error) {
     console.log(error);
-    res.send("Lỗi đặt hàng");
+    req.flash("error", "Lỗi đặt hàng");
+    res.redirect("/checkout");
   }
 };
-
 // ================= CREATE PAYMENT =================
 module.exports.createPayment = async (req, res) => {
   try {
     const createDate = moment().format("YYYYMMDDHHmmss");
 
-    const orderId = req.body.orderId;
+    const orderId = req.query.orderId || req.body.orderId;
+    const amount = req.query.amount || req.body.amount;
+
+    if (!orderId || !amount) {
+      req.flash("error", "Thông tin thanh toán không hợp lệ");
+      return res.redirect("/checkout");
+    }
+
+    const order = await Order.findById(orderId);
+    if (!order) {
+      req.flash("error", "Đơn hàng không tồn tại");
+      return res.redirect("/checkout");
+    }
 
     let vnp_Params = {
       vnp_Version: "2.1.0",
@@ -113,7 +136,7 @@ module.exports.createPayment = async (req, res) => {
       vnp_TxnRef: orderId,
       vnp_OrderInfo: "Thanh toan don hang: " + orderId,
       vnp_OrderType: "other",
-      vnp_Amount: req.body.amount * 100, // ✅ đúng chuẩn VNPAY
+      vnp_Amount: amount * 100,
       vnp_ReturnUrl: process.env.VNP_RETURN_URL,
       vnp_IpAddr: req.ip || "127.0.0.1",
       vnp_CreateDate: createDate,
@@ -135,8 +158,9 @@ module.exports.createPayment = async (req, res) => {
 
     return res.redirect(vnpUrl);
   } catch (error) {
-    console.log(error);
-    res.send("Lỗi payment");
+    console.error("[Create Payment] Error:", error);
+    req.flash("error", "Lỗi tạo thanh toán");
+    res.redirect("/checkout");
   }
 };
 
@@ -166,38 +190,45 @@ module.exports.vnpayIpn = async (req, res) => {
       const payment = await Payment.findOne({ order_id: orderId });
 
       if (!order || !payment) {
-        return res.json({ RspCode: "01", Message: "Not found" });
+        return res.json({ RspCode: "01", Message: "Order not found" });
+      }
+
+      if (order.status === "completed" && payment.status === "paid") {
+        return res.json({ RspCode: "00", Message: "Already confirmed" });
       }
 
       if (rspCode === "00") {
-        order.status = "completed";
+        order.status = "processing";
         payment.status = "paid";
-
-        // 🔥 XÓA GIỎ HÀNG SAU THANH TOÁN
-        const cart = await Cart.findById(order.cart_id);
-        if (cart) {
-          cart.products = [];
-          await cart.save();
-        }
+        payment.transactionNo = vnp_Params["vnp_TransactionNo"];
+        payment.bankCode = vnp_Params["vnp_BankCode"];
       } else {
         order.status = "failed";
         payment.status = "failed";
+
+        // Hoàn lại stock nếu thanh toán thất bại
+        for (const item of order.products) {
+          await Product.updateOne(
+            { _id: item.product_id },
+            { $inc: { stock: item.quantity } }
+          );
+        }
       }
 
       await order.save();
       await payment.save();
 
-      return res.json({ RspCode: "00", Message: "Success" });
+      return res.json({ RspCode: "00", Message: "Confirm Success" });
     }
 
-    return res.json({ RspCode: "97", Message: "Checksum fail" });
+    return res.json({ RspCode: "97", Message: "Checksum failed" });
   } catch (error) {
-    console.log(error);
-    res.json({ RspCode: "99", Message: "Error" });
+    console.error("[VNPAY IPN] Error:", error);
+    res.json({ RspCode: "99", Message: "Unknown error" });
   }
 };
 // ================= RETURN =================
-module.exports.vnpayReturn = (req, res) => {
+module.exports.vnpayReturn = async (req, res) => {
   try {
     let vnp_Params = req.query;
 
@@ -216,9 +247,40 @@ module.exports.vnpayReturn = (req, res) => {
       .digest("hex");
 
     let status = "fail";
+    let orderId = vnp_Params["vnp_TxnRef"];
 
     if (secureHash === signed && vnp_Params["vnp_ResponseCode"] === "00") {
       status = "success";
+
+      const order = await Order.findById(orderId);
+      if (order) {
+        order.status = "processing";
+        order.paymentStatus = "paid";
+        await order.save();
+
+        const payment = await Payment.findOne({ order_id: orderId });
+        if (payment) {
+          payment.status = "paid";
+          payment.transactionNo = vnp_Params["vnp_TransactionNo"];
+          payment.bankCode = vnp_Params["vnp_BankCode"];
+          await payment.save();
+        }
+
+        await Cart.updateOne({ user_id: order.user_id }, { products: [] });
+      }
+    } else if (vnp_Params["vnp_ResponseCode"] && vnp_Params["vnp_ResponseCode"] !== "00") {
+      const order = await Order.findById(orderId);
+      if (order && order.status !== "completed") {
+        order.paymentStatus = "failed";
+        order.status = "failed";
+        await order.save();
+
+        const payment = await Payment.findOne({ order_id: orderId });
+        if (payment) {
+          payment.status = "failed";
+          await payment.save();
+        }
+      }
     }
 
     return res.render("client/payment/result", {
@@ -226,7 +288,7 @@ module.exports.vnpayReturn = (req, res) => {
       data: vnp_Params,
     });
   } catch (error) {
-    console.log(error);
-    res.send("Lỗi return VNPAY");
+    console.error("[VNPAY Return] Error:", error);
+    res.send("Lỗi xử lý kết quả thanh toán");
   }
 };
