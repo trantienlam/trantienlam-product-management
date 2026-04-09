@@ -1,0 +1,93 @@
+extends ../../layouts/default.pug
+include ../../mixins/alert.pug
+
+block main
+  if(role.permission.includes("roles_view"))
+    +alert-success(5000)
+    +alert-error(5000)
+
+    .d-flex.align-items-center.mb-4
+      a(href=`${prefixAdmin}/roles`).btn.btn-secondary.mr-3
+        i.fa-solid.fa-arrow-left
+      h1.mb-0 Chi tiết nhóm quyền
+
+    .row
+      .col-lg-8
+        .card.mb-4
+          .card-header
+            i.fa-solid.fa-shield-halved.mr-2
+            | Thông tin nhóm quyền
+          .card-body
+            table.table.table-bordered.mb-0
+              tbody
+                tr
+                  th.pl-4(style="width: 180px") Tên nhóm quyền
+                  td.pl-3 #{data.title}
+                tr
+                  th.pl-4 Mô tả
+                  td.pl-3 #{data.description || '—'}
+                tr
+                  th.pl-4 Ngày tạo
+                  td.pl-3 #{data.createdAt ? data.createdAt.toLocaleString("vi-VN") : '—'}
+                tr
+                  th.pl-4 Cập nhật lần cuối
+                  td.pl-3 #{data.updatedAt ? data.updatedAt.toLocaleString("vi-VN") : '—'}
+
+        .card
+          .card-header
+            i.fa-solid.fa-key.mr-2
+            | Danh sách quyền (#{data.permission.length})
+          .card-body.p-0
+            if(data.permission && data.permission.length > 0)
+              .permission-grid
+                each perm in data.permission
+                  .permission-badge
+                    i.fa-solid.fa-check.mr-2
+                    | #{perm}
+            else
+              .text-center.text-muted.py-4
+                i.fa-solid.fa-circle-info.mr-2
+                | Nhóm quyền này chưa được phân quyền.
+
+      .col-lg-4
+        .card
+          .card-header
+            i.fa-solid.fa-gears.mr-2
+            | Thao tác
+          .card-body
+            .d-flex.flex-column
+              a.btn.btn-warning.mb-2(href=`${prefixAdmin}/roles/edit/${data.id}`)
+                i.fa-solid.fa-pen-to-square.mr-2
+                | Chỉnh sửa thông tin
+              a.btn.btn-primary.mb-2(href=`${prefixAdmin}/roles/permissions`)
+                i.fa-solid.fa-sliders.mr-2
+                | Phân quyền
+              a.btn.btn-outline-secondary(href=`${prefixAdmin}/roles`)
+                i.fa-solid.fa-list.mr-2
+                | Danh sách nhóm quyền
+
+append scripts
+  style.
+    .card-header i {
+      color: #6c757d;
+    }
+    .permission-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 0.75rem;
+      padding: 1rem;
+    }
+    .permission-badge {
+      background: #e7f5ff;
+      border: 1px solid #a5d8ff;
+      border-radius: 6px;
+      padding: 0.5rem 0.75rem;
+      font-size: 0.875rem;
+      color: #1864ab;
+      display: flex;
+      align-items: center;
+    }
+    .permission-badge i {
+      color: #1971c2;
+      font-size: 0.75rem;
+    }

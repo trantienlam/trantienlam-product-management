@@ -19,7 +19,7 @@ router.delete("/delete/:id", controller.deleteItem);
 router.get("/create", controller.create);
 router.post(
   "/create",
-  upload.single("thumbnail"),
+  upload.array("images", 10),
   uploadCloud.upload,
   valiDate.createPost,
   controller.createPost
@@ -28,7 +28,7 @@ router.post(
 router.get("/edit/:id", controller.edit);
 router.patch(
   "/edit/:id",
-  upload.single("thumbnail"),
+  upload.array("images", 10),
   uploadCloud.upload,
   valiDate.createPost,
   controller.editPatch

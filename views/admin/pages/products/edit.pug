@@ -13,6 +13,7 @@ block main
       method="POST"
       enctype="multipart/form-data"
     )
+      input(type="hidden" name="page" value=page)
       div(class="form-group")
         label(for ="title") Tiêu đề
         input(
@@ -96,22 +97,23 @@ block main
         )
       div(
         class="form-group"
-        upload-image
-        )
-        label(for ="thumbnail") Ảnh
+      )
+        label(for ="images") Ảnh sản phẩm
+        if(product.images && product.images.length > 0)
+          .image-list.mb-2
+            each img in product.images
+              .image-item
+                img(src=img alt="Product image" style="max-width:100px; max-height:100px; object-fit:cover; border-radius:4px; margin-right:8px;")
+        .image-preview-grid(id="imagePreviewContainer")
         input(
           type="file"
           class="form-control-file"
-          id="thumbnail"
-          name="thumbnail"
+          id="images"
+          name="images"
           accept="image/*"
-          upload-image-input
+          multiple
         )
-        img(
-          src=product.thumbnail
-          upload-image-preview
-          class= "image-preview"
-        )
+        small(class="form-text text-muted") Có thể chọn nhiều ảnh cùng lúc (tối đa 10 ảnh). Ảnh mới sẽ được thêm vào danh sách hiện có.
       div(class="form-group")
         label(for ="position") Vị trí
         input(
@@ -148,5 +150,38 @@ block main
           type="submit"
           class="btn btn-primary"
         ) Cập nhật
-    script(src="/admin/js/product.js") 
-    script(src="/admin/js/script.js") 
+    script(src="/admin/js/product.js")
+    script(src="/admin/js/script.js")
+    script.
+      document.addEventListener('DOMContentLoaded', function() {
+        var imageInput = document.getElementById('images');
+        var previewContainer = document.getElementById('imagePreviewContainer');
+
+        imageInput.addEventListener('change', function() {
+          previewContainer.innerHTML = '';
+          var files = this.files;
+          if (files.length === 0) return;
+
+          var grid = document.createElement('div');
+          grid.className = 'preview-grid';
+          previewContainer.appendChild(grid);
+
+          Array.from(files).forEach(function(file) {
+            if (!file.type.startsWith('image/')) return;
+
+            var reader = new FileReader();
+            reader.onload = function(e) {
+              var wrapper = document.createElement('div');
+              wrapper.className = 'preview-item';
+
+              var img = document.createElement('img');
+              img.src = e.target.result;
+              img.className = 'preview-img';
+
+              wrapper.appendChild(img);
+              grid.appendChild(wrapper);
+            };
+            reader.readAsDataURL(file);
+          });
+        });
+      }); 

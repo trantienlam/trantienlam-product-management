@@ -79,6 +79,12 @@ module.exports.index = async (req, res) => {
 
 // [PATCH] /admin/orders/change-status/:status/:id
 module.exports.changeStatus = async (req, res) => {
+  const permissions = res.locals.role ? res.locals.role.permission : [];
+  if (!permissions.includes("orders_status")) {
+    req.flash("error", "Bạn không có quyền thay đổi trạng thái đơn hàng!");
+    return res.redirect("back");
+  }
+
   const status = req.params.status;
   const id = req.params.id;
 
@@ -110,6 +116,12 @@ module.exports.changeStatus = async (req, res) => {
 
 // [PATCH] /admin/orders/change-multi
 module.exports.changeMulti = async (req, res) => {
+  const permissions = res.locals.role ? res.locals.role.permission : [];
+  if (!permissions.includes("orders_status")) {
+    req.flash("error", "Bạn không có quyền thay đổi trạng thái đơn hàng!");
+    return res.redirect("back");
+  }
+
   const type = req.body.type;
   const ids = req.body.ids.split(",");
 
@@ -170,6 +182,12 @@ module.exports.changeMulti = async (req, res) => {
 // [GET] /admin/orders/detail/:id
 module.exports.detail = async (req, res) => {
   try {
+    const permissions = res.locals.role ? res.locals.role.permission : [];
+    if (!permissions.includes("orders_detail")) {
+      req.flash("error", "Bạn không có quyền xem chi tiết đơn hàng!");
+      return res.redirect(`${systemConfig.prefixAdmin}/orders`);
+    }
+
     const order = await Order.findOne({ _id: req.params.id });
 
     if (!order) {
@@ -198,6 +216,12 @@ module.exports.detail = async (req, res) => {
 
 // [DELETE] /admin/orders/delete/:id
 module.exports.deleteItem = async (req, res) => {
+  const permissions = res.locals.role ? res.locals.role.permission : [];
+  if (!permissions.includes("orders_delete")) {
+    req.flash("error", "Bạn không có quyền xóa đơn hàng!");
+    return res.redirect("back");
+  }
+
   const id = req.params.id;
 
   await Order.deleteOne({ _id: id });
@@ -208,6 +232,12 @@ module.exports.deleteItem = async (req, res) => {
 
 // [GET] /admin/orders/change-payment-status/:status/:id
 module.exports.changePaymentStatus = async (req, res) => {
+  const permissions = res.locals.role ? res.locals.role.permission : [];
+  if (!permissions.includes("orders_status")) {
+    req.flash("error", "Bạn không có quyền thay đổi trạng thái thanh toán!");
+    return res.redirect("back");
+  }
+
   const status = req.params.status;
   const id = req.params.id;
 

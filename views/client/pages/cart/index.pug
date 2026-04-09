@@ -1,58 +1,127 @@
-extends ../../layouts/default.pug 
-include ../..//mixins/box-head.pug 
+extends ../../layouts/default.pug
+include ../..//mixins/box-head.pug
 include ../../mixins/alert.pug
 
-block main 
+block main
   +alert-success(3000)
   +alert-error(3000)
 
-  .container.my-3 
-    .row 
-      .col-12 
-        +box-head("Giỏ hàng")
+  .container.my-4.cart-page
+    h3.mb-4.text-primary
+      i.fa-solid.fa-cart-shopping.mr-2
+      | Giỏ hàng
 
-    .row 
-      .col-12 
-        table(class="table table-bordered")
-          if(cartDetail.products.length>0)
-            thead 
-              tr 
-                th STT 
-                th Ảnh 
-                th Tên 
-                th Giá
-                th Số lượng
-                th Tổng tiền 
-                th Hành động 
-            tbody 
-            
-              each item, index in cartDetail.products
-                tr
-                  td #{index + 1}
-                  td 
-                    img(src=item.productInfo.thumbnail, alt=item.productInfo.title
-                    width="80px")
-                  td 
-                    a(href=`/products/detail/${item.productInfo.slug}`) #{item.productInfo.title}
-                  td #{item.productInfo.priceNew}$
-                  td 
-                    input(
-                      type="number"
-                      name="quantity"
-                      value= item.quantity
-                      min="1"
-                      product-id=item.product_id
-                      style="width: 60px"
-                    )     
-                  td #{item.totalPrice}
-                  td 
-                    a(
-                      href=`/cart/delete/${item.product_id}`
-                      class="btn btn-danger"
-                    ) Xóa 
-          else 
-              p Không có sản phẩm nào trong giỏ hàng.
-        h3(class="text-right") Tổng đơn hàng: #{cartDetail.totalPriceCartFormat}$ 
-        div(class="text-right mt-3")
-          a(href="/checkout" class="btn btn-success") Thanh toán
-  script(src="/js/cart.js") 
+    if(cartDetail.products.length > 0)
+      .row
+        .col-lg-9.mb-4.mb-lg-0
+          .card.border-0.shadow-sm
+            .card-body.p-0
+              .table-responsive
+                table.table.table-hover.align-middle.mb-0.cart-table
+                  thead.thead-light
+                    tr
+                      th.pl-4(style="min-width: 280px") Sản phẩm
+                      th.text-center(style="width: 120px") Số lượng
+                      th.text-right.pr-4(style="width: 140px") Thành tiền
+                      th.text-center(style="width: 56px")
+                  tbody
+                    each item in cartDetail.products
+                      tr
+                        td.pl-4
+                          .d-flex.align-items-center
+                            .cart-thumb.mr-3.flex-shrink-0
+                              img(src=item.productInfo.thumbnail, alt=item.productInfo.title)
+                            .flex-grow-1(style="min-width:0")
+                              a(href=`/products/detail/${item.productInfo.slug}`).d-block.font-weight-medium.text-dark.text-truncate= item.productInfo.title
+                              .text-muted.small #{item.productInfo.priceNew}&nbsp;$
+                        td.text-center.align-middle
+                          input.form-control.quantity-input.mx-auto(
+                            type="number"
+                            name="quantity"
+                            value=item.quantity
+                            min="1"
+                            data-product-id=item.product_id
+                          )
+                        td.text-right.pr-4.align-middle
+                          strong.text-danger.cart-line-total #{item.totalPrice}&nbsp;$
+                        td.text-center.align-middle
+                          a.text-danger.cart-remove(href=`/cart/delete/${item.product_id}` title="Xóa")
+                            i.fa-solid.fa-trash-can
+                    tr.table-light
+                      td.pl-4.font-weight-bold(colspan="2") Tạm tính
+                      td.text-right.pr-4.font-weight-bold.text-danger.cart-line-total #{cartDetail.totalPriceCartFormat}&nbsp;$
+                      td
+
+        .col-lg-3
+          .card.border-0.shadow-sm.cart-summary-card
+            .card-body
+              h5.mb-3 Thanh toán
+              .d-flex.justify-content-between.mb-2
+                span Tạm tính
+                span.cart-line-total #{cartDetail.totalPriceCartFormat}&nbsp;$
+              .d-flex.justify-content-between.mb-2
+                span Phí vận chuyển
+                span.text-success Miễn phí
+              hr
+              .d-flex.justify-content-between.mb-3
+                strong Tổng cộng
+                strong.text-danger.h5.mb-0.cart-line-total #{cartDetail.totalPriceCartFormat}&nbsp;$
+              a.btn.btn-primary.btn-block.mb-2(href="/checkout")
+                i.fa-solid.fa-credit-card.mr-2
+                | Thanh toán
+              a.btn.btn-outline-secondary.btn-block(href="/products")
+                i.fa-solid.fa-arrow-left.mr-2
+                | Tiếp tục mua sắm
+
+    else
+      .card.border-0.shadow-sm.py-5.text-center
+        .card-body
+          i.fa-solid.fa-cart-shopping.text-secondary(style="font-size: 4rem")
+          h4.mt-3.mb-2 Giỏ hàng trống
+          p.text-muted.mb-4 Chưa có sản phẩm nào trong giỏ hàng
+          a.btn.btn-primary(href="/products")
+            i.fa-solid.fa-bag-shopping.mr-2
+            | Mua sắm ngay
+
+append scripts
+  script(src="/js/cart.js")
+  style.
+    .cart-page .cart-table td,
+    .cart-page .cart-table th {
+      vertical-align: middle;
+    }
+    .cart-page .cart-thumb {
+      width: 72px;
+      height: 72px;
+      border-radius: 6px;
+      overflow: hidden;
+      border: 1px solid #eee;
+    }
+    .cart-page .cart-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .cart-page .quantity-input {
+      width: 80px;
+      max-width: 100%;
+      text-align: center;
+    }
+    .cart-page .cart-line-total {
+      white-space: nowrap;
+    }
+    .cart-page .cart-remove {
+      display: inline-block;
+      padding: 0.35rem;
+      line-height: 1;
+    }
+    .cart-page .cart-remove:hover {
+      color: #c82333 !important;
+    }
+    @media (min-width: 992px) {
+      .cart-page .cart-summary-card {
+        position: sticky;
+        top: 1rem;
+      }
+    }

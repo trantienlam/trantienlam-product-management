@@ -1,8 +1,16 @@
+const mongoose = require("mongoose");
 const Product = require("../../models/product.model");
 const ProductCategory = require("../../models/product-category.model");
 const Account = require("../../models/account.model");
 const User = require("../../models/user.model");
 const Order = require("../../models/order.model");
+
+/** ObjectId đầu tiên tại thời điểm `date` (dùng khi Product không có createdAt ở root) */
+function minObjectIdFromDate(date) {
+  const secs = Math.floor(date.getTime() / 1000);
+  const hexTime = secs.toString(16).padStart(8, "0");
+  return new mongoose.Types.ObjectId(hexTime + "0000000000000000");
+}
 
 // [GET] /admin/dashboard
 module.exports.dashboard = async (req, res) => {
@@ -183,13 +191,50 @@ module.exports.dashboard = async (req, res) => {
     ordersChange = 100;
   }
 
-  // Products tuần này
+  // Sản phẩm tạo trong 7 ngày gần đây / tuần trước (7–14 ngày)
+  // Schema Product không có timestamps → không có createdAt root; dùng createdBy.createdAt hoặc mốc _id
+  const idThisWeek = minObjectIdFromDate(sevenDaysAgo);
+  const idLastWeekStart = minObjectIdFromDate(lastWeekStart);
+  const idLastWeekEnd = minObjectIdFromDate(sevenDaysAgo);
+
   const thisWeekProducts = await Product.countDocuments({
-    createdAt: { $gte: sevenDaysAgo }
+    deleted: false,
+    $or: [
+      { "createdBy.createdAt": { $gte: sevenDaysAgo } },
+      {
+        $and: [
+          {
+            $or: [
+              { "createdBy.createdAt": { $exists: false } },
+              { "createdBy.createdAt": null },
+            ],
+          },
+          { _id: { $gte: idThisWeek } },
+        ],
+      },
+    ],
   });
-  // Products tuần trước
   const lastWeekProducts = await Product.countDocuments({
-    createdAt: { $gte: lastWeekStart, $lt: sevenDaysAgo }
+    deleted: false,
+    $or: [
+      {
+        "createdBy.createdAt": {
+          $gte: lastWeekStart,
+          $lt: sevenDaysAgo,
+        },
+      },
+      {
+        $and: [
+          {
+            $or: [
+              { "createdBy.createdAt": { $exists: false } },
+              { "createdBy.createdAt": null },
+            ],
+          },
+          { _id: { $gte: idLastWeekStart, $lt: idLastWeekEnd } },
+        ],
+      },
+    ],
   });
 
   let productsChange = 0;

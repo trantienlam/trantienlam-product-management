@@ -150,6 +150,36 @@ block main
             each item in records 
               td(class="text-center")
                 input(type="checkbox")
+                
+
+          tr 
+            td(colspan="4")
+              b chat hỗ trợ
+          tr(data-name="chat_view")
+            td Xem 
+            each item in records 
+              td(class="text-center")
+                input(type="checkbox")
+
+          tr 
+            td(colspan="4")
+              b Quản lý đơn hàng 
+          tr(data-name="orders_view")
+            td Xem 
+            each item in records 
+              td(class="text-center")
+                input(type="checkbox")
+          tr(data-name="orders_detail")
+            td Chi tiết đơn hàng
+            each item in records 
+              td(class="text-center")
+                input(type="checkbox")     
+          tr(data-name="orders_status")
+            td Đổi trạng thái
+            each item in records 
+              td(class="text-center")
+                input(type="checkbox")
+         
           
       form(
         id="form-change-permissions"

@@ -1,4 +1,27 @@
-extends ../../layouts/default.pug 
+extends ../../layouts/default.pug
+
+block styles
+  style.
+    .accounts-avatar-cell { width: 56px; }
+    .accounts-avatar-img {
+      width: 48px;
+      height: 48px;
+      object-fit: cover;
+      border-radius: 50%;
+      border: 1px solid #e9ecef;
+      display: block;
+    }
+    .accounts-avatar-placeholder {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: #e9ecef;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #6c757d;
+      font-size: 1.25rem;
+    }
 
 block main
   if(role.permission.includes("accounts_view"))
@@ -31,12 +54,18 @@ block main
             each item, index in records 
               tr 
                 td #{index+1}
-                td 
-                  img(src=item.avatar
-                      alt=item.fullName 
-                      width="100px"
-                      height="auto"
-                  )
+                td.accounts-avatar-cell
+                  if item.avatarUrl
+                    img.accounts-avatar-img(
+                      src=item.avatarUrl
+                      alt=item.fullName
+                      onerror="this.style.display='none';var n=this.nextElementSibling;if(n)n.style.display='flex';"
+                    )
+                    .accounts-avatar-placeholder(style="display:none")
+                      i.fa-solid.fa-user
+                  else
+                    .accounts-avatar-placeholder
+                      i.fa-solid.fa-user
                 td #{item.fullName}
                 td #{item.role.title}
                 td #{item.email} 

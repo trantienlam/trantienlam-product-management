@@ -34,14 +34,28 @@ block main
                   | Nổi bật
               if(product.discountPercentage > 0)
                 span.badge-discount -#{product.discountPercentage}%
+            if((product.images && product.images.length > 1) || product.thumbnail)
+              button#galleryPrev.product-gallery__nav.product-gallery__nav--prev(type="button")
+                i.bi.bi-chevron-left
+              button#galleryNext.product-gallery__nav.product-gallery__nav--next(type="button")
+                i.bi.bi-chevron-right
             img#mainImage.product-gallery__main-img(
-              src=product.thumbnail
+              src=(product.images && product.images.length > 0) ? product.images[0] : product.thumbnail
               alt=product.title
             )
           //- Thumbnails row
           .product-gallery__thumbs
-            .product-gallery__thumb.is-active(data-img=product.thumbnail)
-              img(src=product.thumbnail alt=product.title)
+            if(product.images && product.images.length > 0)
+              each img, index in product.images
+                .product-gallery__thumb(
+                  class=(index === 0 ? 'is-active' : '')
+                  data-img=img
+                  data-index=index
+                )
+                  img(src=img alt=`${product.title} - Ảnh ${index + 1}`)
+            else if(product.thumbnail)
+              .product-gallery__thumb.is-active(data-img=product.thumbnail data-index=0)
+                img(src=product.thumbnail alt=product.title)
 
         //- RIGHT: Product info
         .col-lg-6.product-detail__info
@@ -206,13 +220,51 @@ block main
 
 append scripts
   script.
-    // Product gallery thumbnail click
-    document.querySelectorAll('.product-gallery__thumb').forEach(thumb => {
-      thumb.addEventListener('click', () => {
-        const mainImg = document.getElementById('mainImage');
-        document.querySelectorAll('.product-gallery__thumb').forEach(t => t.classList.remove('is-active'));
-        thumb.classList.add('is-active');
-        mainImg.src = thumb.dataset.img;
+    // Product gallery state
+    var currentIndex = 0;
+    var images = [];
+
+    function getAllImages() {
+      return Array.from(document.querySelectorAll('.product-gallery__thumb')).map(t => ({
+        src: t.dataset.img,
+        index: parseInt(t.dataset.index) || 0
+      }));
+    }
+
+    function updateMainImage(index) {
+      if (!images.length) return;
+      currentIndex = index;
+      if (currentIndex < 0) currentIndex = images.length - 1;
+      if (currentIndex >= images.length) currentIndex = 0;
+      document.getElementById('mainImage').src = images[currentIndex].src;
+      document.querySelectorAll('.product-gallery__thumb').forEach((t, i) => {
+        t.classList.toggle('is-active', i === currentIndex);
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      images = getAllImages();
+      // Set initial active
+      var activeThumb = document.querySelector('.product-gallery__thumb.is-active');
+      if (activeThumb) {
+        var idx = parseInt(activeThumb.dataset.index) || 0;
+        currentIndex = idx;
+      }
+
+      // Thumbnail click
+      document.querySelectorAll('.product-gallery__thumb').forEach((thumb, i) => {
+        thumb.addEventListener('click', () => updateMainImage(i));
+      });
+
+      // Prev/Next buttons
+      document.getElementById('galleryPrev') && document.getElementById('galleryPrev').addEventListener('click', () => updateMainImage(currentIndex - 1));
+      document.getElementById('galleryNext') && document.getElementById('galleryNext').addEventListener('click', () => updateMainImage(currentIndex + 1));
+
+      // Keyboard navigation
+      document.addEventListener('keydown', (e) => {
+        if (!document.getElementById('mainImage')) return;
+        if (e.key === 'ArrowLeft') updateMainImage(currentIndex - 1);
+        if (e.key === 'ArrowRight') updateMainImage(currentIndex + 1);
       });
     });
 

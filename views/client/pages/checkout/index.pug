@@ -1,88 +1,171 @@
 extends ../../layouts/default.pug
-include ../../mixins/box-head.pug
 include ../../mixins/alert.pug
 
 block main
   +alert-success(5000)
   +alert-error(5000)
 
-  
-  .container.my-3
-    .row
-      .col-12
-        +box-head("Đặt hàng")
+  .checkout-page
+    .container.py-4
 
-    // ===== GIỎ HÀNG =====
-    .row
-      .col-12
-        table.table.table-bordered
-          thead
-            tr
-              th STT
-              th Ảnh
-              th Tên
-              th Giá
-              th Số lượng
-              th Tổng tiền
-          tbody
-            if(cartDetail.products.length > 0)
-              each item, index in cartDetail.products
-                tr
-                  td #{index + 1}
-                  td
-                    img(
-                      src=item.productInfo.thumbnail,
-                      width="80"
+      //- ===== Step Indicator =====
+      .checkout-steps.mb-5
+        .step-indicator
+          .step-item.completed
+            .step-circle
+              i.fa-solid.fa-cart-shopping
+            .step-label Giỏ hàng
+          .step-line.active
+          .step-item.active
+            .step-circle
+              i.fa-solid.fa-pen-to-square
+            .step-label Thông tin
+          .step-line
+          .step-item
+            .step-circle
+              i.fa-solid.fa-check
+            .step-label Hoàn thành
+
+      if cartDetail.products.length > 0
+        //- ===== 2-Column Layout =====
+        .checkout-layout
+          //- LEFT: Cart Summary
+          .checkout-left
+            .checkout-card.mb-4
+              .checkout-card-header
+                i.fa-solid.fa-basket-shopping.me-2
+                | Sản phẩm đã chọn
+                span.badge-count #{cartDetail.products.length}
+              .checkout-card-body.p-0
+                .cart-items-list
+                  each item in cartDetail.products
+                    .cart-item-row
+                      .cart-item-thumb
+                        img(src=item.productInfo.thumbnail, alt=item.productInfo.title)
+                      .cart-item-info
+                        .cart-item-name #{item.productInfo.title}
+                        .cart-item-meta
+                          span.cart-item-price #{item.productInfo.priceNew.toLocaleString('vi-VN')} đ
+                          span.cart-item-qty × #{item.quantity}
+                      .cart-item-total #{item.totalPrice.toLocaleString('vi-VN')} đ
+
+                .cart-summary-bar
+                  .cart-summary-row.total
+                    span Tổng tiền:
+                    span.text-danger.fw-bold #{cartDetail.totalPriceCartFormat.toLocaleString('vi-VN')} đ
+
+          //- RIGHT: Order Form
+          .checkout-right
+            .checkout-card
+              .checkout-card-header
+                i.fa-solid.fa-user-pen.me-2
+                | Thông tin người nhận
+
+              .checkout-card-body
+                form(action="/checkout/order" method="POST" id="checkoutForm")
+
+                  //- Full Name
+                  .form-group-custom.mb-3
+                    label.form-label-custom
+                      i.fa-solid.fa-user.me-2
+                      | Họ và tên
+                    input.form-control-custom(
+                      type="text",
+                      name="fullName",
+                      placeholder="Nhập họ và tên của bạn",
+                      required
                     )
-                  td #{item.productInfo.title}
-                  td #{item.productInfo.priceNew.toLocaleString()} đ
-                  td #{item.quantity}
-                  td #{item.totalPrice.toLocaleString()} đ
-                  
-            else
-              tr
-                td(colspan="6" class="text-center") Giỏ hàng trống
 
-        if(cartDetail.products.length > 0)
-          h4.text-end Tổng đơn hàng: #{cartDetail.totalPriceCartFormat.toLocaleString()} đ
+                  //- Phone
+                  .form-group-custom.mb-3
+                    label.form-label-custom
+                      i.fa-solid.fa-phone.me-2
+                      | Số điện thoại
+                    input.form-control-custom(
+                      type="text",
+                      name="phone",
+                      placeholder="0xxx xxx xxx",
+                      required
+                    )
 
-    // ===== FORM =====
-    if(cartDetail.products.length > 0)
-      .row
-        .col-12
-          .card.p-4.my-4
-            form(action="/checkout/order" method="POST")
+                  //- Address
+                  .form-group-custom.mb-3
+                    label.form-label-custom
+                      i.fa-solid.fa-location-dot.me-2
+                      | Địa chỉ nhận hàng
+                    input.form-control-custom(
+                      type="text",
+                      name="address",
+                      placeholder="Số nhà, đường, phường/xã, quận/huyện, tỉnh/thành",
+                      required
+                    )
 
-              .mb-3
-                label.form-label Họ tên
-                input.form-control(
-                  type="text",
-                  name="fullName",
-                  required
-                )
+                  //- Payment Method
+                  .form-group-custom.mb-4
+                    label.form-label-custom
+                      i.fa-solid.fa-credit-card.me-2
+                      | Phương thức thanh toán
+                    .payment-options
+                      label.payment-option.active(for="cod")
+                        input#cod(type="radio" name="paymentMethod" value="cod" checked)
+                        .payment-card
+                          .payment-icon
+                            i.fa-solid.fa-money-bill-wave
+                          .payment-info
+                            .payment-name Thanh toán khi nhận hàng
+                            .payment-desc Giao hàng → Nhận → Trả tiền
+                          .payment-check
+                            i.fa-solid.fa-circle-check
+                      label.payment-option(for="vnpay")
+                        input#vnpay(type="radio" name="paymentMethod" value="vnpay")
+                        .payment-card
+                          .payment-icon
+                            i.fa-solid.fa-qrcode
+                          .payment-info
+                            .payment-name Thanh toán VNPAY
+                            .payment-desc Thanh toán trực tuyến qua QR
+                          .payment-check
+                            i.fa-solid.fa-circle-check
 
-              .mb-3
-                label.form-label Số điện thoại
-                input.form-control(
-                  type="text",
-                  name="phone",
-                  required
-                )
+                  //- Submit Button
+                  button.btn-checkout-submit(type="submit")
+                    i.fa-solid.fa-bag-shopping.me-2
+                    | Xác nhận đặt hàng
 
-              .mb-3
-                label.form-label Địa chỉ
-                input.form-control(
-                  type="text",
-                  name="address",
-                  required
-                )
+        //- ===== Security Note =====
+        .checkout-security-note.text-center.mt-4
+          i.fa-solid.fa-shield-halved.me-2
+          | Thông tin của bạn được bảo mật an toàn. Giao hàng trong 2-5 ngày làm việc.
 
-              // 🔥 THÊM THANH TOÁN
-              .mb-3
-                label.form-label Phương thức thanh toán
-                select.form-select(name="paymentMethod")
-                  option(value="cod") Thanh toán khi nhận hàng (COD)
-                  option(value="vnpay") Thanh toán VNPAY
+      else
+        //- Empty Cart
+        .checkout-empty.text-center.py-5
+          .checkout-empty-icon.mb-3
+            i.fa-solid.fa-cart-shopping
+          h3 Giỏ hàng trống
+          p.text-muted.mb-4 Bạn chưa có sản phẩm nào trong giỏ hàng.
+          a.btn.btn-primary.btn-lg(href="/products")
+            i.fa-solid.fa-bag-shopping.me-2
+            | Tiếp tục mua sắm
 
-              button.btn.btn-success.w-100(type="submit")
-                | ĐẶT HÀNG
+append scripts
+  script.
+    // Payment option selection
+    document.querySelectorAll('.payment-option').forEach(option => {
+      option.addEventListener('click', function() {
+        document.querySelectorAll('.payment-option').forEach(o => o.classList.remove('active'));
+        this.classList.add('active');
+        this.querySelector('input[type="radio"]').checked = true;
+      });
+    });
+
+    // Form validation
+    document.getElementById('checkoutForm')?.addEventListener('submit', function(e) {
+      const phone = this.querySelector('[name="phone"]').value.trim();
+
+      if (!/^0\d{9}$/.test(phone)) {
+        e.preventDefault();
+        alert('Số điện thoại phải gồm đúng 10 số và bắt đầu bằng 0.');
+        return;
+      }
+    });

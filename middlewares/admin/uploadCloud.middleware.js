@@ -1,39 +1,41 @@
 const cloudinary = require("cloudinary").v2;
 const streamifier = require("streamifier");
 
-//cloudinary
 cloudinary.config({
   cloud_name: process.env.CLOUD_NAME,
   api_key: process.env.CLOUD_KEY,
   api_secret: process.env.CLOUD_SECRET,
 });
-// end cloudinary
 
-module.exports.upload = (req, res, next) => {
+const streamUpload = (buffer) => {
+  return new Promise((resolve, reject) => {
+    let stream = cloudinary.uploader.upload_stream((error, result) => {
+      if (result) {
+        resolve(result);
+      } else {
+        reject(error);
+      }
+    });
+    streamifier.createReadStream(buffer).pipe(stream);
+  });
+};
+
+module.exports.upload = async (req, res, next) => {
   if (req.file) {
-    let streamUpload = (req) => {
-      return new Promise((resolve, reject) => {
-        let stream = cloudinary.uploader.upload_stream((error, result) => {
-          if (result) {
-            resolve(result);
-          } else {
-            reject(error);
-          }
-        });
-
-        streamifier.createReadStream(req.file.buffer).pipe(stream);
-      });
-    };
-
-    async function upload(req) {
-      let result = await streamUpload(req);
-
-      req.body[req.file.fieldname] = result.secure_url;
-      next();
+    const result = await streamUpload(req.file.buffer);
+    if (req.files && req.files.length > 0) {
+      // multi-file field (images)
+      const urls = [];
+      for (const file of req.files) {
+        const r = await streamUpload(file.buffer);
+        urls.push(r.secure_url);
+      }
+      req.body.images = urls;
+    } else {
+      // single-file field (avatar, thumbnail, …)
+      const field = req.file.fieldname;
+      req.body[field] = result.secure_url;
     }
-
-    upload(req);
-  } else {
-    next();
   }
+  next();
 };

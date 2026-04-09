@@ -20,7 +20,11 @@ block main
             i.fa-solid.fa-images
             span Hình ảnh sản phẩm
           .product-gallery-body
-            if(product.thumbnail)
+            if(product.images && product.images.length > 0)
+              .product-images-grid
+                each img in product.images
+                  img.product-detail-img(src=img alt=product.title)
+            else if(product.thumbnail)
               .product-main-image
                 img(src=product.thumbnail alt=product.title)
             else

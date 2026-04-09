@@ -134,14 +134,15 @@ block main
                   )
                     i.fa-solid.fa-chevron-right
 
-  style.
-    .orders-page {
-      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+append scripts
+  script.
+    :root {
+      background: linear-gradient(135deg, \#f8f9fa 0%, \#e9ecef 100%);
       min-height: 100vh;
     }
 
     .page-header {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, \#667eea 0%, \#764ba2 100%);
       color: white;
       padding: 2rem;
       border-radius: 16px;
@@ -166,7 +167,7 @@ block main
 
     .page-header .btn-outline-primary:hover {
       background: white;
-      color: #667eea;
+      color: \#667eea;
     }
 
     /* Filter Tabs */
@@ -183,19 +184,19 @@ block main
     .filter-tab {
       padding: 0.5rem 1.25rem;
       border-radius: 8px;
-      color: #6c757d;
+      color: \#6c757d;
       text-decoration: none;
       font-weight: 500;
       transition: all 0.2s ease;
     }
 
     .filter-tab:hover {
-      background: #f8f9fa;
-      color: #667eea;
+      background: \#f8f9fa;
+      color: \#667eea;
     }
 
     .filter-tab.active {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, \#667eea 0%, \#764ba2 100%);
       color: white;
     }
 
@@ -214,9 +215,9 @@ block main
     }
 
     .order-card-header {
-      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      background: linear-gradient(135deg, \#f8f9fa 0%, \#e9ecef 100%);
       padding: 1.25rem 1.5rem;
-      border-bottom: 1px solid #eee;
+      border-bottom: 1px solid \#eee;
     }
 
     .order-id .label,
@@ -224,7 +225,7 @@ block main
     .order-status .label {
       display: block;
       font-size: 0.75rem;
-      color: #6c757d;
+      color: \#6c757d;
       text-transform: uppercase;
       letter-spacing: 0.5px;
       margin-bottom: 0.25rem;
@@ -232,48 +233,48 @@ block main
 
     .order-id .value {
       font-weight: 700;
-      color: #212529;
+      color: \#212529;
       font-size: 1.1rem;
     }
 
     .order-date .value {
-      color: #495057;
+      color: \#495057;
     }
 
     /* Status Badges */
     .badge-pending {
-      background: #ffc107;
-      color: #000;
+      background: \#ffc107;
+      color: \#000;
     }
 
     .badge-processing {
-      background: #0dcaf0;
-      color: #000;
+      background: \#0dcaf0;
+      color: \#000;
     }
 
     .badge-shipping {
-      background: #0d6efd;
-      color: #fff;
+      background: \#0d6efd;
+      color: \#fff;
     }
 
     .badge-delivered {
-      background: #6610f2;
-      color: #fff;
+      background: \#6610f2;
+      color: \#fff;
     }
 
     .badge-completed {
-      background: #198754;
-      color: #fff;
+      background: \#198754;
+      color: \#fff;
     }
 
     .badge-failed {
-      background: #dc3545;
-      color: #fff;
+      background: \#dc3545;
+      color: \#fff;
     }
 
     .badge-cancelled {
-      background: #6c757d;
-      color: #fff;
+      background: \#6c757d;
+      color: \#fff;
     }
 
     .order-card-body {
@@ -291,14 +292,14 @@ block main
       height: 70px;
       object-fit: cover;
       border-radius: 10px;
-      border: 2px solid #f1f1f1;
+      border: 2px solid \#f1f1f1;
     }
 
     .more-products-badge {
       width: 70px;
       height: 70px;
       border-radius: 10px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, \#667eea 0%, \#764ba2 100%);
       color: white;
       display: flex;
       align-items: center;
@@ -308,30 +309,30 @@ block main
     }
 
     .products-count {
-      color: #6c757d;
+      color: \#6c757d;
       font-size: 0.9rem;
       margin-bottom: 0.5rem !important;
     }
 
     .order-summary {
       padding-left: 1rem;
-      border-left: 1px solid #eee;
+      border-left: 1px solid \#eee;
     }
 
     .order-summary .payment-method {
-      color: #6c757d;
+      color: \#6c757d;
       font-size: 0.9rem;
     }
 
     .order-summary .total-amount .label {
-      color: #6c757d;
+      color: \#6c757d;
       margin-right: 0.5rem;
     }
 
     .order-summary .total-amount .value {
       font-size: 1.25rem;
       font-weight: 700;
-      color: #dc3545;
+      color: \#dc3545;
     }
 
     /* Empty State */
@@ -344,17 +345,17 @@ block main
 
     .empty-icon {
       font-size: 5rem;
-      color: #dee2e6;
+      color: \#dee2e6;
     }
 
     .empty-title {
       font-weight: 600;
-      color: #495057;
+      color: \#495057;
       margin-bottom: 0.5rem !important;
     }
 
     .empty-desc {
-      color: #6c757d;
+      color: \#6c757d;
       margin-bottom: 1.5rem !important;
     }
 
@@ -364,26 +365,26 @@ block main
     }
 
     .pagination .page-link {
-      color: #667eea;
+      color: \#667eea;
       border-radius: 8px;
       margin: 0 0.25rem;
-      border: 1px solid #e9ecef;
+      border: 1px solid \#e9ecef;
     }
 
     .pagination .page-item.active .page-link {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, \#667eea 0%, \#764ba2 100%);
       border-color: transparent;
     }
 
     .pagination .page-link:hover {
-      background: #f8f9fa;
+      background: \#f8f9fa;
     }
 
     @media (max-width: 768px) {
       .order-summary {
         padding-left: 0;
         border-left: none;
-        border-top: 1px solid #eee;
+        border-top: 1px solid \#eee;
         margin-top: 1rem;
         padding-top: 1rem;
         text-align: start !important;

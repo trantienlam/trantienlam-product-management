@@ -245,9 +245,10 @@ block main
                   i.fa-solid.fa-circle-xmark.me-2
                   | Hủy đơn hàng
 
-  style.
-    .order-detail-page {
-      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+append scripts
+  script.
+    :root {
+      background: linear-gradient(135deg, \#f8f9fa 0%, \#e9ecef 100%);
       min-height: 100vh;
     }
 
@@ -261,48 +262,48 @@ block main
     .page-title {
       font-size: 1.5rem;
       font-weight: 700;
-      color: #212529;
+      color: \#212529;
     }
 
     .order-id {
       font-size: 1rem;
-      color: #6c757d;
+      color: \#6c757d;
     }
 
     /* Status Badges */
     .badge-pending {
-      background: #ffc107;
-      color: #000;
+      background: \#ffc107;
+      color: \#000;
     }
 
     .badge-processing {
-      background: #0dcaf0;
-      color: #000;
+      background: \#0dcaf0;
+      color: \#000;
     }
 
     .badge-shipping {
-      background: #0d6efd;
-      color: #fff;
+      background: \#0d6efd;
+      color: \#fff;
     }
 
     .badge-delivered {
-      background: #6610f2;
-      color: #fff;
+      background: \#6610f2;
+      color: \#fff;
     }
 
     .badge-completed {
-      background: #198754;
-      color: #fff;
+      background: \#198754;
+      color: \#fff;
     }
 
     .badge-failed {
-      background: #dc3545;
-      color: #fff;
+      background: \#dc3545;
+      color: \#fff;
     }
 
     .badge-cancelled {
-      background: #6c757d;
-      color: #fff;
+      background: \#6c757d;
+      color: \#fff;
     }
 
     /* Cards */
@@ -314,7 +315,7 @@ block main
     }
 
     .card-header {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, \#667eea 0%, \#764ba2 100%);
       color: white;
       padding: 1rem 1.25rem;
       font-weight: 600;
@@ -341,7 +342,7 @@ block main
       top: 0;
       bottom: 0;
       width: 2px;
-      background: #dee2e6;
+      background: \#dee2e6;
     }
 
     .timeline-item {
@@ -359,8 +360,8 @@ block main
       width: 24px;
       height: 24px;
       border-radius: 50%;
-      background: #dee2e6;
-      color: #6c757d;
+      background: \#dee2e6;
+      color: \#6c757d;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -370,19 +371,19 @@ block main
 
     .timeline-item.timeline-item--completed .timeline-marker,
     .timeline-item.completed .timeline-marker {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, \#667eea 0%, \#764ba2 100%);
       color: white;
     }
 
     .timeline-title {
       font-weight: 600;
-      color: #212529;
+      color: \#212529;
       margin-bottom: 0.25rem;
     }
 
     .timeline-date {
       font-size: 0.85rem;
-      color: #6c757d;
+      color: \#6c757d;
     }
 
     .timeline-item:not(.completed) .timeline-content {
@@ -391,64 +392,64 @@ block main
 
     /* Products Table */
     .table thead th {
-      background: #f8f9fa;
+      background: \#f8f9fa;
       font-weight: 600;
-      color: #495057;
+      color: \#495057;
       border: none;
       padding: 1rem;
     }
 
     .table td {
       padding: 1rem;
-      border-color: #f1f1f1;
+      border-color: \#f1f1f1;
       vertical-align: middle;
     }
 
     .table tfoot td {
-      border-top: 2px solid #dee2e6;
+      border-top: 2px solid \#dee2e6;
     }
 
     .product-thumb {
       object-fit: cover;
       border-radius: 8px;
-      border: 1px solid #eee;
+      border: 1px solid \#eee;
     }
 
     .product-info .product-name {
-      color: #212529;
+      color: \#212529;
     }
 
     .original-price {
-      color: #6c757d;
+      color: \#6c757d;
       text-decoration: line-through;
       font-size: 0.85rem;
     }
 
     .current-price {
-      color: #212529;
+      color: \#212529;
     }
 
     /* Info Items */
     .info-item .info-label {
       font-size: 0.8rem;
-      color: #6c757d;
+      color: \#6c757d;
       text-transform: uppercase;
       letter-spacing: 0.5px;
       margin-bottom: 0.25rem;
     }
 
     .info-item .info-value {
-      color: #212529;
+      color: \#212529;
     }
 
     .recipient-info .recipient-label {
       font-size: 0.8rem;
-      color: #6c757d;
+      color: \#6c757d;
       margin-bottom: 0.25rem;
     }
 
     .recipient-info .recipient-value {
-      color: #212529;
+      color: \#212529;
     }
 
     /* Alert styling */

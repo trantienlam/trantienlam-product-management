@@ -27,6 +27,24 @@ module.exports.createPost = async (req, res) => {
   res.redirect(`${systemConfix.prefixAdmin}/roles`);
 };
 
+// [GET] /admin/role/detail/id
+module.exports.detail = async (req, res) => {
+  const id = req.params.id;
+  let find = {
+    deleted: false,
+    _id: id,
+  };
+  const data = await Role.findOne(find);
+  if (!data) {
+    req.flash("error", "Không tìm thấy nhóm quyền");
+    return res.redirect(`${systemConfix.prefixAdmin}/roles`);
+  }
+  res.render("admin/pages/roles/detail", {
+    pageTitle: "Chi tiết nhóm quyền",
+    data: data,
+  });
+};
+
 // [GET] /admin/role/edit/id
 module.exports.edit = async (req, res) => {
   const id = req.params.id;
@@ -69,6 +87,7 @@ module.exports.permissions = async (req, res) => {
 module.exports.permissionsPatch = async (req, res) => {
   try {
     const permissions = JSON.parse(req.body.permissions);
+   // console.log(permissions);
     for (const item of permissions) {
       await Role.updateOne(
         {

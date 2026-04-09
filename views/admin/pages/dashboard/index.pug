@@ -27,7 +27,7 @@ block main
       .stat-card.stat-card--revenue
         .stat-card__header
           .stat-card__icon
-            i.fa-solid.fa-vnd-sign
+            i.fa-solid.fa-money-bill-wave
           .stat-card__trend(class=changes.revenue.isUp ? 'stat-card__trend--up' : 'stat-card__trend--down')
             i.fa-solid(class=changes.revenue.isUp ? 'fa-arrow-up' : 'fa-arrow-down')
             | #{changes.revenue.isUp ? '+' : ''}#{changes.revenue.value}%

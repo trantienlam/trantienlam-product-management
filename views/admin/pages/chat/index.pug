@@ -1,94 +1,95 @@
 extends ../../layouts/default.pug
 
 block main
-  .chat-page-container
-    //- Left Panel - Session List
-    .chat-sidebar
-      .chat-sidebar-header
-        .chat-sidebar-title
+  if(role.permission.includes("chat_view"))
+    .chat-page-container
+      //- Left Panel - Session List
+      .chat-sidebar
+        .chat-sidebar-header
+          .chat-sidebar-title
+            i.fa-solid.fa-comments
+            span Chat Hỗ trợ
+          .chat-sidebar-count
+            span#sessionCount= sessions.length
+        .chat-session-list#sessionList
+          each session in sessions
+            .chat-session-item(
+              id=`session-item-${session._id}`
+              onclick=`selectSession('${session._id}')`
+              class=(session.status === 'waiting' ? 'waiting' : (session.status === 'active' ? 'active' : 'closed'))
+            )
+              .chat-session-avatar(class=session.guestAvatar ? 'chat-session-avatar--img' : '')
+                if session.guestAvatar
+                  img(src=session.guestAvatar alt="")
+                else
+                  i.fa-solid.fa-user
+              .chat-session-info
+                .chat-session-header
+                  span.chat-session-name= session.guestName
+                  span.chat-session-time= formatTime(session.createdAt)
+                .chat-session-preview
+                  span.chat-session-status
+                    if session.status === 'waiting'
+                      span.status-dot.waiting
+                      span Đang chờ
+                    else if session.status === 'active'
+                      span.status-dot.active
+                      span= `Đang chat${session.adminName ? ' - ' + session.adminName : ''}`
+                    else
+                      span.status-dot.closed
+                      span Đã đóng
+
+      //- Right Panel - Chat Area
+      .chat-main
+        // Empty State
+        .chat-empty-state#chatEmptyState
           i.fa-solid.fa-comments
-          span Chat Hỗ trợ
-        .chat-sidebar-count
-          span#sessionCount= sessions.length
-      .chat-session-list#sessionList
-        each session in sessions
-          .chat-session-item(
-            id=`session-item-${session._id}`
-            onclick=`selectSession('${session._id}')`
-            class=(session.status === 'waiting' ? 'waiting' : (session.status === 'active' ? 'active' : 'closed'))
-          )
-            .chat-session-avatar(class=session.guestAvatar ? 'chat-session-avatar--img' : '')
-              if session.guestAvatar
-                img(src=session.guestAvatar alt="")
-              else
-                i.fa-solid.fa-user
-            .chat-session-info
-              .chat-session-header
-                span.chat-session-name= session.guestName
-                span.chat-session-time= formatTime(session.createdAt)
-              .chat-session-preview
-                span.chat-session-status
-                  if session.status === 'waiting'
-                    span.status-dot.waiting
-                    span Đang chờ
-                  else if session.status === 'active'
-                    span.status-dot.active
-                    span= `Đang chat${session.adminName ? ' - ' + session.adminName : ''}`
-                  else
-                    span.status-dot.closed
-                    span Đã đóng
+          h3 Chào mừng đến với Chat Hỗ trợ
+          p Chọn một phiên chat từ danh sách bên trái để bắt đầu trò chuyện với khách hàng
 
-    //- Right Panel - Chat Area
-    .chat-main
-      // Empty State
-      .chat-empty-state#chatEmptyState
-        i.fa-solid.fa-comments
-        h3 Chào mừng đến với Chat Hỗ trợ
-        p Chọn một phiên chat từ danh sách bên trái để bắt đầu trò chuyện với khách hàng
+        // Chat Area (hidden by default)
+        .chat-area#chatContainer(style="display: none;")
+          .chat-header
+            .chat-header-info
+              i.fa-solid.fa-headset
+              span#chatHeaderTitle Chat với khách
+            .chat-header-actions
+              button.btn-delete-chat(onclick="deleteCurrentSession()", title="Xóa đoạn chat")
+                i.fa-solid.fa-trash
+              button.btn-end-chat(onclick="closeCurrentSession()", title="Kết thúc chat")
+                i.fa-solid.fa-power-off
+              button.btn-back(onclick="goBackToSessionList()", title="Quay lại danh sách")
+                i.fa-solid.fa-arrow-left
 
-      // Chat Area (hidden by default)
-      .chat-area#chatContainer(style="display: none;")
-        .chat-header
-          .chat-header-info
-            i.fa-solid.fa-headset
-            span#chatHeaderTitle Chat với khách
-          .chat-header-actions
-            button.btn-delete-chat(onclick="deleteCurrentSession()", title="Xóa đoạn chat")
-              i.fa-solid.fa-trash
-            button.btn-end-chat(onclick="closeCurrentSession()", title="Kết thúc chat")
-              i.fa-solid.fa-power-off
-            button.btn-back(onclick="goBackToSessionList()", title="Quay lại danh sách")
-              i.fa-solid.fa-arrow-left
+          .chat-messages#chatMessages
 
-        .chat-messages#chatMessages
+          .chat-input-area
+            input#adminChatImageInput(type="file", accept="image/*", style="display: none;", onchange="handleAdminChatImageSelect(this)")
+            textarea.chat-input#chatInput(
+              placeholder="Nhập tin nhắn cho khách hàng...",
+              rows="1"
+            )
+            button.btn-image(type="button", onclick="document.getElementById('adminChatImageInput').click()", title="Gửi ảnh")
+              i.fa-solid.fa-image
+            button.btn-send(onclick="sendChatMessage()")
+              i.fa-solid.fa-paper-plane
 
-        .chat-input-area
-          input#adminChatImageInput(type="file", accept="image/*", style="display: none;", onchange="handleAdminChatImageSelect(this)")
-          textarea.chat-input#chatInput(
-            placeholder="Nhập tin nhắn cho khách hàng...",
-            rows="1"
-          )
-          button.btn-image(type="button", onclick="document.getElementById('adminChatImageInput').click()", title="Gửi ảnh")
-            i.fa-solid.fa-image
-          button.btn-send(onclick="sendChatMessage()")
-            i.fa-solid.fa-paper-plane
+  append scripts
+    script.
+      document.body.dataset.adminName = "#{user ? user.fullName : 'Admin'}";
+      document.body.dataset.adminAvatar = !{JSON.stringify((user && user.avatar) ? user.avatar : '')};
 
-append scripts
-  script.
-    document.body.dataset.adminName = "#{user ? user.fullName : 'Admin'}";
-    document.body.dataset.adminAvatar = !{JSON.stringify((user && user.avatar) ? user.avatar : '')};
-
-    function formatTime(date) {
-      if (!date) return '';
-      const d = new Date(date);
-      const hours = String(d.getHours()).padStart(2, '0');
-      const minutes = String(d.getMinutes()).padStart(2, '0');
-      const day = String(d.getDate()).padStart(2, '0');
-      const month = String(d.getMonth() + 1).padStart(2, '0');
-      const now = new Date();
-      const isToday = d.toDateString() === now.toDateString();
-      return isToday ? hours + ':' + minutes : day + '/' + month + ' ' + hours + ':' + minutes;
-    }
+      function formatTime(date) {
+        if (!date) return '';
+        const d = new Date(date);
+        const hours = String(d.getHours()).padStart(2, '0');
+        const minutes = String(d.getMinutes()).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const now = new Date();
+        const isToday = d.toDateString() === now.toDateString();
+        return isToday ? hours + ':' + minutes : day + '/' + month + ' ' + hours + ':' + minutes;
+      }
 
   script(src="https://cdn.socket.io/4.7.2/socket.io.min.js")
   script(src="/admin/js/chat-admin.js")

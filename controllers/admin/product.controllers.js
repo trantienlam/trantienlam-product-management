@@ -198,6 +198,10 @@ module.exports.createPost = async (req, res) => {
     req.body.position = parseInt(req.body.position);
   }
 
+  if (req.files && req.files.length > 0) {
+    req.body.thumbnail = req.body.images[0];
+  }
+
   req.body.createdBy = {
     account_id: res.locals.user.id,
   };
@@ -225,6 +229,7 @@ module.exports.edit = async (req, res) => {
       pageTitle: "Chỉnh sửa sản phẩm",
       product: product,
       category: newCategory,
+      page: req.query.page || 1,
     });
   } catch (error) {
     res.redirect(`${systemConfig.prefixAdmin}/products`);
@@ -240,8 +245,11 @@ module.exports.editPatch = async (req, res) => {
 
   req.body.position = parseInt(req.body.position);
 
-  if (req.file && req.file.path) {
-    req.body.thumbnail = req.file.path; // SAI nếu không có req.file.path
+  if (req.files && req.files.length > 0) {
+    const existingProduct = await Product.findOne({ _id: id }).select("images");
+    const oldImages = existingProduct && existingProduct.images ? existingProduct.images : [];
+    req.body.images = [...oldImages, ...req.body.images];
+    req.body.thumbnail = req.body.images[0];
   }
   try {
     const updatedBy = {
@@ -255,11 +263,12 @@ module.exports.editPatch = async (req, res) => {
         $push: { updatedBy: updatedBy },
       },
     );
-    req.flash("success", " Cập nhật thành công");
+    req.flash("success", "Cập nhật thành công");
   } catch (error) {
     req.flash("error", "Cập nhật thất bại");
   }
-  res.redirect("back");
+  const page = req.body.page ? `?page=${req.body.page}` : "";
+  res.redirect(`${systemConfig.prefixAdmin}/products${page}`);
 };
 
 //[GET] /admin/products/detail/:id

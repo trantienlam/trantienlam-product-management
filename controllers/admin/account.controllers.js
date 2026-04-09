@@ -3,19 +3,35 @@ const md5 = require("md5");
 const Account = require("../../models/account.model");
 const Role = require("../../models/role.model");
 const systemConfig = require("../../config/system");
+
+/** Chuẩn hóa URL avatar (https / đường dẫn tuyệt đối từ root) */
+function normalizeAvatarUrl(avatar) {
+  if (avatar == null || typeof avatar !== "string") return "";
+  const t = avatar.trim();
+  if (!t) return "";
+  if (/^https?:\/\//i.test(t) || t.startsWith("//")) return t;
+  if (t.startsWith("/")) return t;
+  return `/${t.replace(/^\/+/, "")}`;
+}
+
 // [GET] /admin/accounts
 module.exports.index = async (req, res) => {
   let find = {
     deleted: false,
   };
-  const records = await Account.find(find).select("-password -token");
-
-  for (const record of records) {
+  const raw = await Account.find(find).select("-password -token").lean();
+  const records = [];
+  for (const record of raw) {
     const role = await Role.findOne({
       _id: record.role_id,
       deleted: false,
     });
-    record.role = role;
+    records.push({
+      ...record,
+      id: record._id,
+      role,
+      avatarUrl: normalizeAvatarUrl(record.avatar),
+    });
   }
   res.render("admin/pages/accounts/index", {
     pageTitle: "Danh sách tài khoản",
@@ -89,6 +105,9 @@ module.exports.editPatch = async (req, res) => {
     } else {
       delete req.body.password;
     }
+    if (!req.body.avatar) {
+      delete req.body.avatar;
+    }
     await Account.updateOne({ _id: id }, req.body);
     req.flash("success", "Cập nhật thành công");
   }
@@ -140,7 +159,7 @@ module.exports.detail = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
-    res.redirect(`${systemConfix.prefixAdmin}/accounts`);
+    res.redirect(`${systemConfig.prefixAdmin}/accounts`);
   }
 };
 

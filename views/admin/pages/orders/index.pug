@@ -5,179 +5,182 @@ include ../../mixins/alert.pug
 include ../../mixins/moment.pug
 
 block main
-  +alert-success(5000)
-  +alert-error(5000)
+  if(role.permission.includes("orders_view"))
+    +alert-success(5000)
+    +alert-error(5000)
 
-  h1.mb-4 Quản lý đơn hàng
+    h1.mb-4 Quản lý đơn hàng
 
-  //- Filter Card
-  .card.mb-3
-    .card-header
-      i.fas.fa-filter.me-2
-      | Bộ lọc
-    .card-body
-      .row.align-items-end
-        .col-12.col-md-4
-          +filter-status(filterStatus)
-        .col-12.col-md-4
-          form(method="GET", action="")
-            if reqQuery.status
-              input(type="hidden", name="status", value=reqQuery.status)
-            .input-group
-              input.form-control(
-                type="text"
-                placeholder="Tìm theo tên, SĐT..."
-                name="keyword"
-                value=keyword || ""
-              )
-              button.btn.btn-primary(type="submit")
-                i.fas.fa-search
-        .col-12.col-md-4
-          a.btn.btn-secondary(href=`${prefixAdmin}/orders`)
-            i.fas.fa-redo.me-1
-            | Reset
+    //- Filter Card
+    .card.mb-3
+      .card-header
+        i.fas.fa-filter.me-2
+        | Bộ lọc
+      .card-body
+        .row.align-items-end
+          .col-12.col-md-4
+            +filter-status(filterStatus)
+          .col-12.col-md-4
+            form(method="GET", action="")
+              if reqQuery.status
+                input(type="hidden", name="status", value=reqQuery.status)
+              .input-group
+                input.form-control(
+                  type="text"
+                  placeholder="Tìm theo tên, SĐT..."
+                  name="keyword"
+                  value=keyword || ""
+                )
+                button.btn.btn-primary(type="submit")
+                  i.fas.fa-search
+          .col-12.col-md-4
+            a.btn.btn-secondary(href=`${prefixAdmin}/orders`)
+              i.fas.fa-redo.me-1
+              | Reset
 
-  //- Orders Table
-  .card
-    .card-header.d-flex.justify-content-between.align-items-center
-      span
-        i.fas.fa-shopping-cart.me-2
-        | Danh sách đơn hàng (#{pagination.totalItems} đơn)
-      a.btn.btn-sm.btn-primary(href=`${prefixAdmin}/orders`)
-        i.fas.fa-redo.me-1
-        | Làm mới
+    //- Orders Table
+    .card
+      .card-header.d-flex.justify-content-between.align-items-center
+        span
+          i.fas.fa-shopping-cart.me-2
+          | Danh sách đơn hàng (#{pagination.totalItems} đơn)
+        a.btn.btn-sm.btn-primary(href=`${prefixAdmin}/orders`)
+          i.fas.fa-redo.me-1
+          | Làm mới
 
-    .card-body.p-0
-      .table-responsive
-        table.table.table-hover.align-middle.mb-0
-          thead
-            tr
-              th.text-center(style="width: 50px")
-                input(type="checkbox", name="checkall")
-              th Mã đơn
-              th Khách hàng
-              th Sản phẩm
-              th Tổng tiền
-              th Thanh toán
-              th Trạng thái
-              th Ngày đặt
-              th Thao tác
-          tbody
-            each order in orders
-              - const orderId = order._id.toString()
+      .card-body.p-0
+        .table-responsive
+          table.table.table-hover.align-middle.mb-0
+            thead
               tr
-                td.text-center
-                  input(type="checkbox", name="id", value=orderId)
-                td
-                  strong
-                    | #
-                    = orderId.slice(-8).toUpperCase()
-                td
-                  p.mb-1.fw-medium= order.userInfo ? order.userInfo.fullName : 'N/A'
-                  p.mb-0.text-muted.small
-                    i.fas.fa-phone.me-1
-                    = order.userInfo ? order.userInfo.phone : 'N/A'
-                  p.mb-0.text-muted.small
-                    i.fas.fa-map-marker-alt.me-1
-                    = order.userInfo ? (order.userInfo.address || 'N/A') : 'N/A'
-                td
-                  if order.products && order.products.length > 0
-                    .product-list
-                      each item, index in order.products.slice(0, 2)
-                        .product-item.d-flex.align-items-center.mb-1.w-100
-                          if item.productInfo && item.productInfo.thumbnail
-                            img(src=item.productInfo.thumbnail, alt=item.productInfo.title, width="30", height="30", class="rounded me-2 object-fit-cover flex-shrink-0")
-                          else
-                            .no-image.me-2.flex-shrink-0: i.fas.fa-image
-                          span.small.text-truncate.flex-grow-1= item.productInfo ? item.productInfo.title : 'Sản phẩm'
-                          | 
-                          small.text-muted x#{item.quantity}
-                      if order.products.length > 2
-                        p.text-muted.small.mb-0 ... và #{order.products.length - 2} sản phẩm khác
-                  else
-                    span.text-muted Không có sản phẩm
-                td
-                  strong.text-danger
-                    = order.amount ? order.amount.toLocaleString('vi-VN') : '0'
-                    |  đ
-                td.text-center
-                  case order.paymentStatus
-                    when "paid"
-                      span.badge.bg-success.p-2
-                        i.fas.fa-check-circle.me-1
-                        | Đã thanh toán
-                    when "unpaid"
-                      span.badge.bg-warning.text-dark.p-2
-                        i.fas.fa-clock.me-1
-                        | Chưa thanh toán
-                    when "refunded"
-                      span.badge.bg-info.p-2
-                        i.fas.fa-undo.me-1
-                        | Hoàn tiền
-                    default
-                      span.badge.bg-secondary.p-2= order.paymentStatus || 'N/A'
-                td
-                  case order.status
-                    when "pending"
-                      span.badge.bg-secondary.p-2
-                        i.fas.fa-clock.me-1
-                        | Chờ xác nhận
-                    when "processing"
-                      span.badge.bg-info.p-2
-                        i.fas.fa-spinner.me-1
-                        | Đang xử lý
-                    when "shipping"
-                      span.badge.bg-primary.p-2
-                        i.fas.fa-truck.me-1
-                        | Đang vận chuyển
-                    when "delivered"
-                      span.badge.bg-success.p-2
-                        i.fas.fa-box-open.me-1
-                        | Đã giao hàng
-                    when "completed"
-                      span.badge.bg-success.p-2
-                        i.fas.fa-check-double.me-1
-                        | Hoàn thành
-                    when "failed"
-                      span.badge.bg-danger.p-2
-                        i.fas.fa-times-circle.me-1
-                        | Thất bại
-                    when "cancelled"
-                      span.badge.bg-dark.p-2
-                        i.fas.fa-ban.me-1
-                        | Đã hủy
-                    default
-                      span.badge.bg-light.text-dark.p-2= order.status
-                td
-                  small.text-muted
-                    +formatDateTime(order.createdAt)
-                td
-                  .btn-group.btn-group-sm
-                    a.btn.btn-outline-primary(href=`${prefixAdmin}/orders/detail/${orderId}`, title="Chi tiết")
-                      i.fas.fa-eye
-                    select.form-select.form-select-sm(
-                      onchange="window.location.href=this.value"
-                      style="width: auto"
-                    )
-                      option(value="") -- Đổi trạng thái --
-                      option(value=`${prefixAdmin}/orders/change-status/processing/${orderId}` disabled=(order.status === 'processing' || order.status === 'completed' || order.status === 'cancelled' || order.status === 'failed')) Đang xử lý
-                      option(value=`${prefixAdmin}/orders/change-status/shipping/${orderId}` disabled=(order.status === 'shipping' || order.status === 'completed' || order.status === 'cancelled' || order.status === 'failed')) Đang vận chuyển
-                      option(value=`${prefixAdmin}/orders/change-status/delivered/${orderId}` disabled=(order.status === 'delivered' || order.status === 'completed' || order.status === 'cancelled' || order.status === 'failed')) Đã giao hàng
-                      option(value=`${prefixAdmin}/orders/change-status/completed/${orderId}` disabled=(order.status === 'completed' || order.status === 'cancelled' || order.status === 'failed')) Hoàn thành
-                      option(value=`${prefixAdmin}/orders/change-status/cancelled/${orderId}` disabled=(order.status === 'completed' || order.status === 'cancelled')) Hủy đơn
+                th.text-center(style="width: 50px")
+                  input(type="checkbox", name="checkall")
+                th Mã đơn
+                th Khách hàng
+                th Sản phẩm
+                th Tổng tiền
+                th Thanh toán
+                th Trạng thái
+                th Ngày đặt
+                th Thao tác
+            tbody
+              each order in orders
+                - const orderId = order._id.toString()
+                tr
+                  td.text-center
+                    input(type="checkbox", name="id", value=orderId)
+                  td
+                    strong
+                      | #
+                      = orderId.slice(-8).toUpperCase()
+                  td
+                    p.mb-1.fw-medium= order.userInfo ? order.userInfo.fullName : 'N/A'
+                    p.mb-0.text-muted.small
+                      i.fas.fa-phone.me-1
+                      = order.userInfo ? order.userInfo.phone : 'N/A'
+                    p.mb-0.text-muted.small
+                      i.fas.fa-map-marker-alt.me-1
+                      = order.userInfo ? (order.userInfo.address || 'N/A') : 'N/A'
+                  td
+                    if order.products && order.products.length > 0
+                      .product-list
+                        each item, index in order.products.slice(0, 2)
+                          .product-item.d-flex.align-items-center.mb-1.w-100
+                            if item.productInfo && item.productInfo.thumbnail
+                              img(src=item.productInfo.thumbnail, alt=item.productInfo.title, width="30", height="30", class="rounded me-2 object-fit-cover flex-shrink-0")
+                            else
+                              .no-image.me-2.flex-shrink-0: i.fas.fa-image
+                            span.small.text-truncate.flex-grow-1= item.productInfo ? item.productInfo.title : 'Sản phẩm'
+                            | 
+                            small.text-muted x#{item.quantity}
+                        if order.products.length > 2
+                          p.text-muted.small.mb-0 ... và #{order.products.length - 2} sản phẩm khác
+                    else
+                      span.text-muted Không có sản phẩm
+                  td
+                    strong.text-danger
+                      = order.amount ? order.amount.toLocaleString('vi-VN') : '0'
+                      |  đ
+                  td.text-center
+                    case order.paymentStatus
+                      when "paid"
+                        span.badge.bg-success.p-2
+                          i.fas.fa-check-circle.me-1
+                          | Đã thanh toán
+                      when "unpaid"
+                        span.badge.bg-warning.text-dark.p-2
+                          i.fas.fa-clock.me-1
+                          | Chưa thanh toán
+                      when "refunded"
+                        span.badge.bg-info.p-2
+                          i.fas.fa-undo.me-1
+                          | Hoàn tiền
+                      default
+                        span.badge.bg-secondary.p-2= order.paymentStatus || 'N/A'
+                  td
+                    case order.status
+                      when "pending"
+                        span.badge.bg-secondary.p-2
+                          i.fas.fa-clock.me-1
+                          | Chờ xác nhận
+                      when "processing"
+                        span.badge.bg-info.p-2
+                          i.fas.fa-spinner.me-1
+                          | Đang xử lý
+                      when "shipping"
+                        span.badge.bg-primary.p-2
+                          i.fas.fa-truck.me-1
+                          | Đang vận chuyển
+                      when "delivered"
+                        span.badge.bg-success.p-2
+                          i.fas.fa-box-open.me-1
+                          | Đã giao hàng
+                      when "completed"
+                        span.badge.bg-success.p-2
+                          i.fas.fa-check-double.me-1
+                          | Hoàn thành
+                      when "failed"
+                        span.badge.bg-danger.p-2
+                          i.fas.fa-times-circle.me-1
+                          | Thất bại
+                      when "cancelled"
+                        span.badge.bg-dark.p-2
+                          i.fas.fa-ban.me-1
+                          | Đã hủy
+                      default
+                        span.badge.bg-light.text-dark.p-2= order.status
+                  td
+                    small.text-muted
+                      +formatDateTime(order.createdAt)
+                  td
+                    .btn-group.btn-group-sm
+                      if(role.permission.includes("orders_detail"))
+                        a.btn.btn-outline-primary(href=`${prefixAdmin}/orders/detail/${orderId}`, title="Chi tiết")
+                          i.fas.fa-eye
+                      if(role.permission.includes("orders_status"))
+                        select.form-select.form-select-sm(
+                          onchange="window.location.href=this.value"
+                          style="width: auto"
+                        )
+                          option(value="") -- Đổi trạng thái --
+                          option(value=`${prefixAdmin}/orders/change-status/processing/${orderId}` disabled=(order.status === 'processing' || order.status === 'completed' || order.status === 'cancelled' || order.status === 'failed')) Đang xử lý
+                          option(value=`${prefixAdmin}/orders/change-status/shipping/${orderId}` disabled=(order.status === 'shipping' || order.status === 'completed' || order.status === 'cancelled' || order.status === 'failed')) Đang vận chuyển
+                          option(value=`${prefixAdmin}/orders/change-status/delivered/${orderId}` disabled=(order.status === 'delivered' || order.status === 'completed' || order.status === 'cancelled' || order.status === 'failed')) Đã giao hàng
+                          option(value=`${prefixAdmin}/orders/change-status/completed/${orderId}` disabled=(order.status === 'completed' || order.status === 'cancelled' || order.status === 'failed')) Hoàn thành
+                          option(value=`${prefixAdmin}/orders/change-status/cancelled/${orderId}` disabled=(order.status === 'completed' || order.status === 'cancelled')) Hủy đơn
 
-  +pagination(pagination)
+    +pagination(pagination)
 
-  //- Hidden forms
-  form(
-    action=""
-    method="POST"
-    id="form-change-status"
-    data-path=`${prefixAdmin}/orders/change-status`
-  )
+    //- Hidden forms
+    form(
+      action=""
+      method="POST"
+      id="form-change-status"
+      data-path=`${prefixAdmin}/orders/change-status`
+    )
 
-  form(
-    action=`${prefixAdmin}/orders/delete`
-    method="POST"
-    id="form-delete-item"
-  )
+    form(
+      action=`${prefixAdmin}/orders/delete`
+      method="POST"
+      id="form-delete-item"
+    )
