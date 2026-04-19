@@ -101,21 +101,37 @@ if (formChangeMulti) {
 }
 // end form change multi
 
-//show alert
-const showAlert = document.querySelector("[show-alert]");
-if (showAlert) {
-  const time = showAlert.getAttribute("data-time");
+//show alert - xử lý TẤT CẢ alerts trên trang
+const showAlerts = document.querySelectorAll("[show-alert]");
+showAlerts.forEach((showAlert) => {
+  const time = parseInt(showAlert.getAttribute("data-time")) || 5000;
   const closeAlert = showAlert.querySelector("[close-alert]");
 
+  // Tự động ẩn sau `time` ms
   setTimeout(() => {
+    // Thêm class để fade out
     showAlert.classList.add("alert-hidden");
+    
+    // Xóa hoàn toàn khỏi DOM sau khi transition xong (300ms)
+    setTimeout(() => {
+      if (showAlert.parentNode) {
+        showAlert.parentNode.removeChild(showAlert);
+      }
+    }, 300);
   }, time);
 
-  closeAlert.addEventListener("click", () => {
-    showAlert.classList.add("alert-hidden");
-  });
-}
-
+  // Ẩn ngay khi click nút close
+  if (closeAlert) {
+    closeAlert.addEventListener("click", () => {
+      showAlert.classList.add("alert-hidden");
+      setTimeout(() => {
+        if (showAlert.parentNode) {
+          showAlert.parentNode.removeChild(showAlert);
+        }
+      }, 300);
+    });
+  }
+});
 // end show alert
 
 // upload image

@@ -66,24 +66,10 @@ block main
               .col-md-6.mb-3
                 .product-info-item
                   .product-info-label
-                    i.fa-solid.fa-percent
-                    | Giảm giá
-                  .product-info-value
-                    if(product.discountPercentage)
-                      span.discount-badge #{product.discountPercentage}%
-                    else
-                      span.text-muted Không
-
-              .col-md-6.mb-3
-                .product-info-item
-                  .product-info-label
                     i.fa-solid.fa-money-bill-wave
-                    | Giá sau giảm
-                  .product-info-value.product-price-new
-                    if(product.price && product.discountPercentage)
-                      - let newPrice = Math.round(product.price * (100 - product.discountPercentage) / 100)
-                      | #{newPrice.toLocaleString("vi-VN")} đ
-                    else if(product.price)
+                    | Giá bán
+                  .product-info-value
+                    if(product.price)
                       | #{product.price.toLocaleString("vi-VN")} đ
                     else
                       span.text-muted Chưa cập nhật

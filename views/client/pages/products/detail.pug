@@ -24,16 +24,14 @@ block main
     .container
       .row.product-detail__main
 
-        //- LEFT: Gallery
-        .col-lg-6.product-detail__gallery
+        //- LEFT: Gallery (col-12: full width < lg — tránh 2 cột 50% bị chồng chữ)
+        .col-12.col-lg-6.product-detail__gallery
           .product-gallery__main
             .product-gallery__badge
               if(product.featured == "1")
                 span.badge-featured
                   i.bi.bi-star-fill
                   | Nổi bật
-              if(product.discountPercentage > 0)
-                span.badge-discount -#{product.discountPercentage}%
             if((product.images && product.images.length > 1) || product.thumbnail)
               button#galleryPrev.product-gallery__nav.product-gallery__nav--prev(type="button")
                 i.bi.bi-chevron-left
@@ -58,7 +56,7 @@ block main
                 img(src=product.thumbnail alt=product.title)
 
         //- RIGHT: Product info
-        .col-lg-6.product-detail__info
+        .col-12.col-lg-6.product-detail__info
           h1.product-detail__title= product.title
 
           //- Category & SKU
@@ -70,7 +68,7 @@ block main
 
           //- Price block
           .product-detail__price-block
-            if(product.discountPercentage > 0)
+            if(product.price && product.priceNew)
               .product-detail__price-original
                 span.label Giá gốc:
                 span.value #{product.price ? product.price.toLocaleString("vi-VN") : "—" } đ
@@ -133,8 +131,8 @@ block main
                   i.bi.bi-lightning-fill
                   | Mua ngay
 
-  //- Product tabs
-  .product-tabs-section
+  //- Product tabs (#reviews: mở tab đánh giá từ link đơn hàng)
+  .product-tabs-section#reviews
     .container
       .product-tabs
         button.product-tab-btn.is-active(data-tab="description")
@@ -143,6 +141,9 @@ block main
         button.product-tab-btn(data-tab="specs")
           i.bi.bi-list-ul
           | Thông số kỹ thuật
+        button.product-tab-btn(data-tab="reviews")
+          i.bi.bi-star-fill
+          | Đánh giá (#{verifiedReviewCount != null ? verifiedReviewCount : 0})
 
         //- Tabs content
         #tab-description.product-tab-panel.is-active
@@ -167,10 +168,6 @@ block main
                   tr
                     th(scope="row") Giá bán
                     td #{product.price.toLocaleString("vi-VN")} đ
-                if(product.discountPercentage)
-                  tr
-                    th(scope="row") Giảm giá
-                    td #{product.discountPercentage}%
                 if(product.stock)
                   tr
                     th(scope="row") Số lượng
@@ -179,6 +176,84 @@ block main
                   tr
                     th(scope="row") Nổi bật
                     td= product.featured === "1" ? "Có" : "Không"
+
+        //- Reviews Tab
+        #tab-reviews.product-tab-panel
+          .reviews-section
+            //- Rating Summary
+            .rating-summary
+              .rating-summary__score
+                span.rating-summary__number #{verifiedReviewAverage ? verifiedReviewAverage.toFixed(1) : "0.0"}
+                .rating-summary__stars
+                  - var avgR = verifiedReviewAverage || 0;
+                  - var fullStars = Math.round(avgR);
+                  - var hasHalfStar = (avgR % 1) >= 0.5;
+                  - var emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+                  each i in Array(fullStars)
+                    i.bi.bi-star-fill
+                  if(hasHalfStar)
+                    i.bi.bi-star-half
+                  each i in Array(emptyStars)
+                    i.bi.bi-star
+                span.rating-summary__count (#{verifiedReviewCount != null ? verifiedReviewCount : 0} đánh giá từ người mua)
+
+            //- Reviews List (form viết đánh giá: từ chi tiết đơn hàng → /reviews/write/...)
+            .reviews-list
+              h4.reviews-list__title
+                i.bi.bi-chat-quote.me-2
+                | Đánh giá từ người mua
+              if reviews && reviews.length > 0
+                each review in reviews
+                  .review-item
+                    .review-item__header
+                      .review-item__avatar
+                        if review.userAvatar
+                          img.review-item__avatar-img(
+                            src=review.userAvatar
+                            alt=review.userName
+                            width="48"
+                            height="48"
+                            loading="lazy"
+                          )
+                        else
+                          span.review-item__avatar-default= review.userName ? review.userName.charAt(0).toUpperCase() : "?"
+                      .review-item__info
+                        strong.review-item__name= review.userName || "Khách hàng"
+                        span.review-item__verified(title="Người mua đã xác nhận nhận hàng")
+                          i.bi.bi-bag-check
+                          | Đã mua hàng
+                        .review-item__meta
+                          .review-item__stars
+                            - for(var i = 0; i < 5; i++)
+                              if(i < review.rating)
+                                i.bi.bi-star-fill
+                              else
+                                i.bi.bi-star
+                          span.review-item__date
+                            | #{moment(review.createdAt).format("DD/MM/YYYY HH:mm")}
+                    .review-item__content
+                      if review.comment
+                        p.review-item__text= review.comment
+                      else
+                        p.review-item__text.review-item__text--no-comment (Không có nhận xét)
+                      if review.images && review.images.length
+                        .review-item__photos
+                          each photo in review.images
+                            a.review-item__photo-link(href=photo target="_blank" rel="noopener noreferrer")
+                              img.review-item__photo(src=photo alt="Ảnh từ người mua" loading="lazy")
+                if(verifiedReviewCount > 3)
+                  button.btn.btn-outline-primary.btn-load-reviews(
+                    type="button"
+                    data-product-id=product._id
+                  )
+                    i.bi.bi-arrow-down-circle.me-2
+                    | Xem thêm đánh giá
+              else
+                .reviews-empty
+                  i.bi.bi-chat-dots.reviews-empty__icon
+                  p Chưa có đánh giá từ người mua. Sau khi nhận hàng, bạn có thể đánh giá trong mục 
+                    a(href="/orders") Đơn hàng của tôi
+                    | .
 
   //- Related products
   if(relatedProducts && relatedProducts.length > 0)
@@ -201,8 +276,6 @@ block main
               a.related-product-card__link(href=`/products/detail/${item.slug}`)
                 .related-product-card__image
                   img(src=item.thumbnail alt=item.title loading="lazy")
-                  if(item.discountPercentage > 0)
-                    .related-product-card__discount -#{item.discountPercentage}%
                 .related-product-card__body
                   h3.related-product-card__title= item.title
                   .related-product-card__prices
@@ -269,12 +342,22 @@ append scripts
     });
 
     // Product tabs
+    function activateProductTab(tabName) {
+      document.querySelectorAll('.product-tab-btn').forEach(b => b.classList.remove('is-active'));
+      document.querySelectorAll('.product-tab-panel').forEach(p => p.classList.remove('is-active'));
+      const btn = document.querySelector('.product-tab-btn[data-tab="' + tabName + '"]');
+      const panel = document.getElementById('tab-' + tabName);
+      if (btn) btn.classList.add('is-active');
+      if (panel) panel.classList.add('is-active');
+    }
     document.querySelectorAll('.product-tab-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.product-tab-btn').forEach(b => b.classList.remove('is-active'));
-        document.querySelectorAll('.product-tab-panel').forEach(p => p.classList.remove('is-active'));
-        btn.classList.add('is-active');
-        const panel = document.getElementById('tab-' + btn.dataset.tab);
-        if (panel) panel.classList.add('is-active');
-      });
+      btn.addEventListener('click', () => activateProductTab(btn.dataset.tab));
     });
+    if (location.hash === '#reviews') {
+      activateProductTab('reviews');
+      setTimeout(function() {
+        var el = document.getElementById('reviews');
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    }
+

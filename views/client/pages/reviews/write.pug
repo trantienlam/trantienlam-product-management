@@ -1,0 +1,131 @@
+extends ../../layouts/default.pug
+include ../../mixins/alert.pug
+
+block main
+  +alert-success(4000)
+  +alert-error(6000)
+
+  .review-write-page.py-4
+    .container
+      nav.mb-3(aria-label="breadcrumb")
+        ol.breadcrumb.mb-0
+          li.breadcrumb-item
+            a(href="/orders") Đơn hàng của tôi
+          li.breadcrumb-item
+            a(href=`/orders/detail/${order._id}`) Chi tiết đơn ##{order.orderCode}
+          li.breadcrumb-item.active(aria-current="page") Đánh giá sản phẩm
+
+      .row.justify-content-center
+        .col-lg-8
+          .card.shadow-sm.border-0
+            .card-body.p-4
+              h1.h4.mb-4
+                i.bi.bi-star-fill.text-danger.me-2
+                | Đánh giá sản phẩm
+
+              .d-flex.align-items-start.mb-4.pb-3.border-bottom
+                if product.thumbnail
+                  img.rounded.mr-3(
+                    src=product.thumbnail
+                    alt=product.title
+                    width="72"
+                    height="72"
+                    style="object-fit:cover"
+                  )
+                .flex-grow-1
+                  a.font-weight-bold.text-dark(href=`/products/detail/${product.slug}`)= product.title
+                  .small.text-muted.mt-1
+                    | Đơn hàng: ##{order.orderCode}
+
+              form#reviewForm(action="/reviews/create" method="POST" enctype="multipart/form-data")
+                input(type="hidden" name="product_id" value=product._id)
+                input(type="hidden" name="return_order_id" value=order._id)
+
+                .write-review-box.border-0.p-0.shadow-none(style="margin:0;padding:0 !important;box-shadow:none !important;")
+                  h4.write-review-box__title Viết đánh giá của bạn
+
+                  .star-rating-input.mb-3
+                    label.star-rating-input__label Chọn số sao:
+                    .star-rating-input__stars
+                      input#rating1(type="radio" name="rating" value="1")
+                      input#rating2(type="radio" name="rating" value="2")
+                      input#rating3(type="radio" name="rating" value="3")
+                      input#rating4(type="radio" name="rating" value="4")
+                      input#rating5(type="radio" name="rating" value="5" checked=(userReview && userReview.rating == 5))
+                      label(for="rating1" title="1 sao") ★
+                      label(for="rating2" title="2 sao") ★
+                      label(for="rating3" title="3 sao") ★
+                      label(for="rating4" title="4 sao") ★
+                      label(for="rating5" title="5 sao") ★
+                      if userReview && userReview.rating
+                        script.
+                          document.getElementById('rating#{userReview.rating}').checked = true;
+
+                  .write-review-box__comment
+                    label(for="comment") Nhận xét của bạn:
+                    textarea#comment.form-control(
+                      name="comment"
+                      rows="4"
+                      placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm này..."
+                    ) #{userReview ? userReview.comment : ""}
+
+                  .write-review-box__images.mb-3
+                    label.d-block(for="review_images") Ảnh minh họa (tối đa 5 ảnh, mỗi ảnh ≤ 5MB):
+                    input#review_images.form-control-file.mt-1(
+                      type="file"
+                      name="review_images"
+                      accept="image/jpeg,image/png,image/gif,image/webp"
+                      multiple
+                    )
+                    small.form-text.text-muted JPG, PNG, GIF, WebP. Có thể chọn nhiều ảnh cùng lúc.
+                    if userReview && userReview.images && userReview.images.length
+                      .review-write-existing-photos.mt-2
+                        span.small.text-muted.d-block.mb-1 Ảnh đã đăng:
+                        .review-write-existing-photos__grid
+                          each imgUrl in userReview.images
+                            a.review-write-existing-photos__link(href=imgUrl target="_blank" rel="noopener")
+                              img.review-write-existing-photos__thumb(src=imgUrl alt="Ảnh đánh giá")
+
+                  .d-flex.flex-wrap.align-items-center
+                    button.btn.btn-primary.mr-2.mb-2(type="submit")
+                      i.bi.bi-send.me-2
+                      | #{userReview ? "Cập nhật đánh giá" : "Gửi đánh giá"}
+                    a.btn.btn-outline-secondary.mb-2(href=`/orders/detail/${order._id}`) Quay lại đơn hàng
+
+append scripts
+  script.
+    document.addEventListener('DOMContentLoaded', function() {
+      document.querySelectorAll('.star-rating-input__stars').forEach(function(container) {
+        var labels = container.querySelectorAll('label');
+        var inputs = container.querySelectorAll('input[type="radio"]');
+        labels.forEach(function(label, index) {
+          label.addEventListener('mouseenter', function() {
+            labels.forEach(function(l, i) {
+              l.style.color = i <= index ? '#f5a623' : '#ddd';
+            });
+          });
+          label.addEventListener('mouseleave', function() {
+            var checked = container.querySelector('input:checked');
+            if (checked) {
+              var checkedIndex = Array.prototype.indexOf.call(inputs, checked);
+              labels.forEach(function(l, i) {
+                l.style.color = i <= checkedIndex ? '#f5a623' : '#ddd';
+              });
+            } else {
+              labels.forEach(function(l) { l.style.color = '#ddd'; });
+            }
+          });
+        });
+      });
+      var form = document.getElementById('reviewForm');
+      if (form) {
+        form.addEventListener('submit', function(e) {
+          var rating = form.querySelector('input[name="rating"]:checked');
+          if (!rating) {
+            e.preventDefault();
+            alert('Vui lòng chọn số sao đánh giá!');
+            return false;
+          }
+        });
+      }
+    });

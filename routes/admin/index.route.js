@@ -16,6 +16,7 @@ const settingRoute = require("./setting.route");
 const chatRoute = require("./chat.route");
 const chatUploadRoute = require("./chat-upload.route");
 const orderRoutes = require("./order.route");
+const reviewRoutes = require("./review.route");
 
 module.exports = (app) => {
   const PATH_ADMIN = systemConfig.prefixAdmin;
@@ -54,4 +55,5 @@ module.exports = (app) => {
   app.use(PATH_ADMIN + "/chat", authMiddleware.requireAuth, chatUploadRoute);
 
   app.use(PATH_ADMIN + "/orders", authMiddleware.requireAuth, orderRoutes);
+  app.use(PATH_ADMIN + "/reviews", authMiddleware.requireAuth, reviewRoutes);
 };

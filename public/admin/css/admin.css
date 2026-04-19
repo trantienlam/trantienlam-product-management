@@ -178,13 +178,26 @@
 /* ========== CHARTS ========== */
 .charts-row {
   display: grid;
-  grid-template-columns: 2fr 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: 24px;
   margin-bottom: 32px;
 }
 
 @media (max-width: 1200px) {
   .charts-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.charts-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+@media (max-width: 992px) {
+  .charts-row-2 {
     grid-template-columns: 1fr;
   }
 }
@@ -221,6 +234,14 @@
 
 .chart-card:first-child .chart-card__body {
   height: 300px;
+}
+
+.chart-card--full {
+  grid-column: 1 / -1;
+}
+
+.chart-card--full .chart-card__body {
+  height: 280px;
 }
 
 /* ========== TOP PRODUCTS SECTION ========== */
@@ -460,6 +481,51 @@
 
 .btn-group .form-select {
   border-radius: 0.25rem;
+}
+
+/* ============================================= */
+/* ALERT STYLES                                   */
+/* ============================================= */
+.alert {
+  transition: all 0.3s ease;
+  position: relative;
+  padding-right: 30px;
+}
+
+.alert-hidden {
+  opacity: 0;
+  transform: translateY(-10px);
+  pointer-events: none;
+  max-height: 0;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden;
+}
+
+/* Close button (span) style */
+[close-alert] {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  font-size: 20px;
+  line-height: 1;
+  color: inherit;
+  opacity: 0.7;
+  cursor: pointer;
+  padding: 0;
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+[close-alert]:hover {
+  opacity: 1;
 }
 
 /* ============================================= */
@@ -1847,4 +1913,33 @@
   .edit-form-section { padding: 8px 16px 24px; }
   .edit-actions { flex-direction: column-reverse; gap: 12px; }
   .edit-actions .btn-back, .edit-actions .btn-save { width: 100%; justify-content: center; }
+}
+
+/* Đánh giá — chi tiết đơn hàng admin */
+.admin-order-review-product-thumb {
+  width: 44px;
+  height: 44px;
+  object-fit: cover;
+}
+.admin-review-photo-link {
+  display: block;
+  width: 72px;
+  height: 72px;
+  max-width: 72px;
+  max-height: 72px;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid #e0e0e0;
+  flex-shrink: 0;
+}
+.admin-review-photo-thumb {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  object-fit: cover;
+  display: block;
+}
+.admin-order-review-item {
+  border-left: 3px solid #dee2e6;
 }

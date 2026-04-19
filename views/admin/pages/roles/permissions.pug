@@ -169,6 +169,11 @@ block main
             each item in records 
               td(class="text-center")
                 input(type="checkbox")
+          tr(data-name="orders_delete")
+            td Xóa đơn hàng
+            each item in records 
+              td(class="text-center")
+                input(type="checkbox")
           tr(data-name="orders_detail")
             td Chi tiết đơn hàng
             each item in records 
@@ -179,7 +184,20 @@ block main
             each item in records 
               td(class="text-center")
                 input(type="checkbox")
-         
+
+          tr 
+            td(colspan="4")
+              b Đánh giá sản phẩm
+          tr(data-name="reviews_view")
+            td Xem danh sách / chi tiết
+            each item in records 
+              td(class="text-center")
+                input(type="checkbox")
+          tr(data-name="reviews_edit")
+            td Ẩn / hiện / xóa đánh giá
+            each item in records 
+              td(class="text-center")
+                input(type="checkbox")
           
       form(
         id="form-change-permissions"

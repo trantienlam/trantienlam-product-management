@@ -248,8 +248,23 @@ module.exports.editPatch = async (req, res) => {
   if (req.files && req.files.length > 0) {
     const existingProduct = await Product.findOne({ _id: id }).select("images");
     const oldImages = existingProduct && existingProduct.images ? existingProduct.images : [];
-    req.body.images = [...oldImages, ...req.body.images];
+
+    // Đảm bảo req.body.images là array (sau uploadCloud nó đã là array)
+    const newImages = Array.isArray(req.body.images)
+      ? req.body.images
+      : req.body.images
+        ? [req.body.images]
+        : [];
+
+    req.body.images = [...oldImages, ...newImages];
     req.body.thumbnail = req.body.images[0];
+  } else {
+    // Không upload ảnh mới → normalize về array
+    if (req.body.images && !Array.isArray(req.body.images)) {
+      req.body.images = [req.body.images];
+    } else if (!req.body.images) {
+      req.body.images = [];
+    }
   }
   try {
     const updatedBy = {

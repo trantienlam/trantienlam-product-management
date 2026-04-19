@@ -21,21 +21,24 @@ const streamUpload = (buffer) => {
 };
 
 module.exports.upload = async (req, res, next) => {
-  if (req.file) {
-    const result = await streamUpload(req.file.buffer);
+  try {
+    // Ưu tiên xử lý multi-file (upload.array → req.files)
     if (req.files && req.files.length > 0) {
-      // multi-file field (images)
       const urls = [];
       for (const file of req.files) {
-        const r = await streamUpload(file.buffer);
-        urls.push(r.secure_url);
+        const result = await streamUpload(file.buffer);
+        urls.push(result.secure_url);
       }
       req.body.images = urls;
-    } else {
-      // single-file field (avatar, thumbnail, …)
+    }
+    // Xử lý single-file riêng (req.file dùng cho upload.single)
+    else if (req.file) {
+      const result = await streamUpload(req.file.buffer);
       const field = req.file.fieldname;
       req.body[field] = result.secure_url;
     }
+  } catch (err) {
+    console.error("[uploadCloud] upload error:", err);
   }
   next();
 };

@@ -39,6 +39,11 @@ const orderSchema = new mongoose.Schema(
     },
     vnpTransactionNo: String,
     vnpBankCode: String,
+    /** Đặt từ "Mua ngay" — không gộp giỏ; dùng để không xóa giỏ sau VNPAY */
+    buyNow: {
+      type: Boolean,
+      default: false,
+    },
     updatedBy: {
       account_id: String,
       updatedAt: Date,

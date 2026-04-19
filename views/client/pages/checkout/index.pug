@@ -8,6 +8,12 @@ block main
   .checkout-page
     .container.py-4
 
+      if isBuyNow
+        .alert.alert-info.border-info.mb-4(role="alert")
+          i.fa-solid.fa-bolt.me-2
+          strong Mua ngay:
+          |  chỉ thanh toán sản phẩm bên dưới. Giỏ hàng của bạn không bị thay đổi.
+
       //- ===== Step Indicator =====
       .checkout-steps.mb-5
         .step-indicator

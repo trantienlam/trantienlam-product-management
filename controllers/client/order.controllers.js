@@ -1,5 +1,6 @@
 const Order = require("../../models/order.model");
 const Product = require("../../models/product.model");
+const Review = require("../../models/review.model");
 const paginationHelper = require("../../helpers/pagination");
 const filterOrderStatusHelper = require("../../helpers/filterOrderStatus");
 const productHelper = require("../../helpers/products");
@@ -100,6 +101,37 @@ module.exports.detail = async (req, res) => {
   }
 
   order.orderCode = order._id.toString().slice(-8).toUpperCase();
+
+  // Lấy reviews của từng sản phẩm trong đơn hàng (chỉ hiện review của những khách đã mua)
+  const User = require("../../models/user.model");
+  for (const item of order.products) {
+    if (item.productInfo) {
+      const reviews = await Review.find({
+        product_id: item.product_id.toString(),
+        order_id: String(order._id),
+        deleted: false,
+        status: "active",
+      })
+        .sort({ createdAt: -1 })
+        .limit(10);
+
+      const reviewsWithUser = await Promise.all(
+        reviews.map(async (review) => {
+          const user = await User.findOne({ _id: review.user_id }).select("fullName avatar");
+          return {
+            ...review.toObject(),
+            userName: user ? user.fullName : "Khách hàng",
+            userAvatar: user ? user.avatar : null,
+          };
+        })
+      );
+      item.reviews = reviewsWithUser;
+
+      // Kiểm tra xem user hiện tại đã đánh giá sản phẩm này từ đơn hàng này chưa
+      const userReview = reviews.find((r) => r.user_id.toString() === userId.toString());
+      item.hasUserReviewed = !!userReview;
+    }
+  }
 
   res.render("client/pages/orders/detail", {
     pageTitle: `Chi tiết đơn hàng #${order.orderCode}`,

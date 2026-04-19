@@ -11,6 +11,62 @@ module.exports.index = async (req, res) => {
 
   const userId = req.user._id;
 
+  // Không có ?buyNow=1 → bỏ session "mua ngay" cũ, hiển thị giỏ bình thường
+  if (req.query.buyNow !== "1" && req.session.checkoutBuyNow) {
+    delete req.session.checkoutBuyNow;
+  }
+
+  // Mua ngay: chỉ 1 dòng, không lấy giỏ DB
+  if (
+    req.query.buyNow === "1" &&
+    req.session.checkoutBuyNow &&
+    req.session.checkoutBuyNow.product_id
+  ) {
+    const { product_id, quantity } = req.session.checkoutBuyNow;
+    const productInfo = await Product.findOne({
+      _id: product_id,
+      deleted: false,
+      status: "active",
+    });
+    if (!productInfo) {
+      delete req.session.checkoutBuyNow;
+      req.flash("error", "Sản phẩm không còn bán.");
+      return res.redirect("/products");
+    }
+    let qty = Math.max(1, parseInt(quantity, 10) || 1);
+    if (qty > productInfo.stock) {
+      qty = productInfo.stock;
+    }
+    if (qty < 1) {
+      delete req.session.checkoutBuyNow;
+      req.flash("error", "Sản phẩm hết hàng.");
+      return res.redirect(req.get("Referrer") || "/products");
+    }
+    req.session.checkoutBuyNow.quantity = qty;
+
+    productInfo.priceNew = productHelper.priceNewProduct(productInfo);
+    const lineTotal = qty * productInfo.priceNew;
+    const cart = {
+      user_id: userId,
+      products: [
+        {
+          product_id: productInfo._id,
+          quantity: qty,
+          productInfo,
+          totalPrice: lineTotal,
+        },
+      ],
+      totalPriceCart: lineTotal,
+      totalPriceCartFormat: lineTotal.toLocaleString("vi-VN"),
+    };
+
+    return res.render("client/pages/checkout/index", {
+      pageTitle: "Đặt hàng",
+      cartDetail: cart,
+      isBuyNow: true,
+    });
+  }
+
   // 🔥 luôn có cart
   let cart = await Cart.findOne({ user_id: userId });
 
@@ -56,6 +112,7 @@ module.exports.index = async (req, res) => {
   res.render("client/pages/checkout/index", {
     pageTitle: "Đặt hàng",
     cartDetail: cart,
+    isBuyNow: false,
   });
 };
 
@@ -68,6 +125,66 @@ module.exports.order = async (req, res) => {
 
     const userId = req.user._id;
     const { fullName, phone, address, paymentMethod } = req.body;
+
+    const buyNowPayload = req.session.checkoutBuyNow;
+
+    if (buyNowPayload && buyNowPayload.product_id) {
+      const { product_id, quantity } = buyNowPayload;
+      const productInfo = await Product.findOne({
+        _id: product_id,
+        deleted: false,
+        status: "active",
+      });
+      if (!productInfo) {
+        delete req.session.checkoutBuyNow;
+        req.flash("error", "Sản phẩm không tồn tại.");
+        return res.redirect("/checkout");
+      }
+      const priceNew = productHelper.priceNewProduct(productInfo);
+      const qty = parseInt(quantity, 10);
+      if (qty < 1 || qty > productInfo.stock) {
+        req.flash("error", "Số lượng không hợp lệ.");
+        return res.redirect("/checkout?buyNow=1");
+      }
+
+      const lineTotal = priceNew * qty;
+      const products = [
+        {
+          product_id: productInfo._id,
+          price: productInfo.price,
+          discountPercentage: productInfo.discountPercentage,
+          quantity: qty,
+          totalPrice: lineTotal,
+        },
+      ];
+
+      await Product.updateOne(
+        { _id: product_id },
+        { $inc: { stock: -qty } },
+      );
+
+      const order = new Order({
+        user_id: userId,
+        userInfo: { fullName, phone, address },
+        products,
+        amount: lineTotal,
+        paymentMethod: paymentMethod || "cod",
+        status: "pending",
+        paymentStatus: paymentMethod === "vnpay" ? "paid" : "unpaid",
+        buyNow: true,
+      });
+
+      await order.save();
+      delete req.session.checkoutBuyNow;
+
+      if (paymentMethod === "cod") {
+        req.flash("success", "Đặt hàng thành công!");
+        return res.redirect(`/checkout/success/${order._id}`);
+      }
+
+      res.redirect(`/payment/create?orderId=${order._id}&amount=${lineTotal}`);
+      return;
+    }
 
     const cart = await Cart.findOne({ user_id: userId });
 
@@ -111,6 +228,7 @@ module.exports.order = async (req, res) => {
       paymentMethod: paymentMethod || "cod",
       status: "pending",
       paymentStatus: paymentMethod === "vnpay" ? "paid" : "unpaid",
+      buyNow: false,
     });
 
     await order.save();

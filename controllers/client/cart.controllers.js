@@ -10,8 +10,31 @@ module.exports.addPost = async (req, res) => {
 
   const userId = req.user.id;
   const productId = req.params.productId;
-  const quantity = parseInt(req.body.quantity);
+  const quantity = parseInt(req.body.quantity, 10);
   const next = req.body.next;
+
+  // Mua ngay: chỉ thanh toán đúng sản phẩm / số lượng này, không gộp giỏ hàng
+  if (next === "checkout") {
+    const product = await Product.findOne({
+      _id: productId,
+      deleted: false,
+      status: "active",
+    });
+    if (!product) {
+      req.flash("error", "Sản phẩm không tồn tại hoặc ngừng bán.");
+      return res.redirect("back");
+    }
+    const qty = Math.max(1, quantity || 1);
+    if (qty > product.stock) {
+      req.flash("error", "Số lượng vượt quá tồn kho.");
+      return res.redirect("back");
+    }
+    req.session.checkoutBuyNow = {
+      product_id: String(productId),
+      quantity: qty,
+    };
+    return res.redirect("/checkout?buyNow=1");
+  }
 
   let cart = await Cart.findOne({ user_id: userId });
 
@@ -35,11 +58,6 @@ module.exports.addPost = async (req, res) => {
     });
   }
   await cart.save();
-  // 🔥 QUAN TRỌNG NHẤT
-  if (next === "checkout") {
-    req.flash("success", "Đã thêm sản phẩm. Tiếp tục thanh toán.");
-    return res.redirect("/checkout");
-  }
   //console.log("USER ORDER:", req.user);
 
   req.flash("success", "Thêm vào giỏ hàng thành công");

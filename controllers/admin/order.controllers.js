@@ -1,5 +1,7 @@
 const Order = require("../../models/order.model");
 const Product = require("../../models/product.model");
+const Review = require("../../models/review.model");
+const User = require("../../models/user.model");
 const systemConfig = require("../../config/system");
 const paginationHelper = require("../../helpers/pagination");
 
@@ -197,9 +199,43 @@ module.exports.detail = async (req, res) => {
 
     if (order.products && order.products.length > 0) {
       for (const item of order.products) {
-        const product = await Product.findOne({ _id: item.product_id }).select("title thumbnail");
+        const product = await Product.findOne({ _id: item.product_id }).select(
+          "title thumbnail slug",
+        );
         if (product) {
           item.productInfo = product;
+        }
+      }
+
+      for (const item of order.products) {
+        if (!item.productInfo) continue;
+        const reviews = await Review.find({
+          product_id: item.product_id.toString(),
+          order_id: String(order._id),
+          deleted: false,
+        })
+          .sort({ createdAt: -1 })
+          .lean();
+
+        const reviewsWithUser = await Promise.all(
+          reviews.map(async (review) => {
+            const u = await User.findById(review.user_id).select("fullName");
+            return {
+              ...review,
+              userName: u ? u.fullName : "Khách hàng",
+            };
+          }),
+        );
+        item.reviews = reviewsWithUser;
+      }
+    }
+
+    let orderHasReviews = false;
+    if (order.products) {
+      for (const it of order.products) {
+        if (it.reviews && it.reviews.length > 0) {
+          orderHasReviews = true;
+          break;
         }
       }
     }
@@ -207,6 +243,7 @@ module.exports.detail = async (req, res) => {
     res.render("admin/pages/orders/detail", {
       pageTitle: `Chi tiết đơn hàng #${order._id.toString().slice(-6).toUpperCase()}`,
       order: order,
+      orderHasReviews: orderHasReviews,
     });
   } catch (error) {
     req.flash("error", "Có lỗi xảy ra!");
@@ -214,20 +251,59 @@ module.exports.detail = async (req, res) => {
   }
 };
 
-// [DELETE] /admin/orders/delete/:id
+// [DELETE/POST] /admin/orders/delete/:id
 module.exports.deleteItem = async (req, res) => {
-  const permissions = res.locals.role ? res.locals.role.permission : [];
-  if (!permissions.includes("orders_delete")) {
-    req.flash("error", "Bạn không có quyền xóa đơn hàng!");
-    return res.redirect("back");
+  try {
+    console.log('=== DELETE ORDER DEBUG ===');
+    console.log('Method:', req.method);
+    console.log('Params ID:', req.params.id);
+    console.log('User:', res.locals.user ? res.locals.user.email : 'Unknown');
+    console.log('Role permissions:', res.locals.role ? res.locals.role.permission : 'No role');
+    
+    const permissions = res.locals.role ? res.locals.role.permission : [];
+    if (!permissions.includes("orders_delete")) {
+      console.log('PERMISSION DENIED: Missing orders_delete');
+      req.flash("error", "Bạn không có quyền xóa đơn hàng!");
+      return res.redirect("back");
+    }
+
+    const id = req.params.id;
+    console.log('Looking for order with ID:', id);
+
+    // Kiểm tra đơn hàng tồn tại
+    const order = await Order.findById(id);
+    if (!order) {
+      console.log('ORDER NOT FOUND');
+      req.flash("error", "Đơn hàng không tồn tại!");
+      return res.redirect("back");
+    }
+
+    console.log('Order found:', {
+      _id: order._id,
+      status: order.status,
+      amount: order.amount,
+      createdAt: order.createdAt
+    });
+
+    // Xóa đơn hàng
+    const result = await Order.deleteOne({ _id: id });
+
+    console.log('Delete result:', result);
+    
+    if (result.deletedCount === 0) {
+      console.log('DELETE FAILED: deletedCount = 0');
+      req.flash("error", "Xóa đơn hàng thất bại!");
+    } else {
+      console.log('DELETE SUCCESS');
+      req.flash("success", `Đã xóa đơn hàng #${id.slice(-8).toUpperCase()} thành công!`);
+    }
+
+    res.redirect("back");
+  } catch (error) {
+    console.error("Delete order ERROR:", error);
+    req.flash("error", "Có lỗi xảy ra khi xóa đơn hàng: " + error.message);
+    res.redirect("back");
   }
-
-  const id = req.params.id;
-
-  await Order.deleteOne({ _id: id });
-
-  req.flash("success", "Đã xóa đơn hàng!");
-  res.redirect("back");
 };
 
 // [GET] /admin/orders/change-payment-status/:status/:id

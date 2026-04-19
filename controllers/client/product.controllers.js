@@ -1,8 +1,7 @@
 const Product = require("../../models/product.model");
-
+const Review = require("../../models/review.model");
 const ProductCategory = require("../../models/product-category.model");
 const productsHelper = require("../../helpers/products");
-
 const productsCategoryHelper = require("../../helpers/products-category");
 const { htmlToPlainExcerpt } = require("../../helpers/html-plain");
 // [GET] products
@@ -31,6 +30,10 @@ module.exports.detail = async (req, res) => {
 
     const product = await Product.findOne(find);
 
+    if (!product) {
+      return res.redirect("/products");
+    }
+
     if (product.product_category_id) {
       const category = await ProductCategory.findOne({
         _id: product.product_category_id,
@@ -56,6 +59,45 @@ module.exports.detail = async (req, res) => {
 
     const descriptionExcerpt = htmlToPlainExcerpt(product.description, 200);
 
+    // Chỉ hiển thị đánh giá từ người đã mua (có order_id) — kiểu Shopee
+    const verifiedReviewQuery = {
+      product_id: product._id.toString(),
+      deleted: false,
+      status: "active",
+      order_id: { $exists: true, $nin: [null, ""] },
+    };
+
+    const [reviewStats] = await Review.aggregate([
+      { $match: verifiedReviewQuery },
+      {
+        $group: {
+          _id: "$product_id",
+          averageRating: { $avg: "$rating" },
+          totalReviews: { $sum: 1 },
+        },
+      },
+    ]);
+    const verifiedReviewAverage = reviewStats
+      ? Math.round(reviewStats.averageRating * 10) / 10
+      : 0;
+    const verifiedReviewCount = reviewStats ? reviewStats.totalReviews : 0;
+
+    const reviews = await Review.find(verifiedReviewQuery)
+      .sort({ createdAt: -1 })
+      .limit(3);
+
+    const User = require("../../models/user.model");
+    const reviewsWithUser = await Promise.all(
+      reviews.map(async (review) => {
+        const user = await User.findOne({ _id: review.user_id }).select("fullName avatar");
+        return {
+          ...review.toObject(),
+          userName: user ? user.fullName : "Khách hàng",
+          userAvatar: user ? user.avatar : null,
+        };
+      })
+    );
+
     // Sản phẩm liên quan: cùng danh mục (trừ sản phẩm hiện tại)
     let relatedProducts = [];
     if (product.product_category_id) {
@@ -76,9 +118,13 @@ module.exports.detail = async (req, res) => {
       relatedProducts: relatedProducts,
       saveAmount,
       descriptionExcerpt,
+      reviews: reviewsWithUser,
+      verifiedReviewAverage,
+      verifiedReviewCount,
     });
   } catch (error) {
-    // res.redirect(`/products`);
+    console.error("Product detail error:", error);
+    res.redirect("/products");
   }
 };
 

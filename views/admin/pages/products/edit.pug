@@ -101,9 +101,10 @@ block main
         label(for ="images") Ảnh sản phẩm
         if(product.images && product.images.length > 0)
           .image-list.mb-2
-            each img in product.images
-              .image-item
-                img(src=img alt="Product image" style="max-width:100px; max-height:100px; object-fit:cover; border-radius:4px; margin-right:8px;")
+            each img, idx in product.images
+              .image-item.d-inline-block.position-relative.mr-2.mb-2
+                img(src=img alt="Product image" style="max-width:100px; max-height:100px; object-fit:cover; border-radius:4px;")
+                input(type="hidden" name=`images[${idx}]` value=img)
         .image-preview-grid(id="imagePreviewContainer")
         input(
           type="file"

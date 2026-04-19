@@ -127,6 +127,7 @@ block main
                         | Cảm ơn bạn đã mua sắm!
 
           //- Products List
+          - var showReviewAction = ['delivered', 'completed'].includes(order.status)
           .card.mb-4
             .card-header
               i.fa-solid.fa-box-open.me-2
@@ -139,6 +140,8 @@ block main
                     th.text-center Số lượng
                     th.text-end.px-4 Đơn giá
                     th.text-end.px-4 Thành tiền
+                    if showReviewAction
+                      th.text-center.px-3(style="white-space:nowrap") Đánh giá
                 tbody
                   each item in order.products
                     tr
@@ -167,10 +170,93 @@ block main
                           .original-price #{item.originalPrice.toLocaleString('vi-VN')} đ
                         .current-price #{item.priceNew.toLocaleString('vi-VN')} đ
                       td.text-end.px-4.fw-bold.text-primary #{item.totalPrice.toLocaleString('vi-VN')} đ
+                      if showReviewAction
+                        td.text-center.px-3.align-middle
+                          if item.productInfo && item.productInfo.slug
+                            if item.hasUserReviewed
+                              //- Đã đánh giá -> Hiển thị nút "Mua lại"
+                              a.btn.btn-sm.btn-outline-success(href=`/products/detail/${item.productInfo.slug}` title="Mua lại sản phẩm này")
+                                i.fa-solid.fa-cart-shopping.me-1
+                                | Mua lại
+                            else
+                              //- Chưa đánh giá -> Hiển thị nút "Đánh giá"
+                              a.btn.btn-sm.btn-outline-primary(href=`/reviews/write/${item.product_id}?orderId=${order._id}` title="Đánh giá sản phẩm đã mua")
+                                i.fa-solid.fa-star.me-1
+                                | Đánh giá
+                          else
+                            span.text-muted.small —
                 tfoot
                   tr.table-light
                     td(colspan="3", class="text-end fw-bold px-4 fs-5") Tổng cộng:
                     td.text-end.px-4.fw-bold.fs-5.text-danger #{order.amount.toLocaleString('vi-VN')} đ
+                    if showReviewAction
+                      td
+
+          //- Product Reviews Section (CHỈ HIỂN THỊ KHI ĐƠN ĐÃ GIAO THÀNH CÔNG)
+          if ['delivered', 'completed'].includes(order.status)
+            .card.mb-4
+              .card-header
+                i.fa-solid.fa-star.me-2
+                | Đánh giá sản phẩm
+              .card-body
+                each item in order.products
+                  if item.productInfo && item.reviews && item.reviews.length > 0
+                    .order-product-review.mb-4
+                      .order-product-review__header
+                        img.order-product-review__thumb(
+                          src=item.productInfo.thumbnail || "/images/no-image.png"
+                          alt=item.productInfo.title
+                          width="50"
+                          height="50"
+                        )
+                        a.order-product-review__name(href=`/products/detail/${item.productInfo.slug}`)
+                          | #{item.productInfo.title}
+                      .order-product-review__list
+                        each review in item.reviews
+                          .order-review-item
+                            .order-review-item__avatar
+                              if review.userAvatar
+                                img.order-review-item__avatar-img(
+                                  src=review.userAvatar
+                                  alt=review.userName
+                                  width="40"
+                                  height="40"
+                                  loading="lazy"
+                                )
+                              else
+                                span.order-review-item__avatar-default= review.userName ? review.userName.charAt(0).toUpperCase() : "?"
+                            .order-review-item__info
+                              .order-review-item__name= review.userName || "Khách hàng"
+                              .order-review-item__stars
+                                - for(var i = 0; i < 5; i++)
+                                  if(i < review.rating)
+                                    i.fa-solid.fa-star.text-warning
+                                  else
+                                    i.fa-solid.fa-star.text-muted
+                              .order-review-item__date
+                                i.fa-regular.fa-clock.me-1
+                                | #{moment(review.createdAt).format('DD/MM/YYYY HH:mm')}
+                              if review.comment
+                                .order-review-item__comment #{review.comment}
+                              if review.images && review.images.length
+                                .order-review-item__photos
+                                  each photo in review.images
+                                    a.order-review-item__photo-link(href=photo target="_blank" rel="noopener noreferrer")
+                                      img.order-review-item__photo(src=photo alt="Ảnh đánh giá" loading="lazy")
+                  else if item.productInfo
+                    .order-product-review.mb-4
+                      .order-product-review__header
+                        img.order-product-review__thumb(
+                          src=item.productInfo.thumbnail || "/images/no-image.png"
+                          alt=item.productInfo.title
+                          width="50"
+                          height="50"
+                        )
+                        a.order-product-review__name(href=`/products/detail/${item.productInfo.slug}`)
+                          | #{item.productInfo.title}
+                      .order-product-review__empty
+                        i.fa-solid.fa-chat-dots.me-2
+                        | Chưa có đánh giá nào cho sản phẩm này.
 
         .col-lg-4
           //- Order Info Card
@@ -246,233 +332,3 @@ block main
                   | Hủy đơn hàng
 
 append scripts
-  script.
-    :root {
-      background: linear-gradient(135deg, \#f8f9fa 0%, \#e9ecef 100%);
-      min-height: 100vh;
-    }
-
-    .page-header {
-      background: white;
-      padding: 1.5rem;
-      border-radius: 16px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-    }
-
-    .page-title {
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: \#212529;
-    }
-
-    .order-id {
-      font-size: 1rem;
-      color: \#6c757d;
-    }
-
-    /* Status Badges */
-    .badge-pending {
-      background: \#ffc107;
-      color: \#000;
-    }
-
-    .badge-processing {
-      background: \#0dcaf0;
-      color: \#000;
-    }
-
-    .badge-shipping {
-      background: \#0d6efd;
-      color: \#fff;
-    }
-
-    .badge-delivered {
-      background: \#6610f2;
-      color: \#fff;
-    }
-
-    .badge-completed {
-      background: \#198754;
-      color: \#fff;
-    }
-
-    .badge-failed {
-      background: \#dc3545;
-      color: \#fff;
-    }
-
-    .badge-cancelled {
-      background: \#6c757d;
-      color: \#fff;
-    }
-
-    /* Cards */
-    .card {
-      border: none;
-      border-radius: 16px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-      overflow: hidden;
-    }
-
-    .card-header {
-      background: linear-gradient(135deg, \#667eea 0%, \#764ba2 100%);
-      color: white;
-      padding: 1rem 1.25rem;
-      font-weight: 600;
-    }
-
-    .card-header i {
-      margin-right: 0.5rem;
-    }
-
-    .card-body {
-      padding: 1.25rem;
-    }
-
-    /* Order Timeline */
-    .order-timeline {
-      position: relative;
-      padding-left: 2rem;
-    }
-
-    .order-timeline::before {
-      content: '';
-      position: absolute;
-      left: 11px;
-      top: 0;
-      bottom: 0;
-      width: 2px;
-      background: \#dee2e6;
-    }
-
-    .timeline-item {
-      position: relative;
-      padding-bottom: 1.5rem;
-    }
-
-    .timeline-item:last-child {
-      padding-bottom: 0;
-    }
-
-    .timeline-marker {
-      position: absolute;
-      left: -2rem;
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      background: \#dee2e6;
-      color: \#6c757d;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.7rem;
-      z-index: 1;
-    }
-
-    .timeline-item.timeline-item--completed .timeline-marker,
-    .timeline-item.completed .timeline-marker {
-      background: linear-gradient(135deg, \#667eea 0%, \#764ba2 100%);
-      color: white;
-    }
-
-    .timeline-title {
-      font-weight: 600;
-      color: \#212529;
-      margin-bottom: 0.25rem;
-    }
-
-    .timeline-date {
-      font-size: 0.85rem;
-      color: \#6c757d;
-    }
-
-    .timeline-item:not(.completed) .timeline-content {
-      opacity: 0.5;
-    }
-
-    /* Products Table */
-    .table thead th {
-      background: \#f8f9fa;
-      font-weight: 600;
-      color: \#495057;
-      border: none;
-      padding: 1rem;
-    }
-
-    .table td {
-      padding: 1rem;
-      border-color: \#f1f1f1;
-      vertical-align: middle;
-    }
-
-    .table tfoot td {
-      border-top: 2px solid \#dee2e6;
-    }
-
-    .product-thumb {
-      object-fit: cover;
-      border-radius: 8px;
-      border: 1px solid \#eee;
-    }
-
-    .product-info .product-name {
-      color: \#212529;
-    }
-
-    .original-price {
-      color: \#6c757d;
-      text-decoration: line-through;
-      font-size: 0.85rem;
-    }
-
-    .current-price {
-      color: \#212529;
-    }
-
-    /* Info Items */
-    .info-item .info-label {
-      font-size: 0.8rem;
-      color: \#6c757d;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 0.25rem;
-    }
-
-    .info-item .info-value {
-      color: \#212529;
-    }
-
-    .recipient-info .recipient-label {
-      font-size: 0.8rem;
-      color: \#6c757d;
-      margin-bottom: 0.25rem;
-    }
-
-    .recipient-info .recipient-value {
-      color: \#212529;
-    }
-
-    /* Alert styling */
-    .alert {
-      border-radius: 12px;
-      border: none;
-    }
-
-    @media (max-width: 768px) {
-      .page-header {
-        padding: 1rem;
-      }
-
-      .card-body {
-        padding: 1rem;
-      }
-
-      .table {
-        font-size: 0.85rem;
-      }
-
-      .product-thumb {
-        width: 50px !important;
-        height: 50px !important;
-      }
-    }

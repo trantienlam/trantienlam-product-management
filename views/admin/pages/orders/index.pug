@@ -153,16 +153,28 @@ block main
                     small.text-muted
                       +formatDateTime(order.createdAt)
                   td
-                    .btn-group.btn-group-sm
+                    .btn-group.btn-group-sm(role="group", aria-label="Actions")
+                      //- Nút xóa (đặt đầu tiên)
+                      if(role.permission.includes("orders_delete"))
+                        form.form-delete-order(method="POST", action=`${prefixAdmin}/orders/delete/${orderId}`, style="display: inline;")
+                          button.btn.btn-outline-danger(
+                            type="submit",
+                            onclick="return confirm('Xác nhận xóa đơn hàng?\\n\\n⚠️ Lưu ý:\\n- Dữ liệu sẽ bị xóa vĩnh viễn\\n- Không thể khôi phục sau khi xóa')"
+                          )
+                            i.fas.fa-trash
+                      
+                      //- Nút chi tiết
                       if(role.permission.includes("orders_detail"))
                         a.btn.btn-outline-primary(href=`${prefixAdmin}/orders/detail/${orderId}`, title="Chi tiết")
                           i.fas.fa-eye
+                      
+                      //- Dropdown đổi trạng thái
                       if(role.permission.includes("orders_status"))
                         select.form-select.form-select-sm(
                           onchange="window.location.href=this.value"
                           style="width: auto"
                         )
-                          option(value="") -- Đổi trạng thái --
+                          option(value="") -- Đổi --
                           option(value=`${prefixAdmin}/orders/change-status/processing/${orderId}` disabled=(order.status === 'processing' || order.status === 'completed' || order.status === 'cancelled' || order.status === 'failed')) Đang xử lý
                           option(value=`${prefixAdmin}/orders/change-status/shipping/${orderId}` disabled=(order.status === 'shipping' || order.status === 'completed' || order.status === 'cancelled' || order.status === 'failed')) Đang vận chuyển
                           option(value=`${prefixAdmin}/orders/change-status/delivered/${orderId}` disabled=(order.status === 'delivered' || order.status === 'completed' || order.status === 'cancelled' || order.status === 'failed')) Đã giao hàng
@@ -171,7 +183,7 @@ block main
 
     +pagination(pagination)
 
-    //- Hidden forms
+    //- Bulk actions form (chưa dùng)
     form(
       action=""
       method="POST"
@@ -179,8 +191,4 @@ block main
       data-path=`${prefixAdmin}/orders/change-status`
     )
 
-    form(
-      action=`${prefixAdmin}/orders/delete`
-      method="POST"
-      id="form-delete-item"
-    )
+  script(src="/admin/js/script.js") 

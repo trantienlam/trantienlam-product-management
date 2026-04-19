@@ -266,7 +266,9 @@ module.exports.vnpayReturn = async (req, res) => {
           await payment.save();
         }
 
-        await Cart.updateOne({ user_id: order.user_id }, { products: [] });
+        if (!order.buyNow) {
+          await Cart.updateOne({ user_id: order.user_id }, { products: [] });
+        }
       }
     } else if (vnp_Params["vnp_ResponseCode"] && vnp_Params["vnp_ResponseCode"] !== "00") {
       const order = await Order.findById(orderId);

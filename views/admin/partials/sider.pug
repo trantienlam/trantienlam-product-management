@@ -15,6 +15,9 @@
       if(role.permission.includes("orders_view"))
         li 
           a(href=`${prefixAdmin}/orders`) Quản lý đơn hàng
+      if(role.permission.includes("reviews_view"))
+        li 
+          a(href=`${prefixAdmin}/reviews`) Đánh giá sản phẩm
       if(role.permission.includes("roles_view"))
         li 
           a(href=`${prefixAdmin}/roles`) Nhóm quyền

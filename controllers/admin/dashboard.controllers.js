@@ -58,68 +58,68 @@ module.exports.dashboard = async (req, res) => {
     },
   };
 
-  //category
-  statistic.categoryProduct.total = await ProductCategory.countDocuments({
+  // category
+  statistic.categoryProduct.total = Math.max(0, await ProductCategory.countDocuments({
     deleted: false,
-  });
-  statistic.categoryProduct.active = await ProductCategory.countDocuments({
+  }));
+  statistic.categoryProduct.active = Math.max(0, await ProductCategory.countDocuments({
     status: "active",
     deleted: false,
-  });
-  statistic.categoryProduct.inactive = await ProductCategory.countDocuments({
+  }));
+  statistic.categoryProduct.inactive = Math.max(0, await ProductCategory.countDocuments({
     status: "inactive",
     deleted: false,
-  });
+  }));
 
   //product
-  statistic.product.total = await Product.countDocuments({
+  statistic.product.total = Math.max(0, await Product.countDocuments({
     deleted: false,
-  });
+  }));
 
-  statistic.product.active = await Product.countDocuments({
+  statistic.product.active = Math.max(0, await Product.countDocuments({
     deleted: false,
     status: "active",
-  });
-  statistic.product.inactive = await Product.countDocuments({
+  }));
+  statistic.product.inactive = Math.max(0, await Product.countDocuments({
     deleted: false,
     status: "inactive",
-  });
+  }));
 
   // account
-  statistic.account.total = await Account.countDocuments({
+  statistic.account.total = Math.max(0, await Account.countDocuments({
     deleted: false,
-  });
+  }));
 
-  statistic.account.active = await Account.countDocuments({
+  statistic.account.active = Math.max(0, await Account.countDocuments({
     deleted: false,
     status: "active",
-  });
-  statistic.account.inactive = await Account.countDocuments({
+  }));
+  statistic.account.inactive = Math.max(0, await Account.countDocuments({
     deleted: false,
     status: "inactive",
-  });
+  }));
 
   //User
-  statistic.user.total = await User.countDocuments({
+  statistic.user.total = Math.max(0, await User.countDocuments({
     deleted: false,
-  });
-  statistic.user.active = await User.countDocuments({
+  }));
+  statistic.user.active = Math.max(0, await User.countDocuments({
     deleted: false,
     status: "active",
-  });
-  statistic.user.inactive = await User.countDocuments({
+  }));
+  statistic.user.inactive = Math.max(0, await User.countDocuments({
     deleted: false,
     status: "inactive",
-  });
+  }));
 
-  // Orders statistics
-  statistic.order.total = await Order.countDocuments({});
-  statistic.order.pending = await Order.countDocuments({ status: "pending" });
-  statistic.order.processing = await Order.countDocuments({ status: "processing" });
-  statistic.order.shipping = await Order.countDocuments({ status: "shipping" });
-  statistic.order.delivered = await Order.countDocuments({ status: "delivered" });
-  statistic.order.completed = await Order.countDocuments({ status: "completed" });
-  statistic.order.cancelled = await Order.countDocuments({ status: "cancelled" });
+  // Orders statistics - ĐẢM BẢO KHÔNG ÂM
+  statistic.order.total = Math.max(0, await Order.countDocuments({}));
+  statistic.order.pending = Math.max(0, await Order.countDocuments({ status: "pending" }));
+  statistic.order.processing = Math.max(0, await Order.countDocuments({ status: "processing" }));
+  statistic.order.shipping = Math.max(0, await Order.countDocuments({ status: "shipping" }));
+  statistic.order.delivered = Math.max(0, await Order.countDocuments({ status: "delivered" }));
+  statistic.order.completed = Math.max(0, await Order.countDocuments({ status: "completed" }));
+  statistic.order.cancelled = Math.max(0, await Order.countDocuments({ status: "cancelled" }));
 
   // Payment statistics
   statistic.paymentStats.paid = await Order.countDocuments({ paymentStatus: "paid" });
@@ -167,10 +167,10 @@ module.exports.dashboard = async (req, res) => {
   );
   const lastWeekRevenue = lastWeekOrders.reduce((sum, order) => sum + order.amount, 0);
   
-  // Calculate revenue change percentage
+  // Calculate revenue change percentage (đảm bảo không âm)
   let revenueChange = 0;
   if (lastWeekRevenue > 0) {
-    revenueChange = ((statistic.revenue.week - lastWeekRevenue) / lastWeekRevenue * 100).toFixed(1);
+    revenueChange = Math.max(0, ((statistic.revenue.week - lastWeekRevenue) / lastWeekRevenue * 100));
   } else if (statistic.revenue.week > 0) {
     revenueChange = 100; // Tăng từ 0
   }
@@ -184,9 +184,10 @@ module.exports.dashboard = async (req, res) => {
     createdAt: { $gte: lastWeekStart, $lt: sevenDaysAgo }
   });
   
+  // Tính % thay đổi (đảm bảo không âm)
   let ordersChange = 0;
   if (lastWeekOrdersCount > 0) {
-    ordersChange = ((thisWeekOrdersCount - lastWeekOrdersCount) / lastWeekOrdersCount * 100).toFixed(1);
+    ordersChange = Math.max(0, ((thisWeekOrdersCount - lastWeekOrdersCount) / lastWeekOrdersCount * 100));
   } else if (thisWeekOrdersCount > 0) {
     ordersChange = 100;
   }
@@ -237,9 +238,10 @@ module.exports.dashboard = async (req, res) => {
     ],
   });
 
+  // Tính % thay đổi (đảm bảo không âm)
   let productsChange = 0;
   if (lastWeekProducts > 0) {
-    productsChange = ((thisWeekProducts - lastWeekProducts) / lastWeekProducts * 100).toFixed(1);
+    productsChange = Math.max(0, ((thisWeekProducts - lastWeekProducts) / lastWeekProducts * 100));
   } else if (thisWeekProducts > 0) {
     productsChange = 100;
   }
@@ -255,18 +257,20 @@ module.exports.dashboard = async (req, res) => {
     const dayStart = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0);
     const dayEnd = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59);
     
-    const dayOrders = paidOrders.filter(order => 
-      order.createdAt >= dayStart && order.createdAt <= dayEnd
-    );
-    
-    const dayRevenue = dayOrders.reduce((sum, order) => sum + order.amount, 0);
+    // Count all orders for the day (not just paid)
     const dayCount = await Order.countDocuments({
       createdAt: { $gte: dayStart, $lte: dayEnd }
     });
     
+    // Calculate revenue from paid orders only
+    const dayPaidOrders = paidOrders.filter(order => 
+      order.createdAt >= dayStart && order.createdAt <= dayEnd
+    );
+    const dayRevenue = dayPaidOrders.reduce((sum, order) => sum + (order.amount || 0), 0);
+    
     labels.push(date.getDate() + '/' + (date.getMonth() + 1));
     dailyRevenue.push(dayRevenue);
-    dailyOrdersCount.push(dayCount);
+    dailyOrdersCount.push(Math.max(0, dayCount)); // Đảm bảo không âm
   }
 
   // Get orders by status for pie chart

@@ -48,9 +48,9 @@ block main
         .stat-card__header
           .stat-card__icon
             i.fa-solid.fa-box
-          .stat-card__trend(class=changes.products.isUp ? 'stat-card__trend--up' : 'stat-card__trend--down')
-            i.fa-solid(class=changes.products.isUp ? 'fa-arrow-up' : 'fa-arrow-down')
-            | #{changes.products.isUp ? '+' : ''}#{changes.products.value}%
+          //- .stat-card__trend(class=changes.products.isUp ? 'stat-card__trend--up' : 'stat-card__trend--down')
+            //- i.fa-solid(class=changes.products.isUp ? 'fa-arrow-up' : 'fa-arrow-down')
+            //- | #{changes.products.isUp ? '+' : ''}#{changes.products.value}%
         .stat-card__value= statistic.product.total
         .stat-card__label Sản phẩm
 
@@ -63,34 +63,32 @@ block main
 
     //- Charts Row
     .charts-row
-      //- Revenue Chart
+      //- Revenue & Orders Chart (2 lines)
       .chart-card
         .chart-card__header
           h3
             i.fa-solid.fa-chart-area.text-primary.me-2
-            | Doanh thu 7 ngày gần đây
+            | Doanh thu & Số đơn hàng 7 ngày gần đây
         .chart-card__body
           canvas#revenueChart
 
-      //- Orders & Payment Charts
-      .charts-side
-        //- Orders by Status Pie Chart
-        .chart-card
-          .chart-card__header
-            h3
-              i.fa-solid.fa-chart-pie.text-success.me-2
-              | Đơn hàng theo trạng thái
-          .chart-card__body
-            canvas#ordersStatusChart
+      //- Orders by Status Pie Chart
+      .chart-card
+        .chart-card__header
+          h3
+            i.fa-solid.fa-chart-pie.text-success.me-2
+            | Đơn hàng theo trạng thái
+        .chart-card__body
+          canvas#ordersStatusChart
 
-        //- Payment Status Chart
-        .chart-card
-          .chart-card__header
-            h3
-              i.fa-solid.fa-credit-card.text-warning.me-2
-              | Trạng thái thanh toán
-          .chart-card__body
-            canvas#paymentChart
+      //- Payment Status Chart
+      .chart-card
+        .chart-card__header
+          h3
+            i.fa-solid.fa-credit-card.text-warning.me-2
+            | Trạng thái thanh toán
+        .chart-card__body
+          canvas#paymentChart
 
     //- Top Products Section
     .top-products-section
@@ -157,7 +155,7 @@ append scripts
       return new Intl.NumberFormat('vi-VN').format(value) + ' đ';
     }
 
-    // Revenue Chart
+    // Revenue Chart - 2 LINES (DOANH THU + SO ĐƠN)
     const revenueCtx = document.getElementById('revenueChart').getContext('2d');
     new Chart(revenueCtx, {
       type: 'line',
@@ -168,28 +166,34 @@ append scripts
             label: 'Doanh thu (VNĐ)',
             data: dailyRevenue,
             borderColor: '#3b82f6',
-            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            backgroundColor: 'rgba(59, 130, 246, 0.15)',
             fill: true,
             tension: 0.4,
-            pointRadius: 6,
-            pointHoverRadius: 8,
+            pointRadius: 8,
+            pointHoverRadius: 10,
             pointBackgroundColor: '#3b82f6',
             pointBorderColor: '#fff',
-            pointBorderWidth: 2,
+            pointBorderWidth: 3,
+            pointStyle: 'circle',
+            yAxisID: 'y',
+            order: 2, // Vẽ sau (phía trên)
           },
           {
             label: 'Số đơn hàng',
             data: dailyOrdersCount,
-            borderColor: '#10b981',
-            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+            borderColor: '#f59e0b',
+            backgroundColor: 'rgba(245, 158, 11, 0.2)',
             fill: true,
             tension: 0.4,
-            pointRadius: 6,
-            pointHoverRadius: 8,
-            pointBackgroundColor: '#10b981',
+            pointRadius: 8,
+            pointHoverRadius: 10,
+            pointBackgroundColor: '#f59e0b',
             pointBorderColor: '#fff',
-            pointBorderWidth: 2,
+            pointBorderWidth: 3,
+            pointStyle: 'rectRot',
             yAxisID: 'y1',
+            borderDash: [5, 5],
+            order: 1, // Vẽ trước (phía dưới)
           }
         ]
       },
@@ -206,7 +210,7 @@ append scripts
             labels: {
               usePointStyle: true,
               padding: 20,
-              font: { size: 12 }
+              font: { size: 13, weight: '500' }
             }
           },
           tooltip: {
@@ -227,7 +231,8 @@ append scripts
             position: 'left',
             title: {
               display: true,
-              text: 'Doanh thu (VNĐ)'
+              text: 'Doanh thu (VNĐ)',
+              font: { weight: 'bold', size: 12 }
             },
             ticks: {
               callback: function(value) {
@@ -239,6 +244,9 @@ append scripts
             grid: {
               drawBorder: false,
               color: '#f0f0f0'
+            },
+            border: {
+              display: false
             }
           },
           y1: {
@@ -247,20 +255,29 @@ append scripts
             position: 'right',
             title: {
               display: true,
-              text: 'Số đơn hàng'
+              text: 'Số đơn hàng',
+              font: { weight: 'bold', size: 12 }
             },
             grid: {
               drawOnChartArea: false,
             },
             min: 0,
+            max: Math.max(...dailyOrdersCount) + Math.max(...dailyOrdersCount) * 0.3, // Thêm khoảng trống phía trên
             ticks: {
-              stepSize: 1
+              stepSize: 1,
+              precision: 0
+            },
+            border: {
+              display: false
             }
           },
           x: {
             grid: {
               drawBorder: false,
               color: '#f0f0f0'
+            },
+            border: {
+              display: false
             }
           }
         }

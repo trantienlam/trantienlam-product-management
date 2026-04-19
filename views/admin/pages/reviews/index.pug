@@ -1,0 +1,116 @@
+extends ../../layouts/default.pug
+include ../../mixins/alert.pug
+include ../../mixins/moment.pug
+
+block main
+  if(role.permission.includes("reviews_view"))
+    +alert-success(5000)
+    +alert-error(5000)
+
+    .d-flex.justify-content-between.align-items-center.mb-4
+      h1.mb-0.h3
+        i.fas.fa-star.text-warning.me-2
+        | Quản lý đánh giá sản phẩm
+      a.btn.btn-outline-secondary(href=`${prefixAdmin}/orders`)
+        i.fas.fa-arrow-left.me-1
+        | Đơn hàng
+
+    .card.mb-3
+      .card-body.py-3
+        form.form-inline(method="GET" action="")
+          label.mr-2.mb-2.mb-md-0 Trạng thái hiển thị:
+          select.form-control.form-control-sm.mr-2(name="status" onchange="this.form.submit()")
+            option(value="" selected=(filterStatus === "" || !filterStatus)) Tất cả
+            option(value="active" selected=(filterStatus === "active")) Đang hiển thị
+            option(value="hidden" selected=(filterStatus === "hidden")) Đã ẩn
+          if filterStatus
+            a.btn.btn-sm.btn-secondary.ml-2(href=`${prefixAdmin}/reviews`) Xóa lọc
+
+    .card
+      .card-header
+        span
+          i.fas.fa-comments.me-2
+          | Danh sách (#{pagination.totalItems} đánh giá)
+      .card-body.p-0
+        .table-responsive
+          table.table.table-hover.table-striped.mb-0
+            thead.thead-light
+              tr
+                th(style="min-width:200px") Sản phẩm
+                th Khách hàng
+                th.text-center Sao
+                th Nội dung
+                th.text-center Trạng thái
+                th Đơn hàng
+                th Ngày
+                if(role.permission.includes("reviews_edit"))
+                  th.text-right Thao tác
+            tbody
+              if reviews.length === 0
+                tr
+                  td(colspan=(role.permission.includes("reviews_edit") ? 8 : 7)).text-center.text-muted.py-4 Không có đánh giá nào.
+              each rev in reviews
+                tr
+                  td
+                    .d-flex.align-items-center
+                      if rev.productThumb
+                        img.rounded.mr-2(src=rev.productThumb alt="" width="40" height="40" style="object-fit:cover")
+                      div
+                        a.font-weight-bold.small(href=`${prefixAdmin}/products/detail/${rev.product_id}`)= rev.productTitle
+                  td.small= rev.userName
+                  td.text-center
+                    - for (var ri = 0; ri < 5; ri++)
+                      i.fas.fa-star(class=ri < rev.rating ? "text-warning" : "text-muted" style="font-size:11px")
+                  td.small
+                    if rev.comment
+                      span.text-truncate.d-inline-block(style="max-width:220px" title=rev.comment)= rev.comment
+                    else
+                      span.text-muted —
+                    if rev.images && rev.images.length
+                      .mt-1
+                        each imgUrl in rev.images.slice(0, 3)
+                          a.mr-1(href=imgUrl target="_blank")
+                            img.rounded.border(src=imgUrl alt="" width="36" height="36" style="object-fit:cover")
+                  td.text-center
+                    if rev.status === "hidden"
+                      span.badge.badge-warning Đã ẩn
+                    else
+                      span.badge.badge-success Hiển thị
+                  td.small
+                    if rev.order_id
+                      a(href=`${prefixAdmin}/orders/detail/${rev.order_id}`)= "#" + String(rev.order_id).slice(-8).toUpperCase()
+                    else
+                      | —
+                  td.small
+                    +formatDateTime(rev.createdAt)
+                  if(role.permission.includes("reviews_edit"))
+                    td.text-right.text-nowrap
+                      if rev.status === "active"
+                        form.d-inline(method="POST" action=`${prefixAdmin}/reviews/status/${rev._id}?_method=PATCH`)
+                          input(type="hidden" name="status" value="hidden")
+                          button.btn.btn-sm.btn-outline-warning(type="submit" title="Ẩn") Ẩn
+                      else
+                        form.d-inline(method="POST" action=`${prefixAdmin}/reviews/status/${rev._id}?_method=PATCH`)
+                          input(type="hidden" name="status" value="active")
+                          button.btn.btn-sm.btn-outline-success(type="submit" title="Hiện") Hiện
+                      form.d-inline.ml-1(method="POST" action=`${prefixAdmin}/reviews/delete/${rev._id}?_method=DELETE` onsubmit="return confirm('Xóa đánh giá này?');")
+                        button.btn.btn-sm.btn-outline-danger(type="submit") Xóa
+
+      if pagination.totalPage > 1
+        .card-footer
+          nav
+            ul.pagination.justify-content-center.mb-0
+              if pagination.currentPage > 1
+                li.page-item
+                  a.page-link(href=`?page=${pagination.currentPage - 1}${filterQuery}`) &laquo;
+              - var s = Math.max(1, pagination.currentPage - 2)
+              - var e = Math.min(pagination.totalPage, pagination.currentPage + 2)
+              - for (var pi = s; pi <= e; pi++)
+                li.page-item(class=(pagination.currentPage == pi ? "active" : ""))
+                  a.page-link(href=`?page=${pi}${filterQuery}`)= pi
+              if pagination.currentPage < pagination.totalPage
+                li.page-item
+                  a.page-link(href=`?page=${pagination.currentPage + 1}${filterQuery}`) &raquo;
+
+  else
+    h1 Bạn không có quyền truy cập

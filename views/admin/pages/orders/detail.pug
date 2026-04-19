@@ -148,6 +148,73 @@ block main
                       = order.amount ? order.amount.toLocaleString('vi-VN') : '0'
                       |  đ
 
+          //- Đánh giá sản phẩm (theo đơn hàng)
+          if order.products && order.products.length
+            .card.mb-4
+              .card-header.d-flex.justify-content-between.align-items-center
+                h5.mb-0
+                  i.fas.fa-star.me-2
+                  | Đánh giá sản phẩm
+                if(role.permission.includes("reviews_view"))
+                  a.btn.btn-sm.btn-outline-primary(href=`${prefixAdmin}/reviews`)
+                    i.fas.fa-list.me-1
+                    | Tất cả đánh giá
+              .card-body
+                if !orderHasReviews
+                  p.text-muted.mb-0 Chưa có đánh giá nào cho các sản phẩm trong đơn hàng này.
+                else
+                  each item in order.products
+                    if item.productInfo && item.reviews && item.reviews.length
+                      .admin-order-review-block.mb-4
+                        .d-flex.align-items-center.mb-2
+                          if item.productInfo.thumbnail
+                            img.rounded.mr-2.admin-order-review-product-thumb(
+                              src=item.productInfo.thumbnail
+                              alt=""
+                              width="44"
+                              height="44"
+                            )
+                          div
+                            a.font-weight-bold.text-dark(href=`${prefixAdmin}/products/detail/${item.product_id}`)
+                              = item.productInfo.title
+                        each review in item.reviews
+                          .admin-order-review-item.ml-2.pl-3.mb-3
+                            .d-flex.flex-wrap.align-items-center.mb-1
+                              span.font-weight-medium.text-secondary.small= review.userName || "Khách hàng"
+                              span.text-muted.small.mx-2 ·
+                              span.text-muted.small
+                                +formatDateTime(review.createdAt)
+                              if review.status === "hidden"
+                                span.badge.badge-warning.ml-2 Đã ẩn
+                            .mb-1
+                              - for (var si = 0; si < 5; si++)
+                                i.fas.fa-star(class=si < review.rating ? "text-warning" : "text-muted" style="font-size:12px")
+                            if review.comment
+                              p.mb-2.small.text-body= review.comment
+                            if review.images && review.images.length
+                              .d-flex.flex-wrap
+                                each photo in review.images
+                                  a.admin-review-photo-link.mr-2.mb-2(href=photo target="_blank" rel="noopener noreferrer")
+                                    img.admin-review-photo-thumb(src=photo alt="Ảnh đánh giá" loading="lazy")
+                            if(role.permission.includes("reviews_edit"))
+                              .mt-2.d-flex.flex-wrap
+                                if review.status === "active"
+                                  form.d-inline.mr-2(method="POST" action=`${prefixAdmin}/reviews/status/${review._id}?_method=PATCH`)
+                                    input(type="hidden" name="status" value="hidden")
+                                    button.btn.btn-sm.btn-outline-warning(type="submit")
+                                      i.fas.fa-eye-slash.me-1
+                                      | Ẩn
+                                else
+                                  form.d-inline.mr-2(method="POST" action=`${prefixAdmin}/reviews/status/${review._id}?_method=PATCH`)
+                                    input(type="hidden" name="status" value="active")
+                                    button.btn.btn-sm.btn-outline-success(type="submit")
+                                      i.fas.fa-eye.me-1
+                                      | Hiện
+                                form.d-inline(method="POST" action=`${prefixAdmin}/reviews/delete/${review._id}?_method=DELETE` onsubmit="return confirm('Xóa đánh giá này?');")
+                                  button.btn.btn-sm.btn-outline-danger(type="submit")
+                                    i.fas.fa-trash.me-1
+                                    | Xóa
+
         .col-lg-4
           //- Payment Status Card
           .card.mb-4
