@@ -1,0 +1,182 @@
+extends ../../layouts/default.pug
+include ../../mixins/alert.pug
+
+block main
+  if(role.permission.includes("vouchers_create"))
+    +alert-success(3000)
+    +alert-error(3000)
+
+    .voucher-form-page
+      .container-fluid.py-4
+        //- Page Header
+        .page-header.d-flex.align-items-center.mb-4
+          a.btn.btn-outline-secondary.me-3(href="/admin/vouchers")
+            i.fa-solid.fa-arrow-left
+          div
+            h1.page-title.mb-1 Tạo Voucher mới
+            p.page-subtitle.text-muted Điền thông tin để tạo mã giảm giá
+
+        //- Form Card
+        .card
+          .card-body.p-4
+            form(method="POST" action="/admin/vouchers/create")
+              .row.g-4
+                //- Mã voucher
+                .col-md-6
+                  label.form-label
+                    | Mã voucher 
+                    span.text-danger *
+                  input.form-control(
+                    type="text"
+                    name="code"
+                    placeholder="VD: SUMMER2024"
+                    required
+                    maxlength="20"
+                    oninput="this.value = this.value.toUpperCase()"
+                  )
+                  .form-text Mã voucher không phân biệt hoa thường
+
+                //- Tên voucher
+                .col-md-6
+                  label.form-label
+                    | Tên voucher 
+                    span.text-danger *
+                  input.form-control(
+                    type="text"
+                    name="name"
+                    placeholder="VD: Giảm giá mùa hè"
+                    required
+                    maxlength="100"
+                  )
+
+                //- Mô tả
+                .col-12
+                  label.form-label Mô tả
+                  textarea.form-control(
+                    name="description"
+                    rows="2"
+                    placeholder="Mô tả ngắn về voucher (không bắt buộc)"
+                  )
+
+                //- Loại giảm giá
+                .col-md-4
+                  label.form-label
+                    | Loại giảm giá 
+                    span.text-danger *
+                  select.form-select(name="type" required)
+                    option(value="percent" selected) Giảm theo phần trăm (%)
+                    option(value="fixed") Giảm số tiền cố định (đ)
+
+                //- Giá trị giảm
+                .col-md-4
+                  label.form-label
+                    | Giá trị giảm 
+                    span.text-danger *
+                  .input-group
+                    input.form-control(
+                      type="number"
+                      name="value"
+                      placeholder="VD: 10"
+                      required
+                      min="1"
+                      id="voucherValue"
+                    )
+                    span.input-group-text#valueSuffix %
+
+                //- Giảm giá tối đa
+                .col-md-4
+                  label.form-label Giảm giá tối đa
+                  .input-group
+                    input.form-control(
+                      type="number"
+                      name="maxDiscount"
+                      placeholder="0 = không giới hạn"
+                      min="0"
+                      value="0"
+                    )
+                    span.input-group-text đ
+
+                //- Đơn hàng tối thiểu
+                .col-md-6
+                  label.form-label Đơn hàng tối thiểu
+                  .input-group
+                    input.form-control(
+                      type="number"
+                      name="minOrderValue"
+                      placeholder="0 = không giới hạn"
+                      min="0"
+                      value="0"
+                    )
+                    span.input-group-text đ
+
+                //- Số lượng
+                .col-md-3
+                  label.form-label
+                    | Số lượng 
+                    span.text-danger *
+                  input.form-control(
+                    type="number"
+                    name="quantity"
+                    required
+                    min="1"
+                    value="100"
+                  )
+
+                //- Giới hạn/user
+                .col-md-3
+                  label.form-label Giới hạn/user
+                  input.form-control(
+                    type="number"
+                    name="perUserLimit"
+                    min="1"
+                    value="1"
+                  )
+
+                //- Ngày bắt đầu
+                .col-md-6
+                  label.form-label
+                    | Ngày bắt đầu 
+                    span.text-danger *
+                  input.form-control(
+                    type="date"
+                    name="startDate"
+                    required
+                    id="startDate"
+                  )
+
+                //- Ngày kết thúc
+                .col-md-6
+                  label.form-label
+                    | Ngày kết thúc 
+                    span.text-danger *
+                  input.form-control(
+                    type="date"
+                    name="endDate"
+                    required
+                    id="endDate"
+                  )
+
+                //- Kích hoạt
+                .col-12
+                  .form-check
+                    input#isActive.form-check-input(
+                      type="checkbox"
+                      name="isActive"
+                      value="true"
+                      checked
+                    )
+                    label.form-check-label(for="isActive")
+                      | Kích hoạt voucher ngay lập tức
+
+              hr.my-4
+
+              //- Actions
+              .d-flex.gap-2
+                button.btn.btn-primary(type="submit")
+                  i.fa-solid.fa-floppy-disk.me-2
+                  | Lưu Voucher
+                a.btn.btn-outline-secondary(href="/admin/vouchers")
+                  | Hủy
+
+  append scripts
+  script(src="/admin/js/voucher-form.js")

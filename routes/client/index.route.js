@@ -17,6 +17,7 @@ const chatUploadRoutes = require("./chat-upload.route");
 const paymentRoutes = require("./payment.route.js");
 const orderRoutes = require("./order.route.js");
 const reviewRoutes = require("./review.route.js");
+const voucherRoutes = require("./voucher.route.js");
 
 module.exports = (app) => {
   app.use(categoryMiddleware.category);
@@ -48,4 +49,6 @@ module.exports = (app) => {
   app.use("/orders", orderRoutes);
 
   app.use("/reviews", reviewRoutes);
+
+  app.use("/vouchers", voucherRoutes);
 };

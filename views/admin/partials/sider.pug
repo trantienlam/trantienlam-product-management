@@ -1,31 +1,74 @@
-.sider 
-  .inner-menu 
-    ul 
-      li 
-        a(href=`${prefixAdmin}/dashboard`) Tổng quan 
+.admin-sidebar
+  .sidebar-header
+    .sidebar-logo
+      i.fa-solid.fa-shield-halved
+      span Admin
+  
+  .sidebar-user
+    a.sidebar-user-link(href=`${prefixAdmin}/accounts/detail/${user.id}`)
+      .sidebar-user-avatar
+        if user && user.avatar
+          img(src=user.avatar alt=user.fullName)
+        else
+          .avatar-placeholder= user && user.fullName ? user.fullName.charAt(0).toUpperCase() : "A"
+      span.sidebar-user-text= user && user.fullName ? user.fullName : "Admin"
+
+  .sidebar-menu
+    nav.sidebar-nav
+      a.sidebar-link(href=`${prefixAdmin}/dashboard`)
+        i.sidebar-icon.fa-solid.fa-chart-line
+        span.sidebar-text Tổng quan
+        
       if(role.permission.includes("products_view"))
-        li 
-          a(href=`${prefixAdmin}/products`) Danh sách sản phẩm
+        a.sidebar-link(href=`${prefixAdmin}/products`)
+          i.sidebar-icon.fa-solid.fa-box-open
+          span.sidebar-text Sản phẩm
+          
       if(role.permission.includes("products-category_view"))  
-        li 
-          a(href=`${prefixAdmin}/products-category`) Danh mục sản phẩm
-      if(role.permission.includes("chat_view"))
-        li 
-          a(href=`${prefixAdmin}/chat`) Chat Hỗ trợ
+        a.sidebar-link(href=`${prefixAdmin}/products-category`)
+          i.sidebar-icon.fa-solid.fa-tags
+          span.sidebar-text Danh mục
+          
       if(role.permission.includes("orders_view"))
-        li 
-          a(href=`${prefixAdmin}/orders`) Quản lý đơn hàng
+        a.sidebar-link(href=`${prefixAdmin}/orders`)
+          i.sidebar-icon.fa-solid.fa-receipt
+          span.sidebar-text Đơn hàng
+          
       if(role.permission.includes("reviews_view"))
-        li 
-          a(href=`${prefixAdmin}/reviews`) Đánh giá sản phẩm
-      if(role.permission.includes("roles_view"))
-        li 
-          a(href=`${prefixAdmin}/roles`) Nhóm quyền
-      if(role.permission.includes("roles_permission"))
-        li 
-          a(href=`${prefixAdmin}/roles/permissions`) Phân quyền
+        a.sidebar-link(href=`${prefixAdmin}/reviews`)
+          i.sidebar-icon.fa-solid.fa-star
+          span.sidebar-text Đánh giá
+          
+      if(role.permission.includes("vouchers_view"))
+        a.sidebar-link(href=`${prefixAdmin}/vouchers`)
+          i.sidebar-icon.fa-solid.fa-ticket-simple
+          span.sidebar-text Voucher
+          
+      if(role.permission.includes("chat_view"))
+        a.sidebar-link(href=`${prefixAdmin}/chat`)
+          i.sidebar-icon.fa-solid.fa-comments
+          span.sidebar-text Chat Hỗ trợ
+
       if(role.permission.includes("accounts_view"))
-        li 
-          a(href=`${prefixAdmin}/accounts`) Danh sách tài khoản
-        li 
-          a(href=`${prefixAdmin}/settings/general`) Cài đặt chung
+        a.sidebar-link(href=`${prefixAdmin}/accounts`)
+          i.sidebar-icon.fa-solid.fa-users
+          span.sidebar-text Tài khoản
+          
+      if(role.permission.includes("roles_view"))
+        a.sidebar-link(href=`${prefixAdmin}/roles`)
+          i.sidebar-icon.fa-solid.fa-user-shield
+          span.sidebar-text Nhóm quyền
+          
+      if(role.permission.includes("roles_permission"))
+        a.sidebar-link(href=`${prefixAdmin}/roles/permissions`)
+          i.sidebar-icon.fa-solid.fa-key
+          span.sidebar-text Phân quyền
+          
+      a.sidebar-link(href=`${prefixAdmin}/settings/general`)
+        i.sidebar-icon.fa-solid.fa-gear
+        span.sidebar-text Cài đặt
+
+  .sidebar-footer
+    a.sidebar-link.sidebar-link--logout(href=`${prefixAdmin}/auth/logout`)
+      i.sidebar-icon.fa-solid.fa-right-from-bracket
+      span.sidebar-text Đăng xuất

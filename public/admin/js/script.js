@@ -150,6 +150,39 @@ if (uploadImage) {
 }
 //end upload image
 
+// upload multiple images
+const uploadImageMultiple = document.querySelector("[upload-image-multiple]");
+if (uploadImageMultiple) {
+  const uploadImageInputMultiple = document.querySelector("[upload-image-input-multiple]");
+  const uploadImagePreviewMultiple = document.querySelector("[upload-image-preview-multiple]");
+
+  if (uploadImageInputMultiple && uploadImagePreviewMultiple) {
+    uploadImageInputMultiple.addEventListener("change", (e) => {
+      const files = e.target.files;
+      uploadImagePreviewMultiple.innerHTML = "";
+
+      if (files && files.length > 0) {
+        for (let i = 0; i < files.length; i++) {
+          const file = files[i];
+          if (file.type.startsWith("image/")) {
+            const imgWrapper = document.createElement("div");
+            imgWrapper.style.cssText = "position:relative;display:inline-block;margin:4px;";
+
+            const img = document.createElement("img");
+            img.src = URL.createObjectURL(file);
+            img.style.cssText = "width:80px;height:80px;object-fit:cover;border-radius:8px;border:2px solid #dee2e6;";
+            img.onload = () => URL.revokeObjectURL(img.src);
+
+            imgWrapper.appendChild(img);
+            uploadImagePreviewMultiple.appendChild(imgWrapper);
+          }
+        }
+      }
+    });
+  }
+}
+//end upload multiple images
+
 //sỏt
 const sort = document.querySelector("[sort]");
 if (sort) {
@@ -188,3 +221,24 @@ if (sort) {
   }
 }
 //end sort
+
+// Admin mobile sidebar toggle
+const adminMobileMenuBtn = document.getElementById('adminMobileMenuBtn');
+const adminSidebarOverlay = document.getElementById('adminSidebarOverlay');
+const adminSidebar = document.querySelector('.admin-sidebar');
+
+if (adminMobileMenuBtn && adminSidebar) {
+  adminMobileMenuBtn.addEventListener('click', () => {
+    adminSidebar.classList.toggle('show');
+    if (adminSidebarOverlay) {
+      adminSidebarOverlay.classList.toggle('show');
+    }
+  });
+}
+
+if (adminSidebarOverlay) {
+  adminSidebarOverlay.addEventListener('click', () => {
+    adminSidebar.classList.remove('show');
+    adminSidebarOverlay.classList.remove('show');
+  });
+}

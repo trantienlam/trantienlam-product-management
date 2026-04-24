@@ -1,0 +1,135 @@
+extends ../../layouts/default.pug
+include ../../mixins/alert.pug
+
+block main
+  if(role.permission.includes("vouchers_view"))
+    +alert-success(3000)
+    +alert-error(3000)
+
+    .voucher-management
+      .container-fluid.py-4
+        //- Page Title
+        .mb-4
+          h1.mb-1 Quản lý Voucher
+          p.text-muted Quản lý mã giảm giá cho khách hàng
+
+        //- Create Button
+        .mb-4
+          a.btn.btn-primary(href="/admin/vouchers/create")
+            i.fa-solid.fa-plus.me-2
+            | Tạo Voucher mới
+
+        //- Filter & Search
+        .filter-bar.card.mb-4
+          .card-body
+            form.form-inline(method="GET" action="/admin/vouchers")
+              .row.g-3.align-items-end
+                .col-md-4
+                  label.form-label Tìm kiếm
+                  input.form-control(type="text" name="search" placeholder="Tìm theo mã, tên..." value=filter.search || "")
+                .col-md-3
+                  label.form-label Trạng thái
+                  select.form-select(name="status")
+                    option(value="") Tất cả
+                    option(value="active" selected=filter.status === 'active') Đang hoạt động
+                    option(value="expired" selected=filter.status === 'expired') Đã hết hạn
+                .col-md-2
+                  button.btn.btn-outline-primary(type="submit")
+                    i.fa-solid.fa-search.me-1
+                    | Lọc
+                .col-md-3
+                  a.btn.btn-outline-secondary(href="/admin/vouchers")
+                    i.fa-solid.fa-rotate-left.me-1
+                    | Reset
+
+        //- Vouchers Table
+        .card
+          .card-header
+            i.fa-solid.fa-ticket-simple.me-2
+            | Danh sách Voucher (#{vouchers.length})
+          .card-body.p-0
+            if vouchers.length > 0
+              .table-responsive
+                table.table.table-hover.align-middle.mb-0
+                  thead
+                    tr
+                      th.px-4 Mã Voucher
+                      th Tên
+                      th Loại
+                      th Giá trị
+                      th Đơn tối thiểu
+                      th Đã dùng
+                      th Thời hạn
+                      th Trạng thái
+                      th.text-center Thao tác
+                  tbody
+                    each voucher in vouchers
+                      tr
+                        td.px-4
+                          .voucher-code
+                            code #{voucher.code}
+                        td
+                          .voucher-name #{voucher.name}
+                          if voucher.description
+                            .text-muted.small #{voucher.description}
+                        td
+                          if voucher.type === 'percent'
+                            span.badge.bg-primary Giảm %
+                          else
+                            span.badge.bg-success Giảm tiền
+                        td
+                          if voucher.type === 'percent'
+                            | #{voucher.value}%
+                            if voucher.maxDiscount > 0
+                              .small.text-muted Max: #{voucher.maxDiscount.toLocaleString('vi-VN')}đ
+                          else
+                            | #{voucher.value.toLocaleString('vi-VN')}đ
+                        td
+                          if voucher.minOrderValue > 0
+                            | #{voucher.minOrderValue.toLocaleString('vi-VN')}đ
+                          else
+                            span.text-muted Không
+                        td
+                          .usage-info
+                            strong #{voucher.usedCount}
+                            | /#{voucher.quantity}
+                            if voucher.usedCount >= voucher.quantity
+                              span.badge.bg-danger.ms-1 Hết
+                        td
+                          .date-range
+                            small
+                              | Từ: #{moment(voucher.startDate).format('DD/MM/YYYY')}
+                            br
+                            small
+                              | Đến: #{moment(voucher.endDate).format('DD/MM/YYYY')}
+                        td
+                          if voucher.isValid
+                            span.badge.bg-success Đang hoạt động
+                          else if voucher.isExpired
+                            span.badge.bg-secondary Hết hạn
+                          else if !voucher.isActive
+                            span.badge.bg-danger Đã tắt
+                          else
+                            span.badge.bg-warning.text-dark Sắp có
+                        td.text-center
+                          .btn-group
+                            a.btn.btn-sm.btn-outline-primary(href=`/admin/vouchers/edit/${voucher._id}` title="Sửa")
+                              i.fa-solid.fa-pen
+                            button.btn.btn-sm.btn-outline-danger(
+                              type="button"
+                              onclick=`confirmDelete('${voucher._id}', '${voucher.code}')`
+                              title="Xóa"
+                            )
+                              i.fa-solid.fa-trash
+            else
+              .empty-state.text-center.py-5
+                i.fa-solid.fa-ticket-simple.empty-icon
+                h5.empty-title Chưa có voucher nào
+                p.empty-desc Tạo voucher đầu tiên để bắt đầu
+                a.btn.btn-primary(href="/admin/vouchers/create")
+                  i.fa-solid.fa-plus.me-2
+                  | Tạo Voucher mới
+
+  append scripts
+  script(src="/admin/js/voucher-index.js")
+  script(src="/admin/js/script.js")

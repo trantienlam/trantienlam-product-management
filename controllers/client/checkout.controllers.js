@@ -1,6 +1,7 @@
 const Cart = require("../../models/cart.model");
 const Product = require("../../models/product.model");
 const Order = require("../../models/order.model");
+const Voucher = require("../../models/voucher.model");
 const productHelper = require("../../helpers/products");
 
 //[GET] /checkout/
@@ -124,10 +125,15 @@ module.exports.order = async (req, res) => {
     }
 
     const userId = req.user._id;
-    const { fullName, phone, address, paymentMethod } = req.body;
+    const { fullName, phone, address, paymentMethod, voucherCodeHidden, voucherDiscount } = req.body;
+
+    // Parse voucher info
+    const voucherDiscountAmount = parseInt(voucherDiscount) || 0;
+    const voucherCode = voucherCodeHidden || "";
 
     const buyNowPayload = req.session.checkoutBuyNow;
 
+    // ============ MUA NGAY ============
     if (buyNowPayload && buyNowPayload.product_id) {
       const { product_id, quantity } = buyNowPayload;
       const productInfo = await Product.findOne({
@@ -148,6 +154,9 @@ module.exports.order = async (req, res) => {
       }
 
       const lineTotal = priceNew * qty;
+      let finalAmount = lineTotal - voucherDiscountAmount;
+      if (finalAmount < 0) finalAmount = 0;
+
       const products = [
         {
           product_id: productInfo._id,
@@ -163,17 +172,37 @@ module.exports.order = async (req, res) => {
         { $inc: { stock: -qty } },
       );
 
-      const order = new Order({
+      const orderData = {
         user_id: userId,
         userInfo: { fullName, phone, address },
         products,
-        amount: lineTotal,
+        amount: finalAmount,
         paymentMethod: paymentMethod || "cod",
         status: "pending",
         paymentStatus: paymentMethod === "vnpay" ? "paid" : "unpaid",
         buyNow: true,
-      });
+      };
 
+      // Xử lý voucher
+      if (voucherCode && voucherDiscountAmount > 0) {
+        orderData.voucher = { code: voucherCode };
+        orderData.discountAmount = voucherDiscountAmount;
+
+        const voucherInfo = await Voucher.findOne({ code: voucherCode });
+        if (voucherInfo) {
+          orderData.voucher.name = voucherInfo.name;
+          orderData.voucher.type = voucherInfo.type;
+          orderData.voucher.value = voucherInfo.value;
+          orderData.voucher.discount = voucherDiscountAmount;
+        }
+
+        await Voucher.updateOne(
+          { code: voucherCode },
+          { $inc: { usedCount: 1 } }
+        );
+      }
+
+      const order = new Order(orderData);
       await order.save();
       delete req.session.checkoutBuyNow;
 
@@ -182,10 +211,11 @@ module.exports.order = async (req, res) => {
         return res.redirect(`/checkout/success/${order._id}`);
       }
 
-      res.redirect(`/payment/create?orderId=${order._id}&amount=${lineTotal}`);
+      res.redirect(`/payment/create?orderId=${order._id}&amount=${finalAmount}`);
       return;
     }
 
+    // ============ ĐẶT TỪ GIỎ HÀNG ============
     const cart = await Cart.findOne({ user_id: userId });
 
     if (!cart || cart.products.length === 0) {
@@ -220,17 +250,40 @@ module.exports.order = async (req, res) => {
       products.push(objectProduct);
     }
 
-    const order = new Order({
+    let finalAmount = totalPrice - voucherDiscountAmount;
+    if (finalAmount < 0) finalAmount = 0;
+
+    const orderData = {
       user_id: userId,
       userInfo: { fullName, phone, address },
       products: products,
-      amount: totalPrice,
+      amount: finalAmount,
       paymentMethod: paymentMethod || "cod",
       status: "pending",
       paymentStatus: paymentMethod === "vnpay" ? "paid" : "unpaid",
       buyNow: false,
-    });
+    };
 
+    // Xử lý voucher
+    if (voucherCode && voucherDiscountAmount > 0) {
+      orderData.voucher = { code: voucherCode };
+      orderData.discountAmount = voucherDiscountAmount;
+
+      const voucherInfo = await Voucher.findOne({ code: voucherCode });
+      if (voucherInfo) {
+        orderData.voucher.name = voucherInfo.name;
+        orderData.voucher.type = voucherInfo.type;
+        orderData.voucher.value = voucherInfo.value;
+        orderData.voucher.discount = voucherDiscountAmount;
+      }
+
+      await Voucher.updateOne(
+        { code: voucherCode },
+        { $inc: { usedCount: 1 } }
+      );
+    }
+
+    const order = new Order(orderData);
     await order.save();
 
     // COD: clear cart immediately
@@ -240,8 +293,8 @@ module.exports.order = async (req, res) => {
       return res.redirect(`/checkout/success/${order._id}`);
     }
 
-    // VNPAY: redirect to payment
-    res.redirect(`/payment/create?orderId=${order._id}&amount=${totalPrice}`);
+    // VNPAY: redirect to payment với số tiền đã giảm
+    res.redirect(`/payment/create?orderId=${order._id}&amount=${finalAmount}`);
   } catch (error) {
     console.error("[Checkout Order] Error:", error);
     req.flash("error", "Lỗi đặt hàng");
@@ -252,12 +305,10 @@ module.exports.order = async (req, res) => {
 //[GET] /checkout/success/:id
 
 module.exports.success = async (req, res) => {
-  //console.log(req.params.orderId);
-
   const order = await Order.findOne({
     _id: req.params.orderId,
   });
-  //  console.log(order);
+
   for (const product of order.products) {
     const productInfo = await Product.findOne({
       _id: product.product_id,
@@ -274,7 +325,6 @@ module.exports.success = async (req, res) => {
     0,
   );
 
-  // console.log(order);
   res.render("client/pages/checkout/success", {
     pageTitle: "Đặt hàng thành công",
     order: order,

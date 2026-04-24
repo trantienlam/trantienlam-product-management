@@ -186,9 +186,9 @@ block main
                 span.rating-summary__number #{verifiedReviewAverage ? verifiedReviewAverage.toFixed(1) : "0.0"}
                 .rating-summary__stars
                   - var avgR = verifiedReviewAverage || 0;
-                  - var fullStars = Math.round(avgR);
-                  - var hasHalfStar = (avgR % 1) >= 0.5;
-                  - var emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+                  - var fullStars = Math.min(Math.round(avgR), 5);
+                  - var hasHalfStar = (avgR % 1) >= 0.5 && fullStars < 5;
+                  - var emptyStars = Math.max(0, 5 - fullStars - (hasHalfStar ? 1 : 0));
                   each i in Array(fullStars)
                     i.bi.bi-star-fill
                   if(hasHalfStar)

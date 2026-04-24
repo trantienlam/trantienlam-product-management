@@ -71,13 +71,16 @@ block main
 
                   .write-review-box__images.mb-3
                     label.d-block(for="review_images") Ảnh minh họa (tối đa 5 ảnh, mỗi ảnh ≤ 5MB):
-                    input#review_images.form-control-file.mt-1(
-                      type="file"
-                      name="review_images"
-                      accept="image/jpeg,image/png,image/gif,image/webp"
-                      multiple
-                    )
-                    small.form-text.text-muted JPG, PNG, GIF, WebP. Có thể chọn nhiều ảnh cùng lúc.
+                    .upload-image(upload-image-multiple)
+                      input#review_images.form-control-file.mt-1(
+                        type="file"
+                        name="review_images"
+                        accept="image/jpeg,image/png,image/gif,image/webp"
+                        multiple
+                        upload-image-input-multiple
+                      )
+                      small.form-text.text-muted JPG, PNG, GIF, WebP. Có thể chọn nhiều ảnh cùng lúc.
+                      .upload-image-preview-multiple(upload-image-preview-multiple)
                     if userReview && userReview.images && userReview.images.length
                       .review-write-existing-photos.mt-2
                         span.small.text-muted.d-block.mb-1 Ảnh đã đăng:
@@ -95,6 +98,7 @@ block main
 append scripts
   script.
     document.addEventListener('DOMContentLoaded', function() {
+      // Star rating functionality
       document.querySelectorAll('.star-rating-input__stars').forEach(function(container) {
         var labels = container.querySelectorAll('label');
         var inputs = container.querySelectorAll('input[type="radio"]');
@@ -117,6 +121,7 @@ append scripts
           });
         });
       });
+
       var form = document.getElementById('reviewForm');
       if (form) {
         form.addEventListener('submit', function(e) {
@@ -129,3 +134,4 @@ append scripts
         });
       }
     });
+  script(src="/admin/js/script.js") 
