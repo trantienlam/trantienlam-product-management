@@ -20,6 +20,12 @@ const streamUpload = (buffer) => {
   });
 };
 
+// Hàm upload buffer lên Cloudinary (export để dùng chung)
+const uploadToCloudinary = async (buffer) => {
+  const result = await streamUpload(buffer);
+  return result.secure_url;
+};
+
 module.exports.upload = async (req, res, next) => {
   try {
     // Ưu tiên xử lý multi-file (upload.array → req.files)
@@ -42,3 +48,5 @@ module.exports.upload = async (req, res, next) => {
   }
   next();
 };
+
+module.exports.uploadToCloudinary = uploadToCloudinary;

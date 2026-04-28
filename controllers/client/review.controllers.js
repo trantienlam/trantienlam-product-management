@@ -158,7 +158,7 @@ module.exports.create = async (req, res) => {
       return res.redirect(`/orders/detail/${return_order_id}`);
     }
 
-    const newImageUrls = (req.files || []).map((f) => `/uploads/reviews/${f.filename}`);
+    const newImageUrls = req.body.images || [];
 
     // Tạo đánh giá mới (không kiểm tra existingReview nữa vì đã kiểm tra ở trên)
     const newReview = new Review({

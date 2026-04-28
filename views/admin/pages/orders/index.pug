@@ -25,9 +25,13 @@ block main
               if reqQuery.status
                 input(type="hidden", name="status", value=reqQuery.status)
               .input-group
+                select.form-select(name="searchType" style="max-width: 150px")
+                  option(value="phone" selected=(searchType === 'phone' || !searchType)) Số điện thoại
+                  option(value="orderCode" selected=(searchType === 'orderCode')) Mã đơn hàng
+                  option(value="fullName" selected=(searchType === 'fullName')) Họ tên
                 input.form-control(
                   type="text"
-                  placeholder="Tìm theo tên, SĐT..."
+                  placeholder="Nhập thông tin tìm kiếm..."
                   name="keyword"
                   value=keyword || ""
                 )

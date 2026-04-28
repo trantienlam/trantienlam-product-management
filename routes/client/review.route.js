@@ -1,23 +1,12 @@
 const express = require("express");
 const path = require("path");
-const fs = require("fs");
 const multer = require("multer");
 const router = express.Router();
 const controller = require("../../controllers/client/review.controllers");
+const uploadCloud = require("../../middlewares/admin/uploadCloud.middleware");
 
-const uploadDir = path.join(__dirname, "../../public/uploads/reviews");
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, uploadDir),
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    const ext = path.extname(file.originalname).toLowerCase() || ".jpg";
-    cb(null, `review-${uniqueSuffix}${ext}`);
-  },
-});
+// Dùng memoryStorage để tương thích với Vercel (read-only filesystem)
+const storage = multer.memoryStorage();
 
 const allowedExts = [".jpg", ".jpeg", ".png", ".gif", ".webp"];
 
@@ -68,7 +57,7 @@ function handleReviewUpload(req, res, next) {
 }
 
 // [POST] /reviews/create - Tạo/Cập nhật đánh giá (kèm ảnh, tối đa 5)
-router.post("/create", handleReviewUpload, controller.create);
+router.post("/create", handleReviewUpload, uploadCloud.upload, controller.create);
 
 // [GET] /reviews/write/:productId — trang đánh giá riêng (phải đặt trước /:productId)
 router.get("/write/:productId", controller.writePage);

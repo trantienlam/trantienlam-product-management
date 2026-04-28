@@ -1,23 +1,11 @@
 const express = require("express");
 const multer = require("multer");
 const path = require("path");
-const fs = require("fs");
 
 const router = express.Router();
 
-const uploadDir = path.join(__dirname, "../../public/uploads/chat");
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, uploadDir),
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    const ext = path.extname(file.originalname).toLowerCase();
-    cb(null, `chat-${uniqueSuffix}${ext}`);
-  }
-});
+// Dùng memoryStorage để tương thích với Vercel (read-only filesystem)
+const storage = multer.memoryStorage();
 
 const fileFilter = (req, file, cb) => {
   const allowed = /jpeg|jpg|png|gif|webp/;
@@ -32,12 +20,20 @@ const fileFilter = (req, file, cb) => {
 
 const upload = multer({ storage, fileFilter, limits: { fileSize: 10 * 1024 * 1024 } });
 
-router.post("/upload-image", upload.single("image"), (req, res) => {
+router.post("/upload-image", upload.single("image"), async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ success: false, message: "Không có file ảnh" });
   }
-  const imageUrl = `/uploads/chat/${req.file.filename}`;
-  res.json({ success: true, url: imageUrl });
+  
+  try {
+    // Upload lên Cloudinary để tương thích với Vercel
+    const { uploadToCloudinary } = require("../../middlewares/admin/uploadCloud.middleware");
+    const imageUrl = await uploadToCloudinary(req.file.buffer);
+    res.json({ success: true, url: imageUrl });
+  } catch (err) {
+    console.error("[Admin Chat Upload] Cloudinary error:", err);
+    res.status(500).json({ success: false, message: "Lỗi upload ảnh" });
+  }
 });
 
 module.exports = router;

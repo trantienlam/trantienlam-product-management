@@ -20,10 +20,23 @@ module.exports.index = async (req, res) => {
 
   const objectSearch = searchHelper(req.query);
   if (objectSearch.regex) {
-    find.$or = [
-      { "userInfo.fullName": objectSearch.regex },
-      { "userInfo.phone": objectSearch.regex },
-    ];
+    const searchType = req.query.searchType || 'phone';
+    
+    if (searchType === 'orderCode') {
+      // Tìm theo mã đơn hàng (lấy 8 ký tự cuối của _id)
+      // Chuyển ObjectId thành string để so sánh
+      const keyword = objectSearch.keyword.toUpperCase();
+      const orders = await Order.find(find).select("_id").lean();
+      const matchingIds = orders
+        .filter(order => order._id.toString().slice(-8).toUpperCase().includes(keyword))
+        .map(order => order._id);
+      find._id = { $in: matchingIds };
+    } else if (searchType === 'fullName') {
+      find["userInfo.fullName"] = objectSearch.regex;
+    } else {
+      // Mặc định tìm theo số điện thoại
+      find["userInfo.phone"] = objectSearch.regex;
+    }
   }
 
   if (req.query.paymentStatus) {
@@ -72,6 +85,7 @@ module.exports.index = async (req, res) => {
     orders: orders,
     filterStatus: filterStatus,
     keyword: objectSearch.keyword,
+    searchType: req.query.searchType || 'phone',
     pagination: objectPagination,
     paymentMethod: req.query.paymentMethod || "",
     paymentStatus: req.query.paymentStatus || "",
