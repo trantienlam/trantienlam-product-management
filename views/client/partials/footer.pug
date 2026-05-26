@@ -1,2 +1,95 @@
-footer.footer 
-  | #{settingGeneral.copyright}
+footer.site-footer
+  .site-footer__top(aria-hidden="true")
+    svg.site-footer__wave(viewBox="0 0 1440 48" preserveAspectRatio="none")
+      path(d="M0,32 C360,64 720,0 1080,32 C1260,48 1380,40 1440,32 L1440,48 L0,48 Z" fill="currentColor")
+
+  .site-footer__main
+    .container
+      .row.align-items-start
+        .col-lg-4.col-md-6.mb-5.mb-lg-0
+          .site-footer__brand
+            if settingGeneral && settingGeneral.logo
+              a.site-footer__logo(href="/")
+                img(src=settingGeneral.logo alt=(settingGeneral.websiteName || "Logo"))
+            else
+              a.site-footer__logo-text(href="/")
+                i.bi.bi-shop
+                span= settingGeneral ? settingGeneral.websiteName : "Cửa hàng"
+            p.site-footer__about
+              | Nhà cung cấp công cụ cắt, máy mài và linh kiện công nghiệp uy tín. Cam kết chất lượng — đồng hành cùng sản xuất của bạn.
+            .site-footer__social
+              a.site-footer__social-link(href="#" aria-label="Facebook")
+                i.bi.bi-facebook
+              a.site-footer__social-link(href="#" aria-label="Zalo")
+                i.bi.bi-chat-dots-fill
+              a.site-footer__social-link(href="#" aria-label="YouTube")
+                i.bi.bi-youtube
+
+        .col-6.col-md-3.col-lg-2.mb-4.mb-lg-0
+          h4.site-footer__heading
+            span.site-footer__heading-dot
+            | Liên kết
+          ul.site-footer__links
+            li: a(href="/") Trang chủ
+            li: a(href="/products") Sản phẩm
+            li: a(href="/cart") Giỏ hàng
+            li: a(href="/search") Tìm kiếm
+            if user
+              li: a(href="/orders") Đơn hàng
+            else
+              li: a(href="/user/login") Đăng nhập
+              li: a(href="/user/register") Đăng ký
+
+        .col-6.col-md-3.col-lg-3.mb-4.mb-lg-0
+          h4.site-footer__heading
+            span.site-footer__heading-dot
+            | Danh mục
+          ul.site-footer__links
+            if layoutProductsCategory && layoutProductsCategory.length > 0
+              each cat in layoutProductsCategory.slice(0, 6)
+                li: a(href=`/products/${cat.slug}`)= cat.title
+            else
+              li: a(href="/products") Xem tất cả
+
+        .col-md-12.col-lg-3
+          h4.site-footer__heading
+            span.site-footer__heading-dot
+            | Liên hệ
+          .site-footer__contact-cards
+            if settingGeneral && settingGeneral.phone
+              a.site-footer__contact-card(href=`tel:${settingGeneral.phone}`)
+                i.bi.bi-telephone-fill
+                div
+                  small Hotline
+                  strong= settingGeneral.phone
+            if settingGeneral && settingGeneral.email
+              a.site-footer__contact-card(href=`mailto:${settingGeneral.email}`)
+                i.bi.bi-envelope-fill
+                div
+                  small Email
+                  strong= settingGeneral.email
+            if settingGeneral && settingGeneral.address
+              .site-footer__contact-card.site-footer__contact-card--static
+                i.bi.bi-geo-alt-fill
+                div
+                  small Địa chỉ
+                  strong= settingGeneral.address
+
+  .site-footer__bottom
+    .container
+      .site-footer__bottom-inner
+        p.site-footer__copy
+          | © #{new Date().getFullYear()} 
+          strong= settingGeneral && settingGeneral.websiteName ? settingGeneral.websiteName : "Cửa hàng"
+          |  · 
+          if settingGeneral && settingGeneral.copyright
+            = settingGeneral.copyright
+          else
+            | Bảo lưu mọi quyền.
+        .site-footer__badges
+          span
+            i.bi.bi-shield-lock
+            | Thanh toán an toàn
+          span
+            i.bi.bi-truck
+            | Giao hàng toàn quốc

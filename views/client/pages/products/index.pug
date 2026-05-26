@@ -1,10 +1,156 @@
 extends ../../layouts/default.pug
-include ../../mixins/box-head.pug
 include ../../mixins/product-layout.pug
-block main 
-  .container.my-3 
-    .row 
-      .col-12 
-        +box-head(pageTitle)
 
-    +product-grid(products)
+mixin products-sidebar-categories(items, activeSlug, depth)
+  - depth = depth || 0
+  ul(class=depth === 0 ? "products-cat-list" : "products-cat-list products-cat-list--nested")
+    each item in items
+      - const isActive = activeSlug && item.slug === activeSlug
+      li.products-cat-list__item(class=isActive ? "is-active" : "")
+        a.products-cat-list__link(href=`/products/${item.slug}` class=isActive ? "is-active" : "")
+          span.products-cat-list__icon
+            i.bi.bi-folder2
+          span.products-cat-list__label= item.title
+          i.bi.bi-chevron-right.products-cat-list__arrow(aria-hidden="true")
+        if item.children && item.children.length
+          +products-sidebar-categories(item.children, activeSlug, depth + 1)
+
+block styles
+  link(rel="preconnect" href="https://fonts.googleapis.com")
+  link(rel="preconnect" href="https://fonts.gstatic.com" crossorigin)
+  link(href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet")
+  link(rel="stylesheet", href="/css/products-page.css")
+
+block main
+  - const isCategoryPage = pageType === "category" && category
+  - const productCount = products ? products.length : 0
+  - const activeSlug = isCategoryPage ? category.slug : null
+  - const hasSidebar = layoutProductsCategory && layoutProductsCategory.length > 0
+  - const catIcons = ['bi-layers', 'bi-gear-wide-connected', 'bi-tools', 'bi-cpu', 'bi-hammer', 'bi-wrench', 'bi-box-seam', 'bi-grid-3x3-gap']
+
+  .products-page
+    section.products-banner(aria-label="Tiêu đề trang sản phẩm")
+      .products-banner__bg(aria-hidden="true")
+        .products-banner__mesh
+        .products-banner__glow.products-banner__glow--1
+        .products-banner__glow.products-banner__glow--2
+      .container.products-banner__inner
+        nav.products-breadcrumb(aria-label="Đường dẫn")
+          a.products-breadcrumb__link(href="/")
+            i.bi.bi-house-door
+            | Trang chủ
+          i.bi.bi-chevron-right.products-breadcrumb__sep(aria-hidden="true")
+          if isCategoryPage
+            a.products-breadcrumb__link(href="/products") Sản phẩm
+            i.bi.bi-chevron-right.products-breadcrumb__sep(aria-hidden="true")
+            span.products-breadcrumb__current= category.title
+          else
+            span.products-breadcrumb__current Tất cả sản phẩm
+
+        .products-banner__content(data-reveal)
+          .products-banner__main
+            if isCategoryPage
+              span.products-banner__pill
+                i.bi.bi-tag
+                | Danh mục
+              h1.products-banner__title= category.title
+              if categoryDescriptionExcerpt
+                p.products-banner__desc= categoryDescriptionExcerpt
+              else
+                p.products-banner__desc Sản phẩm chất lượng trong danh mục #{category.title} — tư vấn miễn phí, giao hàng toàn quốc.
+            else
+              span.products-banner__pill
+                i.bi.bi-shop
+                | Cửa hàng
+              h1.products-banner__title Tất cả sản phẩm
+              p.products-banner__desc Đá cắt, máy mài, dụng cụ và phụ kiện công nghiệp — đa dạng mẫu mã, giá cạnh tranh.
+
+            ul.products-banner__stats
+              li.products-banner__stat
+                strong #{productCount}
+                span Sản phẩm
+              li.products-banner__stat
+                strong 100%
+                span Chính hãng
+              li.products-banner__stat
+                strong 24/7
+                span Hỗ trợ
+
+          if isCategoryPage && category.thumbnail
+            .products-banner__visual
+              .products-banner__thumb
+                img(src=category.thumbnail alt=category.title loading="lazy")
+          else
+            .products-banner__visual.products-banner__visual--icon(aria-hidden="true")
+              i.bi.bi-grid-3x3-gap-fill
+
+    if hasSidebar
+      .container.products-chips-wrap
+        .products-chips(data-reveal)
+          a.products-chip(href="/products" class=!isCategoryPage ? "is-active" : "")
+            i.bi.bi-collection
+            | Tất cả
+          each cat, idx in layoutProductsCategory
+            a.products-chip(href=`/products/${cat.slug}` class=activeSlug === cat.slug ? "is-active" : "")
+              i.bi(class=catIcons[idx % catIcons.length])
+              span= cat.title
+
+    .container.products-layout(class=!hasSidebar ? "products-layout--full" : "")
+      if hasSidebar
+        aside.products-sidebar(data-reveal data-reveal-delay="60")
+          .products-sidebar__card
+            .products-sidebar__head
+              span.products-sidebar__line
+              div
+                p.products-sidebar__eyebrow Lọc theo
+                h2.products-sidebar__title Danh mục
+            a.products-sidebar__all(href="/products" class=!isCategoryPage ? "is-active" : "")
+              span.products-sidebar__all-icon
+                i.bi.bi-collection
+              span Tất cả sản phẩm
+              i.bi.bi-arrow-right
+            nav.products-sidebar__nav(aria-label="Danh mục sản phẩm")
+              +products-sidebar-categories(layoutProductsCategory, activeSlug)
+
+      .products-content
+        header.products-toolbar(data-reveal data-reveal-delay="100")
+          .products-toolbar__left
+            span.products-toolbar__line
+            div
+              if isCategoryPage
+                p.products-toolbar__eyebrow Kết quả
+                h2.products-toolbar__title #{category.title}
+              else
+                p.products-toolbar__eyebrow Danh sách
+                h2.products-toolbar__title Sản phẩm đang bán
+              p.products-toolbar__meta
+                i.bi.bi-box-seam
+                | #{productCount} sản phẩm
+          a.products-toolbar__search(href="/search")
+            i.bi.bi-search
+            | Tìm kiếm
+
+        main.products-main(data-reveal data-reveal-delay="140")
+          if products && products.length > 0
+            +product-grid(products)
+          else
+            .products-empty
+              .products-empty__icon
+                i.bi.bi-inbox
+              if isCategoryPage
+                h3 Chưa có sản phẩm
+                p Danh mục này hiện chưa có sản phẩm. Thử xem danh mục khác hoặc quay về trang chủ.
+              else
+                h3 Chưa có sản phẩm
+                p Hệ thống đang cập nhật. Vui lòng quay lại sau.
+              .products-empty__actions
+                a.products-empty__btn(href="/")
+                  i.bi.bi-house
+                  | Trang chủ
+                if hasSidebar
+                  a.products-empty__btn.products-empty__btn--outline(href="/products")
+                    i.bi.bi-grid
+                    | Tất cả danh mục
+
+append scripts
+  script(src="/js/home-scroll.js")

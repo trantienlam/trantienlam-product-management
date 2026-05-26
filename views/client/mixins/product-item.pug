@@ -1,24 +1,28 @@
 mixin product-item(item)
-  .col-4.mb-3
+  .col-6.col-lg-4.mb-4
     .product-item
-      .inner-image
-        img(src=item.thumbnail, alt=item.title)
-        if(item.featured == "1")
-          .inner-featured
-            i.bi.bi-star-fill
-            |  Nổi bật
-        if(item.discountPercentage > 0)
-          .inner-discount-tag -#{item.discountPercentage}%
+      a.product-item__image-link(href=`/products/detail/${item.slug}`)
+        .inner-image
+          img(src=item.thumbnail, alt=item.title, loading="lazy")
+          if(item.featured == "1")
+            .inner-featured
+              i.bi.bi-star-fill
+              | Nổi bật
+          if(item.discountPercentage > 0)
+            .inner-discount-tag -#{item.discountPercentage}%
+          .product-item__hover
+            span Xem chi tiết
+              i.bi.bi-arrow-right
       .inner-content
         h3.inner-title
           a(href=`/products/detail/${item.slug}`) #{item.title}
         .inner-bottom
           .inner-prices
             if(item.priceNew)
-              span.inner-price-new #{item.priceNew.toLocaleString("vi-VN")} đ
-            if(item.price && item.priceNew)
-              span.inner-price-old #{item.price.toLocaleString("vi-VN")} đ
+              span.inner-price-new #{item.priceNew.toLocaleString("vi-VN")}đ
+            if(item.price && item.priceNew && item.price !== item.priceNew)
+              span.inner-price-old #{item.price.toLocaleString("vi-VN")}đ
         .inner-actions
           a.btn-quick-view(href=`/products/detail/${item.slug}`)
-            i.bi.bi-eye
-            |  Xem chi tiết
+            i.bi.bi-cart-plus
+            | Thêm vào giỏ

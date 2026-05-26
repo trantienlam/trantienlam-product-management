@@ -49,6 +49,21 @@
     });
   });
 
+  const prevBtn = banner.querySelector(".hero-arrow--prev");
+  const nextBtn = banner.querySelector(".hero-arrow--next");
+  if (prevBtn) {
+    prevBtn.addEventListener("click", () => {
+      goTo(index - 1);
+      start();
+    });
+  }
+  if (nextBtn) {
+    nextBtn.addEventListener("click", () => {
+      goTo(index + 1);
+      start();
+    });
+  }
+
   banner.addEventListener("mouseenter", stop);
   banner.addEventListener("mouseleave", start);
 

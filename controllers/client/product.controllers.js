@@ -14,8 +14,9 @@ module.exports.index = async (req, res) => {
   const newProducts = productsHelper.priceNewProducts(products);
 
   res.render("client/pages/products/index", {
-    pageTitle: "Trang danh sách sản phẩm",
+    pageTitle: "Tất cả sản phẩm",
     products: newProducts,
+    pageType: "all",
   });
 };
 
@@ -149,10 +150,18 @@ module.exports.category = async (req, res) => {
   const products = await Product.find({
     product_category_id: { $in: [category.id, ...listSubCategoryId] },
     deleted: false,
+    status: "active",
   }).sort({ position: "desc" });
   const newProducts = productsHelper.priceNewProducts(products);
+  const categoryDescriptionExcerpt = htmlToPlainExcerpt(
+    category.description,
+    220,
+  );
   res.render("client/pages/products/index", {
     pageTitle: category.title,
     products: newProducts,
+    category,
+    categoryDescriptionExcerpt,
+    pageType: "category",
   });
 };

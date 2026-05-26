@@ -1,82 +1,451 @@
 extends ../../layouts/default.pug
-include ../../mixins/box-head.pug
+
 include ../../mixins/product-layout.pug
+
+
+
+block styles
+
+  link(rel="preconnect" href="https://fonts.googleapis.com")
+
+  link(rel="preconnect" href="https://fonts.gstatic.com" crossorigin)
+
+  link(href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet")
+
+  link(rel="stylesheet", href="/css/home-page.css")
+
+
+
 block main
 
-  //- Hero: slider ảnh nền, tự đổi mỗi 5s
-  .hero-banner#clientHeroBanner
-    .hero-slides(aria-hidden="true")
-      .hero-slide.is-active(style="background-image: url('https://images.unsplash.com/photo-1564182842519-8a3b2af3e228?w=1920&q=80');")
-      .hero-slide(style="background-image: url('https://images.unsplash.com/photo-1738162837672-de9d735a9b90?w=1920&q=80');")
-      .hero-slide(style="background-image: url('https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=1920&q=80');")
-      .hero-slide(style="background-image: url('https://images.unsplash.com/photo-1504917595217-d002dcdd14e?w=1920&q=80');")
-    .hero-overlay
-    .container.hero-inner
-      .hero-content
-        .hero-text
-          h1.hero-title Công cụ & Dụng cụ cắt chuyên dụng
-          p.hero-subtitle Đá cắt, máy mài, linh kiện công nghiệp — chất lượng cao, giá tốt nhất
-          .hero-buttons
-            a.hero-btn.hero-btn-primary(href="#products-all") Khám phá ngay
-            a.hero-btn.hero-btn-outline(href="#products-new") Sản phẩm mới
-    .hero-dots(role="tablist" aria-label="Chọn ảnh banner")
-      button.hero-dot.is-active(type="button" data-index="0" aria-label="Ảnh 1")
-      button.hero-dot(type="button" data-index="1" aria-label="Ảnh 2")
-      button.hero-dot(type="button" data-index="2" aria-label="Ảnh 3")
-      button.hero-dot(type="button" data-index="3" aria-label="Ảnh 4")
+  .home-page
 
-  //- Sản phẩm nổi bật
-  .section-products-featured.my-5
-    .container
-      .section-header-wrapper
-        +box-head("Sản phẩm nổi bật")
-        .section-nav
-          a.section-nav-btn(href="#")
-            i.bi.bi-chevron-left
-          a.section-nav-btn(href="#")
-            i.bi.bi-chevron-right
+    //- Hero
 
-      if(productsFeatured && productsFeatured.length > 0)
-        +product-grid(productsFeatured)
-      else
-        .text-center.text-muted.py-5
-          i.bi.bi-inbox(style="font-size: 48px;")
-          p.mt-2 Chưa có sản phẩm nào
+    section.hero-banner#clientHeroBanner(aria-label="Banner trang chủ")
 
-  //- Sản phẩm mới (anchor cho nút hero "Sản phẩm mới")
-  .section-products-new.my-5#products-new
-    .container
-      .section-header-wrapper
-        +box-head("Sản phẩm mới")
-        .section-badge-new Mới
-        .section-nav
-          a.section-nav-btn(href="#")
-            i.bi.bi-chevron-left
-          a.section-nav-btn(href="#")
-            i.bi.bi-chevron-right
+      .hero-slides(aria-hidden="true")
 
-      if(productsNew && productsNew.length > 0)
-        +product-grid(productsNew)
-      else
-        .text-center.text-muted.py-5
-          i.bi.bi-inbox(style="font-size: 48px;")
-          p.mt-2 Chưa có sản phẩm nào
+        .hero-slide.is-active(style="background-image: url('https://images.unsplash.com/photo-1564182842519-8a3b2af3e228?w=1920&q=80');")
 
-  //- Tất cả sản phẩm
-  .section-products-all.my-5#products-all
-    .container
-      .section-header-wrapper
-        +box-head("Tất cả sản phẩm")
-        .section-count
-          i.bi.bi-collection
-          | #{productsAll ? productsAll.length : 0} sản phẩm
+        .hero-slide(style="background-image: url('https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=1920&q=80');")
 
-      if(productsAll && productsAll.length > 0)
-        +product-grid(productsAll)
-      else
-        .text-center.text-muted.py-5
-          i.bi.bi-inbox(style="font-size: 48px;")
-          p.mt-2 Chưa có sản phẩm nào
+        .hero-slide(style="background-image: url('https://images.unsplash.com/photo-1504917595217-d002dcdd14e?w=1920&q=80');")
+
+      .hero-overlay
+
+      .hero-mesh(aria-hidden="true")
+
+      .hero-glow.hero-glow--1(aria-hidden="true")
+
+      .hero-glow.hero-glow--2(aria-hidden="true")
+
+      .container.hero-inner
+
+        .hero-layout
+
+          .hero-text(data-reveal)
+
+            span.hero-badge
+
+              span.hero-badge__dot
+
+              | Chất lượng công nghiệp
+
+            h1.hero-title
+
+              | Thiết bị cắt
+
+              em.hero-title-em &amp; máy mài
+
+              span.hero-title-sub chuyên nghiệp — giá tốt
+
+            p.hero-subtitle Đá cắt, dụng cụ, phụ kiện đa dạng. Tư vấn miễn phí, giao hàng toàn quốc, hỗ trợ sau bán hàng tận tâm.
+
+            .hero-buttons
+
+              a.hero-btn.hero-btn--primary(href="#products-all")
+
+                span Mua sắm ngay
+
+                i.bi.bi-arrow-up-right
+
+              a.hero-btn.hero-btn--ghost(href="#products-new")
+
+                i.bi.bi-sparkles
+
+                span Sản phẩm mới
+
+            ul.hero-stats(aria-label="Thống kê")
+
+              li.hero-stats__item
+
+                strong #{productsAll ? productsAll.length : 0}+
+
+                span Sản phẩm
+
+              li.hero-stats__item
+
+                strong 24/7
+
+                span Hỗ trợ
+
+              li.hero-stats__item
+
+                strong 100%
+
+                span Chính hãng
+
+          aside.hero-panel(aria-label="Cam kết dịch vụ" data-reveal data-reveal-delay="120")
+
+            .hero-panel__card
+
+              .hero-panel__item
+
+                .hero-panel__icon
+
+                  i.bi.bi-truck
+
+                div
+
+                  strong Giao toàn quốc
+
+                  span 2–5 ngày nội thành
+
+              .hero-panel__item
+
+                .hero-panel__icon
+
+                  i.bi.bi-shield-check
+
+                div
+
+                  strong Chính hãng
+
+                  span Bảo hành rõ ràng
+
+              .hero-panel__item
+
+                .hero-panel__icon
+
+                  i.bi.bi-headset
+
+                div
+
+                  strong Hỗ trợ 24/7
+
+                  span Chat &amp; hotline
+
+      button.hero-arrow.hero-arrow--prev(type="button" aria-label="Ảnh trước")
+
+        i.bi.bi-chevron-left
+
+      button.hero-arrow.hero-arrow--next(type="button" aria-label="Ảnh sau")
+
+        i.bi.bi-chevron-right
+
+      .hero-dots(role="tablist" aria-label="Chọn ảnh")
+
+        button.hero-dot.is-active(type="button" data-index="0")
+
+        button.hero-dot(type="button" data-index="1")
+
+        button.hero-dot(type="button" data-index="2")
+
+
+
+    //- Trust strip
+
+    .home-trust(data-reveal)
+
+      .container
+
+        .home-trust__grid
+
+          .home-trust__item
+
+            i.bi.bi-box-seam
+
+            span #{productsAll ? productsAll.length : 0}+ sản phẩm
+
+          .home-trust__item
+
+            i.bi.bi-star-fill
+
+            span Khách hàng tin dùng
+
+          .home-trust__item
+
+            i.bi.bi-truck
+
+            span Giao hàng nhanh
+
+          .home-trust__item
+
+            i.bi.bi-chat-heart
+
+            span Tư vấn tận tình
+
+
+
+    //- Why us
+
+    section.home-features
+
+      .container
+
+        .home-features__grid
+
+          article.home-feature(data-reveal data-reveal-delay="0")
+
+            .home-feature__icon
+
+              i.bi.bi-award
+
+            h3.home-feature__title Chất lượng đảm bảo
+
+            p.home-feature__text Hàng chính hãng, nguồn gốc rõ ràng, kiểm tra kỹ trước khi giao.
+
+          article.home-feature(data-reveal data-reveal-delay="80")
+
+            .home-feature__icon.home-feature__icon--blue
+
+              i.bi.bi-lightning-charge
+
+            h3.home-feature__title Giao nhanh
+
+            p.home-feature__text Đóng gói cẩn thận, giao toàn quốc, theo dõi đơn minh bạch.
+
+          article.home-feature(data-reveal data-reveal-delay="160")
+
+            .home-feature__icon.home-feature__icon--green
+
+              i.bi.bi-currency-exchange
+
+            h3.home-feature__title Giá cạnh tranh
+
+            p.home-feature__text Ưu đãi theo số lượng, tư vấn chọn đúng sản phẩm theo nhu cầu.
+
+          article.home-feature(data-reveal data-reveal-delay="240")
+
+            .home-feature__icon.home-feature__icon--purple
+
+              i.bi.bi-tools
+
+            h3.home-feature__title Hỗ trợ kỹ thuật
+
+            p.home-feature__text Đội ngũ am hiểu máy mài, đá cắt — sẵn sàng hỗ trợ sau bán.
+
+
+
+    //- Danh mục
+
+    if layoutProductsCategory && layoutProductsCategory.length > 0
+
+      section.home-block.home-block--categories
+
+        .container
+
+          header.home-block__header(data-reveal)
+
+            .home-block__header-left
+
+              span.home-block__line
+
+              div
+
+                p.home-block__eyebrow Khám phá
+
+                h2.home-block__title Danh mục sản phẩm
+
+            a.home-block__btn(href="/products")
+
+              | Xem tất cả
+
+              i.bi.bi-arrow-right
+
+          .home-cat-grid
+
+            - const catIcons = ['bi-layers', 'bi-gear-wide-connected', 'bi-tools', 'bi-cpu', 'bi-hammer', 'bi-wrench', 'bi-box-seam', 'bi-grid-3x3-gap']
+
+            each cat, idx in layoutProductsCategory.slice(0, 8)
+
+              a.home-cat(href=`/products/${cat.slug}` style=`--delay: ${idx * 0.06}s` data-reveal data-reveal-delay=String(idx * 50))
+
+                span.home-cat__num= String(idx + 1).padStart(2, '0')
+
+                span.home-cat__icon
+
+                  i.bi(class=catIcons[idx % catIcons.length])
+
+                span.home-cat__name= cat.title
+
+                i.bi.bi-arrow-right.home-cat__arrow
+
+
+
+    //- Nổi bật
+
+    section.home-block
+
+      .container
+
+        header.home-block__header(data-reveal)
+
+          .home-block__header-left
+
+            span.home-block__line
+
+            div
+
+              span.home-block__pill Nổi bật
+
+              h2.home-block__title Sản phẩm được tin dùng
+
+          a.home-block__btn(href="/products") Khám phá thêm
+
+        if productsFeatured && productsFeatured.length > 0
+
+          +product-grid(productsFeatured)
+
+        else
+
+          .home-empty(data-reveal)
+
+            i.bi.bi-inbox
+
+            p Chưa có sản phẩm nổi bật
+
+
+
+    //- Promo
+
+    .container.home-promo-wrap
+
+      .home-promo(data-reveal)
+
+        .home-promo__badge -30%
+
+        .home-promo__content
+
+          h3 Ưu đãi tuần này
+
+          p Giảm giá nhóm máy mài, đá cắt &amp; phụ kiện — số lượng có hạn
+
+          a.home-promo__btn(href="#products-all")
+
+            | Mua ngay
+
+            i.bi.bi-arrow-right
+
+        .home-promo__deco(aria-hidden="true")
+
+          i.bi.bi-tag-fill
+
+
+
+    //- Mới
+
+    section.home-block.home-block--soft#products-new
+
+      .container
+
+        header.home-block__header(data-reveal)
+
+          .home-block__header-left
+
+            span.home-block__line.home-block__line--green
+
+            div
+
+              span.home-block__pill.home-block__pill--green Mới về
+
+              h2.home-block__title Hàng mới cập nhật
+
+          a.home-block__btn(href="/products") Xem thêm
+
+        if productsNew && productsNew.length > 0
+
+          +product-grid(productsNew)
+
+        else
+
+          .home-empty(data-reveal)
+
+            i.bi.bi-inbox
+
+            p Chưa có sản phẩm mới
+
+
+
+    //- Tất cả
+
+    section.home-block#products-all
+
+      .container
+
+        header.home-block__header(data-reveal)
+
+          .home-block__header-left
+
+            span.home-block__line
+
+            div
+
+              h2.home-block__title Tất cả sản phẩm
+
+              p.home-block__meta #{productsAll ? productsAll.length : 0} sản phẩm đang bán
+
+          a.home-block__btn(href="/products") Danh mục đầy đủ
+
+        if productsAll && productsAll.length > 0
+
+          +product-grid(productsAll)
+
+        else
+
+          .home-empty(data-reveal)
+
+            i.bi.bi-inbox
+
+            p Chưa có sản phẩm
+
+
+
+    //- CTA
+
+    section.home-cta
+
+      .container
+
+        .home-cta__inner(data-reveal)
+
+          .home-cta__text
+
+            h2 Cần tư vấn chọn sản phẩm?
+
+            p Gửi yêu cầu — chúng tôi gợi ý đá cắt, máy mài phù hợp ngân sách &amp; công việc của bạn.
+
+          .home-cta__actions
+
+            a.home-cta__btn.home-cta__btn--primary(href="/products")
+
+              i.bi.bi-grid
+
+              span Xem danh mục
+
+            a.home-cta__btn.home-cta__btn--outline(href="/search")
+
+              i.bi.bi-search
+
+              span Tìm kiếm
+
+
 
 append scripts
+
   script(src="/js/home-hero.js")
+
+  script(src="/js/home-scroll.js")
+
+
