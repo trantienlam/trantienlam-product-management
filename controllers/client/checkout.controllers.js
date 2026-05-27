@@ -4,6 +4,20 @@ const Order = require("../../models/order.model");
 const Voucher = require("../../models/voucher.model");
 const productHelper = require("../../helpers/products");
 
+function normalizeSelectedProducts(raw) {
+  if (!raw) return [];
+  if (Array.isArray(raw)) {
+    return raw.map(String).map((v) => v.trim()).filter(Boolean);
+  }
+  if (typeof raw === "string") {
+    return raw
+      .split(",")
+      .map((v) => v.trim())
+      .filter(Boolean);
+  }
+  return [];
+}
+
 //[GET] /checkout/
 module.exports.index = async (req, res) => {
   if (!req.user) {
@@ -103,6 +117,22 @@ module.exports.index = async (req, res) => {
   }
 
   // 🔥 tổng tiền
+  const selectedProductIds = normalizeSelectedProducts(req.query.selectedProducts);
+  const fromCartSelection = req.query.fromCartSelection === "1";
+  if (fromCartSelection && selectedProductIds.length === 0) {
+    req.flash("error", "Vui lòng chọn ít nhất 1 sản phẩm để thanh toán.");
+    return res.redirect("/cart");
+  }
+  if (selectedProductIds.length > 0) {
+    cart.products = cart.products.filter((item) =>
+      selectedProductIds.includes(String(item.product_id)),
+    );
+    if (cart.products.length === 0) {
+      req.flash("error", "Vui lòng chọn ít nhất 1 sản phẩm để thanh toán.");
+      return res.redirect("/cart");
+    }
+  }
+
   cart.totalPriceCart = cart.products.reduce(
     (sum, item) => sum + (item.totalPrice || 0),
     0,
@@ -114,6 +144,7 @@ module.exports.index = async (req, res) => {
     pageTitle: "Đặt hàng",
     cartDetail: cart,
     isBuyNow: false,
+    selectedProducts: selectedProductIds,
   });
 };
 
@@ -126,6 +157,7 @@ module.exports.order = async (req, res) => {
 
     const userId = req.user._id;
     const { fullName, phone, address, paymentMethod, voucherCodeHidden, voucherDiscount } = req.body;
+    const selectedProductIds = normalizeSelectedProducts(req.body.selectedProducts);
 
     // Parse voucher info
     const voucherDiscountAmount = parseInt(voucherDiscount) || 0;
@@ -227,6 +259,13 @@ module.exports.order = async (req, res) => {
     let totalPrice = 0;
 
     for (const item of cart.products) {
+      if (
+        selectedProductIds.length > 0 &&
+        !selectedProductIds.includes(String(item.product_id))
+      ) {
+        continue;
+      }
+
       const productInfo = await Product.findOne({ _id: item.product_id });
       if (!productInfo) continue;
 
@@ -248,6 +287,11 @@ module.exports.order = async (req, res) => {
       );
 
       products.push(objectProduct);
+    }
+
+    if (products.length === 0) {
+      req.flash("error", "Vui lòng chọn ít nhất 1 sản phẩm để thanh toán.");
+      return res.redirect("/cart");
     }
 
     let finalAmount = totalPrice - voucherDiscountAmount;
@@ -288,7 +332,16 @@ module.exports.order = async (req, res) => {
 
     // COD: clear cart immediately
     if (paymentMethod === "cod") {
-      await Cart.updateOne({ user_id: userId }, { products: [] });
+      await Cart.updateOne(
+        { user_id: userId },
+        {
+          $pull: {
+            products: {
+              product_id: { $in: products.map((item) => String(item.product_id)) },
+            },
+          },
+        },
+      );
       req.flash("success", "Đặt hàng thành công!");
       return res.redirect(`/checkout/success/${order._id}`);
     }

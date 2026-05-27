@@ -264,7 +264,18 @@ module.exports.vnpayReturn = async (req, res) => {
         }
 
         if (!order.buyNow) {
-          await Cart.updateOne({ user_id: order.user_id }, { products: [] });
+          await Cart.updateOne(
+            { user_id: order.user_id },
+            {
+              $pull: {
+                products: {
+                  product_id: {
+                    $in: order.products.map((item) => String(item.product_id)),
+                  },
+                },
+              },
+            },
+          );
         }
 
         order.vnpTransactionNo = vnp_Params["vnp_TransactionNo"] || order.vnpTransactionNo;

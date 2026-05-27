@@ -1,5 +1,45 @@
 // Cập nhật số lượng sản phẩm trong giỏ hàng
 document.addEventListener('DOMContentLoaded', function() {
+  const selectAllProducts = document.getElementById("selectAllProducts");
+  const itemCheckboxes = document.querySelectorAll(".cart-item-checkbox");
+  const checkoutForm = document.getElementById("cartCheckoutForm");
+  const checkoutButton = document.getElementById("btnCheckoutSelected");
+
+  function updateCheckoutButtonState() {
+    if (!checkoutButton) return;
+    const hasSelected = Array.from(itemCheckboxes).some((cb) => cb.checked);
+    checkoutButton.disabled = !hasSelected;
+  }
+
+  if (selectAllProducts && itemCheckboxes.length > 0) {
+    selectAllProducts.addEventListener("change", function () {
+      itemCheckboxes.forEach((cb) => {
+        cb.checked = this.checked;
+      });
+      updateCheckoutButtonState();
+    });
+
+    itemCheckboxes.forEach((cb) => {
+      cb.addEventListener("change", function () {
+        const allChecked = Array.from(itemCheckboxes).every((item) => item.checked);
+        selectAllProducts.checked = allChecked;
+        updateCheckoutButtonState();
+      });
+    });
+  }
+
+  if (checkoutForm) {
+    checkoutForm.addEventListener("submit", function (e) {
+      const hasSelected = Array.from(itemCheckboxes).some((cb) => cb.checked);
+      if (!hasSelected) {
+        e.preventDefault();
+        alert("Vui lòng chọn ít nhất 1 sản phẩm để thanh toán.");
+      }
+    });
+  }
+
+  updateCheckoutButtonState();
+
   // Xử lý nút trừ
   const btnMinus = document.querySelectorAll('.btn-minus');
   btnMinus.forEach((btn) => {
