@@ -309,6 +309,11 @@ module.exports.success = async (req, res) => {
     _id: req.params.orderId,
   });
 
+  if (!order) {
+    req.flash("error", "Không tìm thấy đơn hàng");
+    return res.redirect("/");
+  }
+
   for (const product of order.products) {
     const productInfo = await Product.findOne({
       _id: product.product_id,
@@ -325,8 +330,17 @@ module.exports.success = async (req, res) => {
     0,
   );
 
+  const finalAmount =
+    (order.amount || 0) - (order.discountAmount || 0);
+
+  const isVnpay = order.paymentMethod === "vnpay";
+  const isCod = order.paymentMethod === "cod";
+
   res.render("client/pages/checkout/success", {
-    pageTitle: "Đặt hàng thành công",
-    order: order,
+    pageTitle: isVnpay ? "Thanh toán thành công" : "Đặt hàng thành công",
+    order,
+    finalAmount,
+    isVnpay,
+    isCod,
   });
 };

@@ -246,12 +246,9 @@ module.exports.vnpayReturn = async (req, res) => {
       .update(Buffer.from(signData, "utf-8"))
       .digest("hex");
 
-    let status = "fail";
     let orderId = vnp_Params["vnp_TxnRef"];
 
     if (secureHash === signed && vnp_Params["vnp_ResponseCode"] === "00") {
-      status = "success";
-
       const order = await Order.findById(orderId);
       if (order) {
         order.status = "processing";
@@ -269,6 +266,12 @@ module.exports.vnpayReturn = async (req, res) => {
         if (!order.buyNow) {
           await Cart.updateOne({ user_id: order.user_id }, { products: [] });
         }
+
+        order.vnpTransactionNo = vnp_Params["vnp_TransactionNo"] || order.vnpTransactionNo;
+        order.vnpBankCode = vnp_Params["vnp_BankCode"] || order.vnpBankCode;
+        await order.save();
+
+        return res.redirect(`/checkout/success/${orderId}`);
       }
     } else if (vnp_Params["vnp_ResponseCode"] && vnp_Params["vnp_ResponseCode"] !== "00") {
       const order = await Order.findById(orderId);
@@ -286,7 +289,8 @@ module.exports.vnpayReturn = async (req, res) => {
     }
 
     return res.render("client/payment/result", {
-      status: status,
+      pageTitle: "Thanh toán thất bại",
+      status: "fail",
       data: vnp_Params,
     });
   } catch (error) {

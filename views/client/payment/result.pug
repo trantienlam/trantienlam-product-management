@@ -1,185 +1,78 @@
 extends ../layouts/default.pug
 
+block styles
+  link(rel="preconnect" href="https://fonts.googleapis.com")
+  link(rel="preconnect" href="https://fonts.gstatic.com" crossorigin)
+  link(href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet")
+  link(rel="stylesheet", href="/css/payment-result.css")
+
 block main
-  .payment-result-page
-    .container.py-5
-      if status === "success"
-        //- Success Header
-        .success-header.text-center.mb-5
-          .success-icon.mb-4
-            .checkmark-circle
-              .background
-              .checkmark
-          h1.success-title Thanh toán thành công!
-          p.success-subtitle Đơn hàng của bạn đã được thanh toán qua VNPAY
+  - const txnRef = data && data.vnp_TxnRef ? data.vnp_TxnRef.toString().slice(-8).toUpperCase() : 'N/A'
+  - const rspCode = data && data.vnp_ResponseCode ? data.vnp_ResponseCode : ''
 
-        //- Transaction Info Card
-        .row.justify-content-center
-          .col-lg-8
-            .transaction-card.mb-4
-              .transaction-card-header
-                .d-flex.align-items-center
-                  i.fa-solid.fa-shield-check.me-2
-                  h4.mb-0 Thông tin giao dịch
-                span.badge.bg-success.ms-auto Đã xác nhận
+  .payment-result
+    section.payment-result__banner
+      .payment-result__banner-bg
+      .payment-result__banner-inner
+        .payment-result__icon
+          i.bi.bi-x-lg
+        h1.payment-result__title Thanh toán thất bại
+        p.payment-result__subtitle Giao dịch VNPAY chưa hoàn tất. Bạn có thể thử lại hoặc chọn phương thức thanh toán khác.
 
-              .transaction-card-body
-                .transaction-info-grid
-                  .info-item
-                    .info-icon
-                      i.fa-solid.fa-receipt
-                    .info-content
-                      .info-label Mã đơn hàng
-                      .info-value.text-primary.fw-bold ##{data.vnp_TxnRef ? data.vnp_TxnRef.toString().slice(-8).toUpperCase() : 'N/A'}
-                  .info-item
-                    .info-icon
-                      i.fa-solid.fa-dollar-sign
-                    .info-content
-                      .info-label Số tiền thanh toán
-                      .info-value.text-success.fw-bold.fs-5 #{(data.vnp_Amount / 100).toLocaleString('vi-VN')} VND
-                  .info-item
-                    .info-icon
-                      i.fa-solid.fa-university
-                    .info-content
-                      .info-label Ngân hàng
-                      .info-value #{data.vnp_BankCode || 'N/A'}
-                  .info-item
-                    .info-icon
-                      i.fa-solid.fa-hashtag
-                    .info-content
-                      .info-label Mã giao dịch VNPAY
-                      .info-value.fw-medium #{data.vnp_TransactionNo || 'N/A'}
-                  .info-item
-                    .info-icon
-                      i.fa-solid.fa-calendar-check
-                    .info-content
-                      .info-label Thời gian thanh toán
-                      - const pd = data.vnp_PayDate ? moment(String(data.vnp_PayDate), 'yyyyMMddHHmmss').toDate() : null
-                      .info-value #{pd && !isNaN(pd.getTime()) ? moment(pd).format('DD/MM/YYYY HH:mm') : 'N/A'}
-                  .info-item
-                    .info-icon
-                      i.fa-solid.fa-check-circle
-                    .info-content
-                      .info-label Mã phản hồi
-                      .info-value.text-success #{data.vnp_ResponseCode}
+    .payment-result__layout
+      .pr-card
+        .pr-card__head
+          i.bi.bi-exclamation-triangle
+          h4 Thông tin giao dịch
+        .pr-card__body
+          .pr-info-row
+            span Mã đơn hàng
+            span ##{txnRef}
+          .pr-info-row.pr-info-row--danger
+            span Mã phản hồi
+            span= rspCode || '—'
+          .pr-info-row
+            span Lý do
+            span
+              case rspCode
+                when "05"
+                  | Bạn đã hủy giao dịch
+                when "09"
+                  | Tài khoản không đủ tiền
+                when "11"
+                  | Hết thời gian thanh toán
+                when "24"
+                  | Chưa đăng ký Internet Banking
+                when "51"
+                  | Không đủ số dư
+                when "75"
+                  | Ngân hàng đang bảo trì
+                when "99"
+                  | Lỗi không xác định
+                default
+                  | Vui lòng thử lại hoặc liên hệ hỗ trợ
 
-            //- Next Steps Card
-            .next-steps-card.mb-4
-              .next-steps-header
-                i.fa-solid.fa-clipboard-list.me-2
-                h4.mb-0 Các bước tiếp theo
-              .next-steps-body
-                .step-item
-                  .step-number 1
-                  .step-content
-                    .step-title Xác nhận đơn hàng
-                    .step-desc Chúng tôi sẽ liên hệ xác nhận đơn hàng qua điện thoại trong vòng 24 giờ
-                .step-item
-                  .step-number 2
-                  .step-content
-                    .step-title Đóng gói & Giao hàng
-                    .step-desc Đơn hàng sẽ được đóng gói và giao trong 2-5 ngày làm việc
-                .step-item
-                  .step-number 3
-                  .step-content
-                    .step-title Nhận hàng
-                    .step-desc Kiểm tra kỹ sản phẩm trước khi thanh toán cho đơn vị vận chuyển
+      .pr-card
+        .pr-card__head
+          i.bi.bi-headset
+          h4 Cần hỗ trợ?
+        .pr-card__body
+          p.pr-help Nếu tiền đã bị trừ nhưng đơn báo thất bại, vui lòng liên hệ ngay để được xử lý.
+          ul.pr-contact
+            li
+              i.bi.bi-telephone
+              span Hotline: 1900 xxxx
+            li
+              i.bi.bi-envelope
+              span Email: support@example.com
 
-            //- Action Buttons
-            .action-buttons.text-center
-              a.btn.btn-success.btn-lg.me-3(href="/checkout/success/" + data.vnp_TxnRef)
-                i.fa-solid.fa-receipt.me-2
-                | Xem chi tiết đơn hàng
-              a.btn.btn-outline-primary.btn-lg(href="/")
-                i.fa-solid.fa-house.me-2
-                | Về trang chủ
-
-      else
-        //- Failed Header
-        .failed-header.text-center.mb-5
-          .failed-icon.mb-4
-            .x-circle
-              .background
-              .x-mark
-          h1.failed-title Thanh toán thất bại!
-          p.failed-subtitle Đã xảy ra sự cố trong quá trình thanh toán. Vui lòng thử lại.
-
-        //- Error Info Card
-        .row.justify-content-center
-          .col-lg-6
-            .error-card.mb-4
-              .error-card-header
-                i.fa-solid.fa-circle-exclamation.me-2
-                h4.mb-0 Thông tin lỗi
-              .error-card-body
-                .error-info-grid
-                  .info-item
-                    .info-label Mã đơn hàng
-                    .info-value.fw-medium #{data.vnp_TxnRef ? data.vnp_TxnRef.toString().slice(-8).toUpperCase() : 'N/A'}
-                  .info-item
-                    .info-label Mã lỗi
-                    .info-value.text-danger.fw-bold #{data.vnp_ResponseCode}
-                  .info-item.full-width
-                    .info-label Lý do
-                    .info-value
-                      case data.vnp_ResponseCode
-                        when "01"
-                          | Giao dịch đã tồn tại
-                        when "02"
-                          | Giao dịch không tồn tại
-                        when "03"
-                          | Lỗi kết nối đến VNPAY
-                        when "04"
-                          | Lỗi gateway trung gian
-                        when "05"
-                          | Khách hàng hủy giao dịch
-                        when "06"
-                          | Lỗi xác thực OTP
-                        when "07"
-                          | Lỗi dữ liệu gửi sang VNPAY
-                        when "09"
-                          | Tài khoản không đủ tiền
-                        when "10"
-                          | Tài khoản đã bị khóa
-                        when "11"
-                          | Hết thời gian thanh toán
-                        when "12"
-                          | Giao dịch đang xử lý
-                        when "24"
-                          | Khách hàng chưa đăng ký Internet Banking
-                        when "51"
-                          | Tài khoản không đủ số dư
-                        when "65"
-                          | Tài khoản đã vượt quá hạn mức
-                        when "75"
-                          | Ngân hàng đang bảo trì
-                        when "99"
-                          | Lỗi không xác định
-                        default
-                          | Vui lòng liên hệ hỗ trợ
-
-            //- Help Card
-            .help-card.mb-4
-              .help-card-header
-                i.fa-solid.fa-circle-info.me-2
-                h4.mb-0 Bạn cần hỗ trợ?
-              .help-card-body
-                p Nếu số tiền đã bị trừ nhưng giao dịch thất bại, vui lòng liên hệ:
-                .contact-list
-                  .contact-item
-                    i.fa-solid.fa-phone.me-2
-                    span Hotline: 1900 xxxx
-                  .contact-item
-                    i.fa-solid.fa-envelope.me-2
-                    span Email: support@example.com
-
-            //- Action Buttons
-            .action-buttons.text-center
-              a.btn.btn-primary.btn-lg.me-3(href="/checkout")
-                i.fa-solid.fa-rotate-left.me-2
-                | Thử lại thanh toán
-              a.btn.btn-outline-secondary.btn-lg(href="/")
-                i.fa-solid.fa-house.me-2
-                | Về trang chủ
-
-append scripts
+      .pr-actions
+        a.pr-btn.pr-btn--primary(href="/checkout")
+          i.bi.bi-arrow-repeat
+          | Thử lại thanh toán
+        a.pr-btn.pr-btn--outline(href="/cart")
+          i.bi.bi-cart3
+          | Về giỏ hàng
+        a.pr-btn.pr-btn--outline(href="/")
+          i.bi.bi-house
+          | Trang chủ
