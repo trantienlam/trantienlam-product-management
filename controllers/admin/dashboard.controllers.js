@@ -346,6 +346,6 @@ module.exports.dashboard = async (req, res) => {
         value: productsChange,
         isUp: productsChange >= 0
       }
-    }
+    },
   });
 };

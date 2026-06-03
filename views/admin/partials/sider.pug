@@ -33,6 +33,10 @@
         a.sidebar-link(href=`${prefixAdmin}/orders`)
           i.sidebar-icon.fa-solid.fa-receipt
           span.sidebar-text Đơn hàng
+
+        a.sidebar-link(href=`${prefixAdmin}/reports`)
+          i.sidebar-icon.fa-solid.fa-chart-column
+          span.sidebar-text Báo cáo
           
       if(role.permission.includes("reviews_view"))
         a.sidebar-link(href=`${prefixAdmin}/reviews`)

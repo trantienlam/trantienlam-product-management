@@ -208,6 +208,7 @@ module.exports.createPost = async (req, res) => {
 
   const product = new Product(req.body);
   await product.save();
+  req.flash("success", "Thêm mới thành công");
 
   res.redirect(`${systemConfig.prefixAdmin}/products`);
 };
@@ -247,7 +248,8 @@ module.exports.editPatch = async (req, res) => {
 
   if (req.files && req.files.length > 0) {
     const existingProduct = await Product.findOne({ _id: id }).select("images");
-    const oldImages = existingProduct && existingProduct.images ? existingProduct.images : [];
+    const oldImages =
+      existingProduct && existingProduct.images ? existingProduct.images : [];
 
     // Đảm bảo req.body.images là array (sau uploadCloud nó đã là array)
     const newImages = Array.isArray(req.body.images)

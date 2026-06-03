@@ -1,0 +1,243 @@
+extends ../../layouts/default.pug
+include ../../mixins/alert.pug
+
+block main
+  +alert-success(5000)
+
+  .page-header
+    .container
+      .page-header__content
+        .page-header__left
+          .page-header__icon
+            i.fa-solid.fa-chart-column
+          .page-header__text
+            h1 Báo cáo doanh thu
+            p Thống kê doanh thu và sản phẩm đã bán theo ngày, tháng, năm
+
+  .container
+    .report-overview.report-overview--modern.mb-4
+      .report-overview__header
+        .report-overview__title-wrap
+          .report-overview__title-icon
+            i.fa-solid.fa-chart-line
+          h3 Báo cáo doanh thu & sản phẩm đã bán
+          span.report-overview__hint Dữ liệu đơn đã thanh toán
+        form(method="GET" action=`${prefixAdmin}/reports`)
+          .report-filter
+            label.report-filter__label(for="reportType")
+              i.fa-solid.fa-calendar-days.me-1
+              | Xem theo
+            select#reportType.report-filter__select(name="reportType" onchange="this.form.submit()")
+              option(value="day" selected=salesReport.reportType === "day") Theo ngày
+              option(value="month" selected=salesReport.reportType === "month") Theo tháng
+              option(value="year" selected=salesReport.reportType === "year") Theo năm
+
+      .row
+        .col-md-4.mb-3
+          .report-mini-card.report-mini-card--day
+            .report-mini-card__badge
+              i.fa-solid.fa-sun
+              | Hôm nay
+            .report-mini-card__value.text-success= salesReport.summary.day.revenue.toLocaleString("vi-VN") + " đ"
+            .report-mini-card__sub
+              i.fa-solid.fa-boxes-stacked.me-1
+              | Đã bán #{salesReport.summary.day.soldQuantity} sản phẩm
+        .col-md-4.mb-3
+          .report-mini-card.report-mini-card--month
+            .report-mini-card__badge
+              i.fa-solid.fa-calendar
+              | Tháng này
+            .report-mini-card__value.text-info= salesReport.summary.month.revenue.toLocaleString("vi-VN") + " đ"
+            .report-mini-card__sub
+              i.fa-solid.fa-boxes-stacked.me-1
+              | Đã bán #{salesReport.summary.month.soldQuantity} sản phẩm
+        .col-md-4.mb-3
+          .report-mini-card.report-mini-card--year
+            .report-mini-card__badge
+              i.fa-solid.fa-calendar-check
+              | Năm này
+            .report-mini-card__value.text-primary= salesReport.summary.year.revenue.toLocaleString("vi-VN") + " đ"
+            .report-mini-card__sub
+              i.fa-solid.fa-boxes-stacked.me-1
+              | Đã bán #{salesReport.summary.year.soldQuantity} sản phẩm
+
+      .report-table-card
+        .table-responsive
+          table.table.table-hover.mb-0.report-table
+            thead.thead-light
+              tr
+                th Kỳ báo cáo
+                th.text-right Sản phẩm đã bán
+                th.text-right Doanh thu
+            tbody
+              if salesReport.rows && salesReport.rows.length > 0
+                each row in salesReport.rows
+                  tr
+                    td
+                      span.report-period-badge= row.label
+                    td.text-right
+                      span.report-sold-pill= row.soldQuantity.toLocaleString("vi-VN")
+                    td.text-right.font-weight-bold.text-danger= row.revenue.toLocaleString("vi-VN") + " đ"
+              else
+                tr
+                  td.text-center.text-muted(colspan="3") Chưa có dữ liệu báo cáo.
+
+  style.
+    .report-overview--modern {
+      background:
+        radial-gradient(circle at top right, rgba(59, 130, 246, 0.08), transparent 40%),
+        radial-gradient(circle at bottom left, rgba(16, 185, 129, 0.08), transparent 40%),
+        #fff;
+      border-radius: 20px;
+      border: 1px solid #e7edf7;
+      box-shadow: 0 14px 36px rgba(15, 23, 42, 0.06);
+      padding: 22px;
+    }
+    .report-overview__header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .report-overview__title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .report-overview__title-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #3b82f6, #06b6d4);
+      color: #fff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+    }
+    .report-overview__header h3 {
+      margin: 0;
+      font-size: 21px;
+      font-weight: 800;
+      color: #0f172a;
+    }
+    .report-overview__hint {
+      background: #eff6ff;
+      color: #1d4ed8;
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .report-filter {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #fff;
+      border: 1px solid #d9e3f3;
+      border-radius: 12px;
+      padding: 6px 10px;
+      box-shadow: 0 6px 16px rgba(15, 23, 42, 0.05);
+    }
+    .report-filter__label {
+      margin: 0;
+      font-size: 13px;
+      font-weight: 700;
+      color: #475569;
+    }
+    .report-filter__select {
+      border: none;
+      background: transparent;
+      font-weight: 700;
+      color: #0f172a;
+      outline: none;
+      min-width: 110px;
+    }
+    .report-mini-card {
+      border: 1px solid #e6edf8;
+      border-radius: 16px;
+      padding: 14px 15px;
+      min-height: 100%;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+    }
+    .report-mini-card--day { background: linear-gradient(140deg, #f0fdf4, #ffffff); }
+    .report-mini-card--month { background: linear-gradient(140deg, #eff6ff, #ffffff); }
+    .report-mini-card--year { background: linear-gradient(140deg, #f5f3ff, #ffffff); }
+    .report-mini-card__badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #334155;
+      background: rgba(255, 255, 255, 0.85);
+      border: 1px solid #e2e8f0;
+      border-radius: 999px;
+      padding: 4px 10px;
+      margin-bottom: 8px;
+    }
+    .report-mini-card__value {
+      font-size: 20px;
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 4px;
+    }
+    .report-mini-card__sub {
+      font-size: 13px;
+      color: #475569;
+      font-weight: 600;
+    }
+    .report-table-card {
+      border: 1px solid #e6edf8;
+      border-radius: 16px;
+      overflow: hidden;
+      margin-top: 4px;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    }
+    .report-table thead th {
+      border-top: none;
+      background: #f8fafc;
+      color: #334155;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-weight: 700;
+      padding-top: 12px;
+      padding-bottom: 12px;
+    }
+    .report-table tbody td {
+      vertical-align: middle;
+      padding-top: 12px;
+      padding-bottom: 12px;
+    }
+    .report-period-badge {
+      display: inline-block;
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: #f1f5f9;
+      color: #0f172a;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .report-sold-pill {
+      display: inline-block;
+      min-width: 68px;
+      text-align: center;
+      border-radius: 8px;
+      padding: 4px 8px;
+      background: #eef2ff;
+      color: #4338ca;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    @media (max-width: 767px) {
+      .report-overview--modern {
+        padding: 16px;
+      }
+      .report-overview__title-wrap {
+        align-items: flex-start;
+      }
+    }
