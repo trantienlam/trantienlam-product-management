@@ -1,28 +1,5 @@
 extends ../../layouts/default.pug
 
-block styles
-  style.
-    .accounts-avatar-cell { width: 56px; }
-    .accounts-avatar-img {
-      width: 48px;
-      height: 48px;
-      object-fit: cover;
-      border-radius: 50%;
-      border: 1px solid #e9ecef;
-      display: block;
-    }
-    .accounts-avatar-placeholder {
-      width: 48px;
-      height: 48px;
-      border-radius: 50%;
-      background: #e9ecef;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #6c757d;
-      font-size: 1.25rem;
-    }
-
 block main
   if(role.permission.includes("accounts_view"))
     h1(class="mb-4") Danh sách tài khoản 

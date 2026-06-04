@@ -7,6 +7,7 @@ const Cart = require("../../models/cart.model");
 const Product = require("../../models/product.model");
 const Payment = require("../../models/payment.model");
 const productHelper = require("../../helpers/products");
+
 // ================= HELPER =================
 function sortObject(obj) {
   let sorted = {};
@@ -19,6 +20,90 @@ function sortObject(obj) {
   return sorted;
 }
 
+// Helper function để xây dựng cart data cho checkout page (tái sử dụng logic)
+async function buildCheckoutCartDataForPayment(userId, req) {
+  const buyNowPayload = req.session.checkoutBuyNow;
+
+  if (buyNowPayload && buyNowPayload.product_id) {
+    const { product_id, quantity } = buyNowPayload;
+    const productInfo = await Product.findOne({
+      _id: product_id,
+      deleted: false,
+      status: "active",
+    });
+    if (!productInfo) {
+      delete req.session.checkoutBuyNow;
+      return { error: "Sản phẩm không tồn tại.", redirectTo: "/products" };
+    }
+    let qty = Math.max(1, parseInt(quantity, 10) || 1);
+    if (qty > productInfo.stock) qty = productInfo.stock;
+    if (qty < 1) {
+      delete req.session.checkoutBuyNow;
+      return { error: "Sản phẩm hết hàng.", redirectTo: "/products" };
+    }
+    req.session.checkoutBuyNow.quantity = qty;
+
+    productInfo.priceNew = productHelper.priceNewProduct(productInfo);
+    const lineTotal = qty * productInfo.priceNew;
+    return {
+      user_id: userId,
+      products: [
+        {
+          product_id: productInfo._id,
+          quantity: qty,
+          productInfo,
+          totalPrice: lineTotal,
+        },
+      ],
+      totalPriceCart: lineTotal,
+      totalPriceCartFormat: lineTotal.toLocaleString("vi-VN"),
+      isBuyNow: true,
+    };
+  }
+
+  let cart = await Cart.findOne({ user_id: userId });
+  if (!cart || cart.products.length === 0) {
+    return { error: "Giỏ hàng trống.", redirectTo: "/cart" };
+  }
+
+  const productIds = cart.products.map((p) => p.product_id);
+  const products = await Product.find({
+    _id: { $in: productIds },
+    deleted: false,
+    status: "active",
+  });
+
+  const productMap = {};
+  products.forEach((p) => {
+    productMap[p._id.toString()] = p;
+  });
+
+  const cartProducts = [];
+  let totalPriceCart = 0;
+
+  for (const item of cart.products) {
+    const productInfo = productMap[item.product_id.toString()];
+    if (!productInfo) continue;
+    productInfo.priceNew = productHelper.priceNewProduct(productInfo);
+    const totalPrice = item.quantity * productInfo.priceNew;
+    cartProducts.push({
+      product_id: item.product_id,
+      quantity: item.quantity,
+      productInfo,
+      totalPrice,
+    });
+    totalPriceCart += totalPrice;
+  }
+
+  return {
+    user_id: userId,
+    products: cartProducts,
+    totalPriceCart,
+    totalPriceCartFormat: totalPriceCart.toLocaleString("vi-VN"),
+    isBuyNow: false,
+  };
+}
+
 // ================= HANDLE ORDER =================
 module.exports.handleOrder = async (req, res) => {
   try {
@@ -28,6 +113,51 @@ module.exports.handleOrder = async (req, res) => {
 
     const userId = req.user._id;
     const { paymentMethod, fullName, phone, address } = req.body;
+
+    // Validate phone number (must be exactly 10 digits, starting with 0)
+    const phoneRegex = /^0\d{9}$/;
+    if (!phone || !phoneRegex.test(phone.trim())) {
+      req.flash("error", "Số điện thoại phải gồm 10 số và bắt đầu bằng số 0.");
+      const cartData = await buildCheckoutCartDataForPayment(userId, req);
+      if (cartData && cartData.error && cartData.redirectTo) {
+        return res.redirect(cartData.redirectTo);
+      }
+      return res.render("client/pages/checkout/index", {
+        pageTitle: "Đặt hàng",
+        cartDetail: cartData,
+        isBuyNow: cartData.isBuyNow,
+        selectedProducts: [],
+      });
+    }
+
+    // Validate required fields
+    if (!fullName || fullName.trim().length < 2) {
+      req.flash("error", "Vui lòng nhập họ tên hợp lệ (ít nhất 2 ký tự).");
+      const cartData = await buildCheckoutCartDataForPayment(userId, req);
+      if (cartData && cartData.error && cartData.redirectTo) {
+        return res.redirect(cartData.redirectTo);
+      }
+      return res.render("client/pages/checkout/index", {
+        pageTitle: "Đặt hàng",
+        cartDetail: cartData,
+        isBuyNow: cartData.isBuyNow,
+        selectedProducts: [],
+      });
+    }
+
+    if (!address || address.trim().length < 10) {
+      req.flash("error", "Vui lòng nhập địa chỉ đầy đủ (ít nhất 10 ký tự).");
+      const cartData = await buildCheckoutCartDataForPayment(userId, req);
+      if (cartData && cartData.error && cartData.redirectTo) {
+        return res.redirect(cartData.redirectTo);
+      }
+      return res.render("client/pages/checkout/index", {
+        pageTitle: "Đặt hàng",
+        cartDetail: cartData,
+        isBuyNow: cartData.isBuyNow,
+        selectedProducts: [],
+      });
+    }
 
     const cart = await Cart.findOne({ user_id: userId });
 

@@ -18,6 +18,107 @@ function normalizeSelectedProducts(raw) {
   return [];
 }
 
+// Helper function để xây dựng cart data cho checkout page
+async function buildCheckoutCartData(userId, req) {
+  const buyNowPayload = req.session.checkoutBuyNow;
+
+  // Mua ngay: chỉ 1 dòng, không lấy giỏ DB
+  if (buyNowPayload && buyNowPayload.product_id) {
+    const { product_id, quantity } = buyNowPayload;
+    const productInfo = await Product.findOne({
+      _id: product_id,
+      deleted: false,
+      status: "active",
+    });
+    if (!productInfo) {
+      delete req.session.checkoutBuyNow;
+      return null;
+    }
+    let qty = Math.max(1, parseInt(quantity, 10) || 1);
+    if (qty > productInfo.stock) qty = productInfo.stock;
+    if (qty < 1) {
+      delete req.session.checkoutBuyNow;
+      return null;
+    }
+    req.session.checkoutBuyNow.quantity = qty;
+
+    productInfo.priceNew = productHelper.priceNewProduct(productInfo);
+    const lineTotal = qty * productInfo.priceNew;
+    return {
+      user_id: userId,
+      products: [
+        {
+          product_id: productInfo._id,
+          quantity: qty,
+          productInfo,
+          totalPrice: lineTotal,
+        },
+      ],
+      totalPriceCart: lineTotal,
+      totalPriceCartFormat: lineTotal.toLocaleString("vi-VN"),
+      isBuyNow: true,
+    };
+  }
+
+  // Lấy cart từ DB
+  let cart = await Cart.findOne({ user_id: userId });
+  if (!cart) {
+    cart = await Cart.create({
+      user_id: userId,
+      products: [],
+    });
+  }
+
+  // Lấy danh sách product
+  const productIds = cart.products.map((p) => p.product_id);
+  const products = await Product.find({
+    _id: { $in: productIds },
+    deleted: false,
+    status: "active",
+  });
+
+  const productMap = {};
+  products.forEach((p) => {
+    productMap[p._id.toString()] = p;
+  });
+
+  // Gán dữ liệu
+  for (const item of cart.products) {
+    const productInfo = productMap[item.product_id.toString()];
+    if (!productInfo) continue;
+    productInfo.priceNew = productHelper.priceNewProduct(productInfo);
+    item.productInfo = productInfo;
+    item.totalPrice = item.quantity * productInfo.priceNew;
+  }
+
+  // Xử lý selected products từ query
+  const selectedProductIds = normalizeSelectedProducts(req.query.selectedProducts);
+  const fromCartSelection = req.query.fromCartSelection === "1";
+  if (fromCartSelection && selectedProductIds.length === 0) {
+    return { error: "Vui lòng chọn ít nhất 1 sản phẩm để thanh toán.", redirectTo: "/cart" };
+  }
+  if (selectedProductIds.length > 0) {
+    cart.products = cart.products.filter((item) =>
+      selectedProductIds.includes(String(item.product_id)),
+    );
+    if (cart.products.length === 0) {
+      return { error: "Vui lòng chọn ít nhất 1 sản phẩm để thanh toán.", redirectTo: "/cart" };
+    }
+  }
+
+  cart.totalPriceCart = cart.products.reduce((sum, item) => sum + (item.totalPrice || 0), 0);
+  cart.totalPriceCartFormat = cart.totalPriceCart.toLocaleString("vi-VN");
+
+  return {
+    user_id: userId,
+    products: cart.products,
+    totalPriceCart: cart.totalPriceCart,
+    totalPriceCartFormat: cart.totalPriceCartFormat,
+    isBuyNow: false,
+    selectedProducts: selectedProductIds,
+  };
+}
+
 //[GET] /checkout/
 module.exports.index = async (req, res) => {
   if (!req.user) {
@@ -158,6 +259,51 @@ module.exports.order = async (req, res) => {
     const userId = req.user._id;
     const { fullName, phone, address, paymentMethod, voucherCodeHidden, voucherDiscount } = req.body;
     const selectedProductIds = normalizeSelectedProducts(req.body.selectedProducts);
+
+    // Validate phone number (must be exactly 10 digits, starting with 0)
+    const phoneRegex = /^0\d{9}$/;
+    if (!phone || !phoneRegex.test(phone.trim())) {
+      req.flash("error", "Số điện thoại phải gồm 10 số và bắt đầu bằng số 0.");
+      const cartData = await buildCheckoutCartData(userId, req);
+      if (cartData && cartData.error) {
+        return res.redirect(cartData.redirectTo);
+      }
+      return res.render("client/pages/checkout/index", {
+        pageTitle: "Đặt hàng",
+        cartDetail: cartData,
+        isBuyNow: cartData.isBuyNow,
+        selectedProducts: cartData.selectedProducts || [],
+      });
+    }
+
+    // Validate required fields
+    if (!fullName || fullName.trim().length < 2) {
+      req.flash("error", "Vui lòng nhập họ tên hợp lệ (ít nhất 2 ký tự).");
+      const cartData = await buildCheckoutCartData(userId, req);
+      if (cartData && cartData.error) {
+        return res.redirect(cartData.redirectTo);
+      }
+      return res.render("client/pages/checkout/index", {
+        pageTitle: "Đặt hàng",
+        cartDetail: cartData,
+        isBuyNow: cartData.isBuyNow,
+        selectedProducts: cartData.selectedProducts || [],
+      });
+    }
+
+    if (!address || address.trim().length < 10) {
+      req.flash("error", "Vui lòng nhập địa chỉ đầy đủ (ít nhất 10 ký tự).");
+      const cartData = await buildCheckoutCartData(userId, req);
+      if (cartData && cartData.error) {
+        return res.redirect(cartData.redirectTo);
+      }
+      return res.render("client/pages/checkout/index", {
+        pageTitle: "Đặt hàng",
+        cartDetail: cartData,
+        isBuyNow: cartData.isBuyNow,
+        selectedProducts: cartData.selectedProducts || [],
+      });
+    }
 
     // Parse voucher info
     const voucherDiscountAmount = parseInt(voucherDiscount) || 0;

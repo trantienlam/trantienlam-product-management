@@ -75,21 +75,6 @@ block main
               i.fa-solid.fa-paper-plane
 
   append scripts
-    script.
-      document.body.dataset.adminName = "#{user ? user.fullName : 'Admin'}";
-      document.body.dataset.adminAvatar = !{JSON.stringify((user && user.avatar) ? user.avatar : '')};
-
-      function formatTime(date) {
-        if (!date) return '';
-        const d = new Date(date);
-        const hours = String(d.getHours()).padStart(2, '0');
-        const minutes = String(d.getMinutes()).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
-        const month = String(d.getMonth() + 1).padStart(2, '0');
-        const now = new Date();
-        const isToday = d.toDateString() === now.toDateString();
-        return isToday ? hours + ':' + minutes : day + '/' + month + ' ' + hours + ':' + minutes;
-      }
-
   script(src="https://cdn.socket.io/4.7.2/socket.io.min.js")
+  script(src="/admin/js/chat-page.js")
   script(src="/admin/js/chat-admin.js")

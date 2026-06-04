@@ -96,26 +96,5 @@ block main
               i.fa-solid.fa-check
               | Lưu thay đổi
 
-  script.
-    function previewAvatar(input) {
-      const preview = document.getElementById('avatarPreview');
-      const wrapper = document.querySelector('.edit-avatar-wrapper');
-      if (input.files && input.files[0]) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          preview.src = e.target.result;
-          preview.style.display = 'block';
-          if (wrapper) {
-            const oldImg = wrapper.querySelector('img');
-            const oldIcon = wrapper.querySelector('i');
-            if (oldImg) oldImg.remove();
-            if (oldIcon) oldIcon.remove();
-            const img = document.createElement('img');
-            img.src = e.target.result;
-            img.alt = 'Avatar';
-            wrapper.appendChild(img);
-          }
-        };
-        reader.readAsDataURL(input.files[0]);
-      }
-    }
+append scripts
+  script(src="/admin/js/my-account-edit.js")
