@@ -19,7 +19,7 @@ function normalizeSelectedProducts(raw) {
 }
 
 // Helper function để xây dựng cart data cho checkout page
-async function buildCheckoutCartData(userId, req) {
+async function buildCheckoutCartData(userId, req, selectedProductsFromBody, isValidationError) {
   const buyNowPayload = req.session.checkoutBuyNow;
 
   // Mua ngay: chỉ 1 dòng, không lấy giỏ DB
@@ -91,13 +91,11 @@ async function buildCheckoutCartData(userId, req) {
     item.totalPrice = item.quantity * productInfo.priceNew;
   }
 
-  // Xử lý selected products từ query
-  const selectedProductIds = normalizeSelectedProducts(req.query.selectedProducts);
-  const fromCartSelection = req.query.fromCartSelection === "1";
-  if (fromCartSelection && selectedProductIds.length === 0) {
-    return { error: "Vui lòng chọn ít nhất 1 sản phẩm để thanh toán.", redirectTo: "/cart" };
-  }
-  if (selectedProductIds.length > 0) {
+  // Khi validate thất bại hoặc không có selectedProducts, giữ nguyên giỏ hàng
+  const selectedProductIds = selectedProductsFromBody || [];
+  
+  if (selectedProductIds.length > 0 && !isValidationError) {
+    // Chỉ filter khi đến từ query param (chọn sản phẩm từ giỏ hàng)
     cart.products = cart.products.filter((item) =>
       selectedProductIds.includes(String(item.product_id)),
     );
@@ -260,11 +258,14 @@ module.exports.order = async (req, res) => {
     const { fullName, phone, address, paymentMethod, voucherCodeHidden, voucherDiscount } = req.body;
     const selectedProductIds = normalizeSelectedProducts(req.body.selectedProducts);
 
+    // Build formData to preserve on errors
+    const formData = { fullName, phone, address, paymentMethod };
+
     // Validate phone number (must be exactly 10 digits, starting with 0)
     const phoneRegex = /^0\d{9}$/;
     if (!phone || !phoneRegex.test(phone.trim())) {
       req.flash("error", "Số điện thoại phải gồm 10 số và bắt đầu bằng số 0.");
-      const cartData = await buildCheckoutCartData(userId, req);
+      const cartData = await buildCheckoutCartData(userId, req, selectedProductIds, true);
       if (cartData && cartData.error) {
         return res.redirect(cartData.redirectTo);
       }
@@ -273,13 +274,14 @@ module.exports.order = async (req, res) => {
         cartDetail: cartData,
         isBuyNow: cartData.isBuyNow,
         selectedProducts: cartData.selectedProducts || [],
+        formData,
       });
     }
 
     // Validate required fields
     if (!fullName || fullName.trim().length < 2) {
       req.flash("error", "Vui lòng nhập họ tên hợp lệ (ít nhất 2 ký tự).");
-      const cartData = await buildCheckoutCartData(userId, req);
+      const cartData = await buildCheckoutCartData(userId, req, selectedProductIds, true);
       if (cartData && cartData.error) {
         return res.redirect(cartData.redirectTo);
       }
@@ -288,12 +290,13 @@ module.exports.order = async (req, res) => {
         cartDetail: cartData,
         isBuyNow: cartData.isBuyNow,
         selectedProducts: cartData.selectedProducts || [],
+        formData,
       });
     }
 
     if (!address || address.trim().length < 10) {
       req.flash("error", "Vui lòng nhập địa chỉ đầy đủ (ít nhất 10 ký tự).");
-      const cartData = await buildCheckoutCartData(userId, req);
+      const cartData = await buildCheckoutCartData(userId, req, selectedProductIds, true);
       if (cartData && cartData.error) {
         return res.redirect(cartData.redirectTo);
       }
@@ -302,6 +305,7 @@ module.exports.order = async (req, res) => {
         cartDetail: cartData,
         isBuyNow: cartData.isBuyNow,
         selectedProducts: cartData.selectedProducts || [],
+        formData,
       });
     }
 

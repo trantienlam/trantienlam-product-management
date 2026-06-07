@@ -15,69 +15,266 @@ block main
             p Thống kê doanh thu và sản phẩm đã bán theo ngày, tháng, năm
 
   .container
-    .report-overview.report-overview--modern.mb-4
-      .report-overview__header
-        .report-overview__title-wrap
-          .report-overview__title-icon
-            i.fa-solid.fa-chart-line
-          h3 Báo cáo doanh thu & sản phẩm đã bán
-          span.report-overview__hint Dữ liệu đơn đã thanh toán
-        form(method="GET" action=`${prefixAdmin}/reports`)
-          .report-filter
-            label.report-filter__label(for="reportType")
-              i.fa-solid.fa-calendar-days.me-1
-              | Xem theo
-            select#reportType.report-filter__select(name="reportType" onchange="this.form.submit()")
-              option(value="day" selected=salesReport.reportType === "day") Theo ngày
-              option(value="month" selected=salesReport.reportType === "month") Theo tháng
-              option(value="year" selected=salesReport.reportType === "year") Theo năm
+    // Navigation tabs
+    ul.nav.nav-tabs.mb-4
+      li.nav-item
+        a.nav-link.active(href=`${prefixAdmin}/reports`)
+          i.fa-solid.fa-chart-line.me-1
+          | Doanh thu
+      li.nav-item
+        a.nav-link(href=`${prefixAdmin}/reports/products`)
+          i.fa-solid.fa-box-open.me-1
+          | Sản phẩm
+      li.nav-item
+        a.nav-link(href=`${prefixAdmin}/reports/customers`)
+          i.fa-solid.fa-users.me-1
+          | Khách hàng
+      li.nav-item
+        a.nav-link(href=`${prefixAdmin}/reports/inventory`)
+          i.fa-solid.fa-warehouse.me-1
+          | Tồn kho
 
-      .row
-        .col-md-4.mb-3
-          .report-mini-card.report-mini-card--day
-            .report-mini-card__badge
+    // Filter và Actions
+    .d-flex.justify-content-between.align-items-center.mb-4
+      form(method="GET" action=`${prefixAdmin}/reports`)
+        .d-flex.gap-2.align-items-center
+          label.mb-0.me-2
+            i.fa-solid.fa-calendar-days.me-1
+            | Xem theo:
+          select.form-select.form-select-sm(name="reportType" onchange="this.form.submit()" style="width: auto")
+            option(value="day" selected=salesReport.reportType === "day") Theo ngày
+            option(value="month" selected=salesReport.reportType === "month") Theo tháng
+            option(value="year" selected=salesReport.reportType === "year") Theo năm
+
+      .d-flex.gap-2
+        a.btn.btn-success.btn-sm(href=`${prefixAdmin}/reports/export/excel?type=revenue`)
+          i.fa-solid.fa-file-excel.me-1
+          | Xuất Excel
+        a.btn.btn-outline-secondary.btn-sm(href=`${prefixAdmin}/reports/export?type=revenue&format=csv`)
+          i.fa-solid.fa-download.me-1
+          | Xuất CSV
+
+    // Stats Cards Row 1
+    .row.mb-4
+      .col-md-3
+        .card.stat-card.stat-card--success
+          .card-body
+            .stat-card__icon
               i.fa-solid.fa-sun
-              | Hôm nay
-            .report-mini-card__value.text-success= salesReport.summary.day.revenue.toLocaleString("vi-VN") + " đ"
-            .report-mini-card__sub
-              i.fa-solid.fa-boxes-stacked.me-1
-              | Đã bán #{salesReport.summary.day.soldQuantity} sản phẩm
-        .col-md-4.mb-3
-          .report-mini-card.report-mini-card--month
-            .report-mini-card__badge
+            .stat-card__content
+              .stat-card__label Hôm nay
+              .stat-card__value.text-success= salesReport.summary.day.revenue.toLocaleString("vi-VN") + " đ"
+              .stat-card__sub= "Đã bán " + salesReport.summary.day.soldQuantity + " sản phẩm"
+      .col-md-3
+        .card.stat-card.stat-card--info
+          .card-body
+            .stat-card__icon
               i.fa-solid.fa-calendar
-              | Tháng này
-            .report-mini-card__value.text-info= salesReport.summary.month.revenue.toLocaleString("vi-VN") + " đ"
-            .report-mini-card__sub
-              i.fa-solid.fa-boxes-stacked.me-1
-              | Đã bán #{salesReport.summary.month.soldQuantity} sản phẩm
-        .col-md-4.mb-3
-          .report-mini-card.report-mini-card--year
-            .report-mini-card__badge
+            .stat-card__content
+              .stat-card__label Tháng này
+              .stat-card__value.text-info= salesReport.summary.month.revenue.toLocaleString("vi-VN") + " đ"
+              .stat-card__sub= "Đã bán " + salesReport.summary.month.soldQuantity + " sản phẩm"
+      .col-md-3
+        .card.stat-card.stat-card--primary
+          .card-body
+            .stat-card__icon
               i.fa-solid.fa-calendar-check
-              | Năm này
-            .report-mini-card__value.text-primary= salesReport.summary.year.revenue.toLocaleString("vi-VN") + " đ"
-            .report-mini-card__sub
-              i.fa-solid.fa-boxes-stacked.me-1
-              | Đã bán #{salesReport.summary.year.soldQuantity} sản phẩm
+            .stat-card__content
+              .stat-card__label Năm này
+              .stat-card__value.text-primary= salesReport.summary.year.revenue.toLocaleString("vi-VN") + " đ"
+              .stat-card__sub= "Đã bán " + salesReport.summary.year.soldQuantity + " sản phẩm"
+      .col-md-3
+        .card.stat-card.stat-card--warning
+          .card-body
+            .stat-card__icon
+              i.fa-solid.fa-shopping-cart
+            .stat-card__content
+              .stat-card__label Đơn hàng tháng
+              .stat-card__value= orderStats.totalOrders
+              .stat-card__sub= "Đang xử lý: " + orderStats.pendingOrders
 
-      .report-table-card
+    // Chart Section
+    .row.mb-4
+      .col-lg-8
+        .card.shadow-sm
+          .card-header.bg-white
+            h5.mb-0
+              i.fa-solid.fa-chart-line.me-2
+              | Biểu đồ doanh thu 30 ngày gần nhất
+          .card-body
+            canvas#revenueChart(style="max-height: 300px")
+      .col-lg-4
+        .card.shadow-sm
+          .card-header.bg-white
+            h5.mb-0
+              i.fa-solid.fa-chart-pie.me-2
+              | Tổng quan tháng
+          .card-body
+            canvas#statsChart(style="max-height: 300px")
+
+    // Report Table
+    .card.shadow-sm
+      .card-header.bg-white.d-flex.justify-content-between.align-items-center
+        h5.mb-0
+          i.fa-solid.fa-table.me-2
+          | Chi tiết doanh thu
+        span.text-muted= "Hiển thị " + (salesReport.rows ? salesReport.rows.length : 0) + " kỳ báo cáo"
+      .card-body.p-0
         .table-responsive
-          table.table.table-hover.mb-0.report-table
-            thead.thead-light
+          table.table.table-hover.mb-0
+            thead.bg-light
               tr
                 th Kỳ báo cáo
-                th.text-right Sản phẩm đã bán
-                th.text-right Doanh thu
+                th.text-center Sản phẩm đã bán
+                th.text-end Doanh thu
+                th.text-end Tỷ lệ
             tbody
               if salesReport.rows && salesReport.rows.length > 0
+                - var totalRevenue = 0;
                 each row in salesReport.rows
+                  - totalRevenue += row.revenue;
+                each row, index in salesReport.rows
                   tr
                     td
-                      span.report-period-badge= row.label
-                    td.text-right
-                      span.report-sold-pill= row.soldQuantity.toLocaleString("vi-VN")
-                    td.text-right.font-weight-bold.text-danger= row.revenue.toLocaleString("vi-VN") + " đ"
+                      span.badge.bg-light.text-dark= row.label
+                    td.text-center
+                      span.fw-semibold= row.soldQuantity.toLocaleString("vi-VN")
+                    td.text-end
+                      span.fw-bold.text-danger= row.revenue.toLocaleString("vi-VN") + " đ"
+                    td.text-end
+                      - var percentage = totalRevenue > 0 ? ((row.revenue / totalRevenue) * 100).toFixed(1) : 0;
+                      .progress(style="height: 6px; width: 100px")
+                        .progress-bar.bg-success(role="progressbar" style=`width: ${percentage}%`)
+                      small.text-muted= percentage + "%"
               else
                 tr
-                  td.text-center.text-muted(colspan="3") Chưa có dữ liệu báo cáo.
+                  td.text-center.text-muted.py-4(colspan="4")
+                    i.fa-solid.fa-inbox.fa-3x.mb-2.d-block.opacity-25
+                    | Chưa có dữ liệu báo cáo
+
+  // Chart.js
+  script(src="https://cdn.jsdelivr.net/npm/chart.js")
+
+  script.
+    // Data from server
+    const chartLabels = !{JSON.stringify(chartData.labels)};
+    const chartRevenues = !{JSON.stringify(chartData.revenues)};
+    const chartOrders = !{JSON.stringify(chartData.orders)};
+
+    // Format numbers for display
+    const formattedRevenues = chartRevenues.map(v => v);
+
+    // Revenue Chart
+    const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+    new Chart(revenueCtx, {
+      type: 'line',
+      data: {
+        labels: chartLabels,
+        datasets: [
+          {
+            label: 'Doanh thu (VNĐ)',
+            data: formattedRevenues,
+            borderColor: '#28a745',
+            backgroundColor: 'rgba(40, 167, 69, 0.1)',
+            fill: true,
+            tension: 0.3,
+            yAxisID: 'y'
+          },
+          {
+            label: 'Số đơn hàng',
+            data: chartOrders,
+            borderColor: '#007bff',
+            backgroundColor: 'rgba(0, 123, 255, 0.1)',
+            fill: false,
+            tension: 0.3,
+            yAxisID: 'y1'
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        interaction: {
+          mode: 'index',
+          intersect: false
+        },
+        plugins: {
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                if (context.datasetIndex === 0) {
+                  return 'Doanh thu: ' + context.raw.toLocaleString('vi-VN') + ' đ';
+                }
+                return 'Đơn hàng: ' + context.raw;
+              }
+            }
+          },
+          legend: {
+            position: 'top'
+          }
+        },
+        scales: {
+          y: {
+            type: 'linear',
+            display: true,
+            position: 'left',
+            title: {
+              display: true,
+              text: 'Doanh thu (VNĐ)'
+            },
+            ticks: {
+              callback: function(value) {
+                return value.toLocaleString('vi-VN');
+              }
+            }
+          },
+          y1: {
+            type: 'linear',
+            display: true,
+            position: 'right',
+            title: {
+              display: true,
+              text: 'Số đơn hàng'
+            },
+            grid: {
+              drawOnChartArea: false
+            }
+          }
+        }
+      }
+    });
+
+    // Stats Pie Chart
+    const orderStats = !{JSON.stringify(orderStats)};
+    const statsCtx = document.getElementById('statsChart').getContext('2d');
+    new Chart(statsCtx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Chờ xử lý', 'Đã xác nhận', 'Đang giao', 'Đã giao', 'Đã hủy'],
+        datasets: [{
+          data: [
+            orderStats.pendingOrders || 0,
+            orderStats.confirmedOrders || 0,
+            orderStats.shippedOrders || 0,
+            orderStats.deliveredOrders || 0,
+            orderStats.cancelledOrders || 0
+          ],
+          backgroundColor: [
+            '#ffc107',
+            '#17a2b8',
+            '#007bff',
+            '#28a745',
+            '#dc3545'
+          ]
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+          legend: {
+            position: 'bottom'
+          }
+        }
+      }
+    });

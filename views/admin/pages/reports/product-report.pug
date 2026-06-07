@@ -1,0 +1,180 @@
+extends ../../layouts/default.pug
+include ../../mixins/alert.pug
+
+block main
+  +alert-success(5000)
+
+  .page-header
+    .container
+      .page-header__content
+        .page-header__left
+          .page-header__icon
+            i.fa-solid.fa-box-open
+          .page-header__text
+            h1 Báo cáo sản phẩm
+            p Thống kê sản phẩm bán chạy và tồn kho
+
+  .container
+    // Navigation tabs
+    ul.nav.nav-tabs.mb-4
+      li.nav-item
+        a.nav-link(href=`${prefixAdmin}/reports`)
+          i.fa-solid.fa-chart-line.me-1
+          | Doanh thu
+      li.nav-item
+        a.nav-link.active(href=`${prefixAdmin}/reports/products`)
+          i.fa-solid.fa-box-open.me-1
+          | Sản phẩm
+      li.nav-item
+        a.nav-link(href=`${prefixAdmin}/reports/customers`)
+          i.fa-solid.fa-users.me-1
+          | Khách hàng
+      li.nav-item
+        a.nav-link(href=`${prefixAdmin}/reports/inventory`)
+          i.fa-solid.fa-warehouse.me-1
+          | Tồn kho
+
+    // Quick Stats
+    .row.mb-4
+      .col-md-4
+        .card.border-0.shadow-sm.bg-danger.text-white
+          .card-body.text-center.py-4
+            i.fa-solid.fa-box-open.fa-3x.mb-3
+            h2.display-4.fw-bold= outOfStockProducts
+            p.mb-0 Hết hàng
+      .col-md-4
+        .card.border-0.shadow-sm.bg-warning.text-dark
+          .card-body.text-center.py-4
+            i.fa-solid.fa-exclamation-triangle.fa-3x.mb-3
+            h2.display-4.fw-bold= lowStockProducts.length
+            p.mb-0 Sắp hết hàng
+      .col-md-4
+        .card.border-0.shadow-sm.bg-success.text-white
+          .card-body.text-center.py-4
+            i.fa-solid.fa-chart-line.fa-3x.mb-3
+            h2.display-4.fw-bold= topProducts.length
+            p.mb-0 Top sản phẩm
+
+    // Top Selling Products
+    .card.shadow-sm.mb-4
+      .card-header.bg-white.d-flex.justify-content-between.align-items-center
+        h5.mb-0
+          i.fa-solid.fa-trophy.text-warning.me-2
+          | Top sản phẩm bán chạy
+        .d-flex.gap-2
+          form(method="GET" action=`${prefixAdmin}/reports/products`)
+            select.form-select.form-select-sm(name="sortBy" onchange="this.form.submit()" style="width: auto")
+              option(value="revenue" selected=(sortBy === "revenue")) Theo doanh thu
+              option(value="quantity" selected=(sortBy === "quantity")) Theo số lượng
+          a.btn.btn-success.btn-sm(href=`${prefixAdmin}/reports/export/excel?type=products`)
+            i.fa-solid.fa-file-excel.me-1
+            | Xuất Excel
+      .card-body.p-0
+        .table-responsive
+          table.table.table-hover.mb-0
+            thead.bg-light
+              tr
+                th.text-center(style="width: 50px") #
+                th Sản phẩm
+                th.text-center Đơn hàng
+                th.text-center Số lượng bán
+                th.text-end Doanh thu
+                th.text-end Tỷ lệ
+            tbody
+              if topProducts && topProducts.length > 0
+                - var totalRevenue = topProducts.reduce(function(sum, p) { return sum + (p.totalRevenue || 0); }, 0);
+                each product, index in topProducts
+                  - var percentage = totalRevenue > 0 ? ((product.totalRevenue / totalRevenue) * 100).toFixed(1) : 0;
+                  tr
+                    td.text-center
+                      if index === 0
+                        span.badge.bg-warning.rounded-circle
+                          i.fa-solid.fa-star
+                      else if index === 1
+                        span.badge.bg-secondary.rounded-circle
+                          i.fa-solid.fa-medal
+                      else if index === 2
+                        span.badge.bg-bronze.rounded-circle
+                          i.fa-solid.fa-medal
+                      else
+                        span.text-muted= index + 1
+                    td
+                      .d-flex.align-items-center.gap-2
+                        if product.productThumbnail
+                          img(src=product.productThumbnail alt=product.productName style="width: 40px; height: 40px; object-fit: cover" class="rounded")
+                        else
+                          .bg-light.rounded.d-flex.align-items-center.justify-content-center(style="width: 40px; height: 40px")
+                            i.fa-solid.fa-image.text-muted
+                        div
+                          strong= product.productName || "Sản phẩm không xác định"
+                    td.text-center= product.orderCount || 0
+                    td.text-center
+                      span.badge.bg-primary= (product.totalQuantity || 0).toLocaleString("vi-VN")
+                    td.text-end
+                      strong.text-danger= (product.totalRevenue || 0).toLocaleString("vi-VN") + " đ"
+                    td.text-end
+                      .d-flex.align-items-center.justify-content-end.gap-2
+                        .progress(style="height: 6px; width: 80px")
+                          .progress-bar.bg-success(role="progressbar" style="width: " + percentage + "%")
+                        small.text-muted= percentage + "%"
+              else
+                tr
+                  td.text-center.text-muted.py-4(colspan="6")
+                    i.fa-solid.fa-inbox.fa-3x.mb-2.d-block.opacity-25
+                    | Chưa có dữ liệu sản phẩm
+
+    // Low Stock Alert
+    if lowStockProducts && lowStockProducts.length > 0
+      .card.shadow-sm.border-warning.mb-4
+        .card-header.bg-warning.text-dark.d-flex.align-items-center
+          i.fa-solid.fa-exclamation-triangle.me-2
+          h5.mb-0 Sản phẩm sắp hết hàng (còn ≤ 10)
+        .card-body.p-0
+          .table-responsive
+            table.table.table-hover.mb-0
+              thead.bg-light
+                tr
+                  th Sản phẩm
+                  th.text-center Kho
+                  th.text-end Giá gốc
+                  th.text-end Giá KM
+                  th.text-end Trạng thái
+              tbody
+                each product in lowStockProducts
+                  tr
+                    td
+                      .d-flex.align-items-center.gap-2
+                        if product.thumbnail
+                          img(src=product.thumbnail alt=product.title style="width: 40px; height: 40px; object-fit: cover" class="rounded")
+                        else
+                          .bg-light.rounded.d-flex.align-items-center.justify-content-center(style="width: 40px; height: 40px")
+                            i.fa-solid.fa-image.text-muted
+                        strong= product.title
+                    td.text-center
+                      if product.stock <= 5
+                        span.badge.bg-danger= product.stock + " cái"
+                      else
+                        span.badge.bg-warning.text-dark= product.stock + " cái"
+                    td.text-end
+                      small.text-muted.text-decoration-line-through= product.price.toLocaleString("vi-VN") + " đ"
+                    td.text-end
+                      - var priceNew = productHelper.priceNewProduct(product);
+                      strong.text-success= Number(priceNew).toLocaleString("vi-VN") + " đ"
+                    td.text-end
+                      a.btn.btn-sm.btn-outline-primary(href=`${prefixAdmin}/products/edit/${product._id}`)
+                        i.fa-solid.fa-edit.me-1
+                        | Cập nhật
+
+    // Out of Stock
+    if outOfStockProducts > 0
+      .alert.alert-danger.d-flex.align-items-center
+        i.fa-solid.fa-exclamation-circle.fa-2x.me-3
+        div
+          strong= outOfStockProducts + " sản phẩm đã hết hàng! "
+          a.alert-link(href=`${prefixAdmin}/products?stock=0`) Nhấn để xem chi tiết
+
+  style.
+    .bg-bronze {
+      background-color: #cd7f32 !important;
+      color: white !important;
+    }

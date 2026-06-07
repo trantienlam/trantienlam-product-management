@@ -1,9 +1,10 @@
 mixin product-item(item)
-  .col-6.col-lg-4.mb-4
-    .product-item
+  .col-6.col-md-6.col-xl-3.mb-4
+    article.product-item
       a.product-item__image-link(href=`/products/detail/${item.slug}`)
         .inner-image
           img(src=item.thumbnail, alt=item.title, loading="lazy")
+          .product-item__image-overlay
           if(item.featured == "1")
             .inner-featured
               i.bi.bi-star-fill
@@ -11,18 +12,30 @@ mixin product-item(item)
           if(item.discountPercentage > 0)
             .inner-discount-tag -#{item.discountPercentage}%
           .product-item__hover
-            span Xem chi tiết
-              i.bi.bi-arrow-right
-      .inner-content
-        h3.inner-title
-          a(href=`/products/detail/${item.slug}`) #{item.title}
-        .inner-bottom
-          .inner-prices
-            if(item.priceNew)
-              span.inner-price-new #{item.priceNew.toLocaleString("vi-VN")}đ
-            if(item.price && item.priceNew && item.price !== item.priceNew)
-              span.inner-price-old #{item.price.toLocaleString("vi-VN")}đ
-        .inner-actions
-          a.btn-quick-view(href=`/products/detail/${item.slug}`)
-            i.bi.bi-cart-plus
-            | Thêm vào giỏ
+            i.bi.bi-eye
+            | Xem chi tiết
+      .product-item__content
+        .product-item__top
+          .product-item__eyebrow
+            if(item.category && item.category.title)
+              span.product-item__category
+                i.bi.bi-tag
+                | #{item.category.title}
+            if(item.featured == "1")
+              span.product-item__badge
+                i.bi.bi-patch-check-fill
+                | Gợi ý hot
+          h3.product-item__title
+            a(href=`/products/detail/${item.slug}`) #{item.title}
+        .product-item__bottom
+          .product-item__price-wrap
+            .product-item__prices
+              if(item.priceNew)
+                span.product-item__price-new #{item.priceNew.toLocaleString("vi-VN")}đ
+              if(item.price && item.priceNew && item.price !== item.priceNew)
+                span.product-item__price-old #{item.price.toLocaleString("vi-VN")}đ
+            if(item.discountPercentage > 0)
+              span.product-item__save Tiết kiệm #{item.discountPercentage}%
+          a.product-item__action(href=`/products/detail/${item.slug}`)
+            i.bi.bi-bag-plus
+            | Xem sản phẩm

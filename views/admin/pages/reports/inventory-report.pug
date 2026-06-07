@@ -1,0 +1,222 @@
+extends ../../layouts/default.pug
+include ../../mixins/alert.pug
+
+block main
+  +alert-success(5000)
+
+  .page-header
+    .container
+      .page-header__content
+        .page-header__left
+          .page-header__icon
+            i.fa-solid.fa-warehouse
+          .page-header__text
+            h1 Báo cáo tồn kho
+            p Thống kê tình trạng kho hàng
+
+  .container
+    // Navigation tabs
+    ul.nav.nav-tabs.mb-4
+      li.nav-item
+        a.nav-link(href=`${prefixAdmin}/reports`)
+          i.fa-solid.fa-chart-line.me-1
+          | Doanh thu
+      li.nav-item
+        a.nav-link(href=`${prefixAdmin}/reports/products`)
+          i.fa-solid.fa-box-open.me-1
+          | Sản phẩm
+      li.nav-item
+        a.nav-link(href=`${prefixAdmin}/reports/customers`)
+          i.fa-solid.fa-users.me-1
+          | Khách hàng
+      li.nav-item
+        a.nav-link.active(href=`${prefixAdmin}/reports/inventory`)
+          i.fa-solid.fa-warehouse.me-1
+          | Tồn kho
+
+    // Inventory Statistics Cards
+    .row.mb-4
+      .col-md-3
+        .card.border-0.shadow-sm.bg-primary.text-white
+          .card-body.text-center.py-4
+            i.fa-solid.fa-boxes-stacked.fa-3x.mb-3
+            h2.display-4.fw-bold= inventoryStats.totalProducts || 0
+            p.mb-0 Tổng sản phẩm
+      .col-md-3
+        .card.border-0.shadow-sm.bg-secondary.text-white
+          .card-body.text-center.py-4
+            i.fa-solid.fa-cubes.fa-3x.mb-3
+            h2.display-4.fw-bold= (inventoryStats.totalStock || 0).toLocaleString("vi-VN")
+            p.mb-0 Tổng tồn kho
+      .col-md-3
+        .card.border-0.shadow-sm.bg-warning.text-dark
+          .card-body.text-center.py-4
+            i.fa-solid.fa-chart-line.fa-3x.mb-3
+            h2.display-4.fw-bold= Math.round(inventoryStats.avgStock || 0)
+            p.mb-0 TB sản phẩm
+      .col-md-3
+        .card.border-0.shadow-sm.bg-success.text-white
+          .card-body.text-center.py-4
+            i.fa-solid.fa-check-circle.fa-3x.mb-3
+            h2.display-4.fw-bold= inventoryStats.normalStock || 0
+            p.mb-0 Bình thường
+
+    // Status Cards
+    .row.mb-4
+      .col-md-6
+        .card.border-danger
+          .card-body.d-flex.align-items-center
+            .me-3
+              .bg-danger.rounded-circle.d-flex.align-items-center.justify-content-center(style="width: 60px; height: 60px")
+                i.fa-solid.fa-exclamation-circle.fa-2x.text-white
+            div
+              h2.fw-bold.text-danger.mb-0= inventoryStats.outOfStock || 0
+              p.text-muted.mb-0 Sản phẩm hết hàng
+      .col-md-6
+        .card.border-warning
+          .card-body.d-flex.align-items-center
+            .me-3
+              .bg-warning.rounded-circle.d-flex.align-items-center.justify-content-center(style="width: 60px; height: 60px")
+                i.fa-solid.fa-exclamation-triangle.fa-2x.text-dark
+            div
+              h2.fw-bold.text-warning.mb-0= inventoryStats.lowStock || 0
+              p.text-muted.mb-0 Sản phẩm sắp hết (≤ 10)
+
+    // Out of Stock Products
+    if outOfStockProducts && outOfStockProducts.length > 0
+      .card.shadow-sm.mb-4.border-danger
+        .card-header.bg-danger.text-white.d-flex.align-items-center
+          i.fa-solid.fa-times-circle.me-2
+          h5.mb-0 Sản phẩm đã hết hàng (#{outOfStockProducts.length})
+        .card-body.p-0
+          .table-responsive
+            table.table.table-hover.mb-0
+              thead.bg-light
+                tr
+                  th Sản phẩm
+                  th.text-center Danh mục
+                  th.text-center Giá gốc
+                  th.text-center Giá KM
+                  th.text-center Kho
+                  th.text-end Hành động
+              tbody
+                each product in outOfStockProducts
+                  tr
+                    td
+                      .d-flex.align-items-center.gap-2
+                        if product.thumbnail
+                          img(src=product.thumbnail alt=product.title style="width: 40px; height: 40px; object-fit: cover" class="rounded")
+                        else
+                          .bg-light.rounded.d-flex.align-items-center.justify-content-center(style="width: 40px; height: 40px")
+                            i.fa-solid.fa-image.text-muted
+                        strong= product.title
+                    td.text-center
+                      if product.category
+                        span.badge.bg-light.text-dark= product.category.title
+                      else
+                        span.text-muted Chưa phân loại
+                    td.text-center
+                      small.text-muted.text-decoration-line-through= product.price.toLocaleString("vi-VN") + " đ"
+                    td.text-center
+                      - var priceNew = productHelper.priceNewProduct(product);
+                      strong.text-success= Number(priceNew).toLocaleString("vi-VN") + " đ"
+                    td.text-center
+                      span.badge.bg-danger= "0"
+                    td.text-end
+                      a.btn.btn-sm.btn-outline-primary(href=`${prefixAdmin}/products/edit/${product._id}`)
+                        i.fa-solid.fa-plus.me-1
+                        | Nhập kho
+
+    // Low Stock Products
+    if lowStockProducts && lowStockProducts.length > 0
+      .card.shadow-sm.mb-4.border-warning
+        .card-header.bg-warning.text-dark.d-flex.align-items-center
+          i.fa-solid.fa-exclamation-triangle.me-2
+          h5.mb-0 Sản phẩm sắp hết hàng (#{lowStockProducts.length})
+        .card-body.p-0
+          .table-responsive
+            table.table.table-hover.mb-0
+              thead.bg-light
+                tr
+                  th Sản phẩm
+                  th.text-center Kho
+                  th.text-center Giá gốc
+                  th.text-center Giá KM
+                  th.text-center Trạng thái kho
+                  th.text-end Hành động
+              tbody
+                each product in lowStockProducts
+                  - var stockStatus = product.stock <= 5 ? "Cực kỳ thấp" : "Thấp";
+                  - var stockBadgeClass = product.stock <= 5 ? "bg-danger" : "bg-warning text-dark";
+                  tr
+                    td
+                      .d-flex.align-items-center.gap-2
+                        if product.thumbnail
+                          img(src=product.thumbnail alt=product.title style="width: 40px; height: 40px; object-fit: cover" class="rounded")
+                        else
+                          .bg-light.rounded.d-flex.align-items-center.justify-content-center(style="width: 40px; height: 40px")
+                            i.fa-solid.fa-image.text-muted
+                        strong= product.title
+                    td.text-center
+                      strong= product.stock
+                    td.text-center
+                      small.text-muted.text-decoration-line-through= product.price.toLocaleString("vi-VN") + " đ"
+                    td.text-center
+                      - var priceNew2 = productHelper.priceNewProduct(product);
+                      strong.text-success= Number(priceNew2).toLocaleString("vi-VN") + " đ"
+                    td.text-center
+                      span.badge(class=stockBadgeClass)= stockStatus
+                    td.text-end
+                      a.btn.btn-sm.btn-outline-success(href=`${prefixAdmin}/products/edit/${product._id}`)
+                        i.fa-solid.fa-plus.me-1
+                        | Nhập kho
+
+    // High Stock Products
+    if highStockProducts && highStockProducts.length > 0
+      .card.shadow-sm
+        .card-header.bg-success.text-white.d-flex.align-items-center
+          i.fa-solid.fa-boxes-stacked.me-2
+          h5.mb-0 Sản phẩm tồn kho cao (> 100)
+        .card-body.p-0
+          .table-responsive
+            table.table.table-hover.mb-0
+              thead.bg-light
+                tr
+                  th Sản phẩm
+                  th.text-center Kho
+                  th.text-center Giá gốc
+                  th.text-center Giá KM
+                  th.text-end Tổng giá trị tồn
+                  th.text-end Hành động
+              tbody
+                each product in highStockProducts
+                  - var priceNew3 = productHelper.priceNewProduct(product);
+                  - var stockValue = product.stock * Number(priceNew3);
+                  tr
+                    td
+                      .d-flex.align-items-center.gap-2
+                        if product.thumbnail
+                          img(src=product.thumbnail alt=product.title style="width: 40px; height: 40px; object-fit: cover" class="rounded")
+                        else
+                          .bg-light.rounded.d-flex.align-items-center.justify-content-center(style="width: 40px; height: 40px")
+                            i.fa-solid.fa-image.text-muted
+                        strong= product.title
+                    td.text-center
+                      span.badge.bg-success= product.stock
+                    td.text-center
+                      small.text-muted.text-decoration-line-through= product.price.toLocaleString("vi-VN") + " đ"
+                    td.text-center
+                      strong.text-success= Number(priceNew3).toLocaleString("vi-VN") + " đ"
+                    td.text-end
+                      strong.text-primary= stockValue.toLocaleString("vi-VN") + " đ"
+                    td.text-end
+                      a.btn.btn-sm.btn-outline-info(href=`${prefixAdmin}/products/edit/${product._id}`)
+                        i.fa-solid.fa-edit.me-1
+                        | Chi tiết
+
+    // No data message
+    if (!outOfStockProducts || outOfStockProducts.length === 0)
+      if (!lowStockProducts || lowStockProducts.length === 0)
+        .alert.alert-success
+          i.fa-solid.fa-check-circle.me-2
+          | Tuyệt vời! Tất cả sản phẩm đều có kho hàng đầy đủ.

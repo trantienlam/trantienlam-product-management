@@ -34,9 +34,25 @@
           i.sidebar-icon.fa-solid.fa-receipt
           span.sidebar-text Đơn hàng
 
+      // Báo cáo - có submenu
+      .sidebar-dropdown
         a.sidebar-link(href=`${prefixAdmin}/reports`)
           i.sidebar-icon.fa-solid.fa-chart-column
           span.sidebar-text Báo cáo
+          i.sidebar-arrow.fa-solid.fa-chevron-right
+        .sidebar-dropdown-menu
+          a.sidebar-dropdown-item(href=`${prefixAdmin}/reports`)
+            i.fa-solid.fa-chart-line.me-2
+            | Doanh thu
+          a.sidebar-dropdown-item(href=`${prefixAdmin}/reports/products`)
+            i.fa-solid.fa-box-open.me-2
+            | Sản phẩm
+          a.sidebar-dropdown-item(href=`${prefixAdmin}/reports/customers`)
+            i.fa-solid.fa-users.me-2
+            | Khách hàng
+          a.sidebar-dropdown-item(href=`${prefixAdmin}/reports/inventory`)
+            i.fa-solid.fa-warehouse.me-2
+            | Tồn kho
           
       if(role.permission.includes("reviews_view"))
         a.sidebar-link(href=`${prefixAdmin}/reviews`)

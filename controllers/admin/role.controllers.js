@@ -21,7 +21,7 @@ module.exports.create = async (req, res) => {
 
 // [POST] /admin/role/create
 module.exports.createPost = async (req, res) => {
-  console.log(req.body);
+  //console.log(req.body);
   const record = new Role(req.body);
   await record.save();
   res.redirect(`${systemConfix.prefixAdmin}/roles`);

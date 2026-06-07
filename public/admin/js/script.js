@@ -242,3 +242,29 @@ if (adminSidebarOverlay) {
     adminSidebarOverlay.classList.remove('show');
   });
 }
+
+// Sidebar dropdown menu
+const sidebarDropdowns = document.querySelectorAll('.sidebar-dropdown');
+if (sidebarDropdowns.length > 0) {
+  sidebarDropdowns.forEach(dropdown => {
+    const trigger = dropdown.querySelector('.sidebar-link');
+    if (trigger) {
+      trigger.addEventListener('click', (e) => {
+        e.preventDefault();
+        dropdown.classList.toggle('open');
+      });
+    }
+  });
+
+  // Auto-open dropdown if current path matches
+  const currentPath = window.location.pathname;
+  sidebarDropdowns.forEach(dropdown => {
+    const items = dropdown.querySelectorAll('.sidebar-dropdown-item');
+    items.forEach(item => {
+      if (item.getAttribute('href') === currentPath) {
+        dropdown.classList.add('open');
+        item.classList.add('active');
+      }
+    });
+  });
+}

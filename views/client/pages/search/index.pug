@@ -1,10 +1,134 @@
 extends ../../layouts/default.pug
-include ../../mixins/box-head.pug 
+include ../../mixins/box-head.pug
 include ../../mixins/product-layout.pug
-block main 
-  .container.my-3 
-    .row 
-      .col-12 
-        +box-head("Kết quả tìm kiếm")
-      
-    +product-grid(products)
+
+block styles
+  link(rel="stylesheet", href="/css/products-page.css")
+
+block main
+  .search-page
+    //- Banner
+    .search-banner
+      .search-banner__bg
+      .search-banner__mesh
+      .search-banner__glow.search-banner__glow--1
+      .search-banner__glow.search-banner__glow--2
+      .search-banner__inner.container
+        .search-breadcrumb
+          a.search-breadcrumb__link(href="/") Trang chủ
+          span.search-breadcrumb__sep
+            i.bi.bi-chevron-right
+          span.search-breadcrumb__current Kết quả tìm kiếm
+
+        .search-banner__content
+          div
+            .search-banner__pill
+              i.bi.bi-search
+              | Tìm kiếm
+            h1.search-banner__title
+              if keyword
+                | Tìm thấy #{products.length} sản phẩm
+              else
+                | Tìm kiếm sản phẩm
+            p.search-banner__desc
+              if keyword
+                | Kết quả tìm kiếm cho từ khóa "#{keyword}"
+              else
+                | Nhập từ khóa để tìm kiếm sản phẩm bạn cần
+
+          .search-banner__visual--icon
+            i.bi.bi-search
+
+    //- Search Form
+    .container
+      .search-form-wrap
+        form.search-form-card(action="/search" method="GET")
+          .search-form__inner
+            .search-form__input-wrap
+              i.search-form__icon.bi.bi-search
+              input.search-form__input(
+                type="text",
+                name="keyword",
+                placeholder="Tìm kiếm sản phẩm...",
+                value=keyword,
+                autocomplete="off"
+              )
+              if keyword
+                a.search-form__clear(href="/search" title="Xóa tìm kiếm")
+                  i.bi.bi-x-lg
+            button.search-form__btn(type="submit")
+              i.bi.bi-search
+              | Tìm kiếm
+
+    //- Results
+    .container
+      .search-results
+        if products.length > 0
+          .search-toolbar
+            .search-toolbar__left
+              .search-toolbar__line
+              div
+                p.search-toolbar__eyebrow Kết quả
+                h2.search-toolbar__title Sản phẩm tìm được
+                .search-toolbar__meta
+                  i.bi.bi-box-seam
+                  | #{products.length} sản phẩm
+
+            a.search-toolbar__back(href="/products")
+              i.bi.bi-grid-3x3-gap
+              | Xem tất cả
+
+          .search-main
+            +product-grid(products)
+
+        else if keyword
+          .search-toolbar
+            .search-toolbar__left
+              .search-toolbar__line
+              div
+                p.search-toolbar__eyebrow Không tìm thấy
+                h2.search-toolbar__title Không có sản phẩm nào
+                .search-toolbar__meta
+                  i.bi.bi-emoji-frown
+                  | Thử từ khóa khác
+
+          .search-empty
+            .search-empty__card
+              .search-empty__icon
+                i.bi.bi-emoji-frown
+              h3.search-empty__title Không tìm thấy sản phẩm
+              p.search-empty__desc
+                | Không có sản phẩm nào phù hợp với từ khóa "#{keyword}".
+                | Hãy thử tìm kiếm với từ khóa khác.
+              .search-empty__suggestions
+                p.search-empty__label Mẹo tìm kiếm:
+                ul.search-empty__tips
+                  li Kiểm tra chính tả từ khóa
+                  li Thử sử dụng từ khóa ngắn hơn
+                  li Sử dụng tên danh mục thay vì mô tả
+              .search-empty__actions
+                a.search-empty__btn(href="/products")
+                  i.bi.bi-grid-3x3-gap
+                  | Xem tất cả sản phẩm
+                a.search-empty__btn.search-empty__btn--outline(href="/")
+                  i.bi.bi-house
+                  | Về trang chủ
+
+        else
+          .search-toolbar
+            .search-toolbar__left
+              .search-toolbar__line
+              div
+                h2.search-toolbar__title Nhập từ khóa tìm kiếm
+
+          .search-empty
+            .search-empty__card
+              .search-empty__icon
+                i.bi.bi-search
+              h3.search-empty__title Bắt đầu tìm kiếm
+              p.search-empty__desc
+                | Nhập từ khóa vào thanh tìm kiếm để tìm sản phẩm bạn cần.
+              .search-empty__actions
+                a.search-empty__btn(href="/products")
+                  i.bi.bi-grid-3x3-gap
+                  | Xem tất cả sản phẩm

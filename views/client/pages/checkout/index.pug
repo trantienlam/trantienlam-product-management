@@ -92,6 +92,7 @@ block main
                       type="text",
                       name="fullName",
                       placeholder="Nhập họ và tên của bạn",
+                      value=formData && formData.fullName ? formData.fullName : "",
                       required
                     )
 
@@ -104,6 +105,7 @@ block main
                       type="text",
                       name="phone",
                       placeholder="0xxx xxx xxx",
+                      value=formData && formData.phone ? formData.phone : "",
                       required
                     )
                     small#phoneValidationMessage.text-danger.mt-1.d-none
@@ -119,6 +121,7 @@ block main
                       type="text",
                       name="address",
                       placeholder="Số nhà, đường, phường/xã, quận/huyện, tỉnh/thành",
+                      value=formData && formData.address ? formData.address : "",
                       required
                     )
 

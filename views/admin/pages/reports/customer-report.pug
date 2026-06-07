@@ -1,0 +1,134 @@
+extends ../../layouts/default.pug
+include ../../mixins/alert.pug
+
+block main
+  +alert-success(5000)
+
+  .page-header
+    .container
+      .page-header__content
+        .page-header__left
+          .page-header__icon
+            i.fa-solid.fa-users
+          .page-header__text
+            h1 Báo cáo khách hàng
+            p Thống kê khách hàng và lịch sử mua hàng
+
+  .container
+    // Navigation tabs
+    ul.nav.nav-tabs.mb-4
+      li.nav-item
+        a.nav-link(href=`${prefixAdmin}/reports`)
+          i.fa-solid.fa-chart-line.me-1
+          | Doanh thu
+      li.nav-item
+        a.nav-link(href=`${prefixAdmin}/reports/products`)
+          i.fa-solid.fa-box-open.me-1
+          | Sản phẩm
+      li.nav-item
+        a.nav-link.active(href=`${prefixAdmin}/reports/customers`)
+          i.fa-solid.fa-users.me-1
+          | Khách hàng
+      li.nav-item
+        a.nav-link(href=`${prefixAdmin}/reports/inventory`)
+          i.fa-solid.fa-warehouse.me-1
+          | Tồn kho
+
+    // Customer Statistics
+    .row.mb-4
+      .col-md-4
+        .card.border-0.shadow-sm.bg-primary.text-white
+          .card-body.text-center.py-4
+            i.fa-solid.fa-users.fa-3x.mb-3
+            h2.display-4.fw-bold= customerStats.totalCustomers || 0
+            p.mb-0 Khách hàng đã mua
+      .col-md-4
+        .card.border-0.shadow-sm.bg-success.text-white
+          .card-body.text-center.py-4
+            i.fa-solid.fa-money-bill-wave.fa-3x.mb-3
+            h2.display-5.fw-bold= (customerStats.totalRevenue || 0).toLocaleString("vi-VN") + " đ"
+            p.mb-0 Tổng doanh thu
+      .col-md-4
+        .card.border-0.shadow-sm.bg-info.text-white
+          .card-body.text-center.py-4
+            i.fa-solid.fa-chart-bar.fa-3x.mb-3
+            h2.display-4.fw-bold= (customerStats.avgSpent || 0).toLocaleString("vi-VN") + " đ"
+            p.mb-0 Chi tiêu TB/KH
+
+    // Top Customers
+    .card.shadow-sm
+      .card-header.bg-white.d-flex.justify-content-between.align-items-center
+        h5.mb-0
+          i.fa-solid.fa-crown.text-warning.me-2
+          | Top khách hàng chi tiêu cao nhất
+        
+      .card-body.p-0
+        .table-responsive
+          table.table.table-hover.mb-0
+            thead.bg-light
+              tr
+                th.text-center(style="width: 50px") #
+                th Khách hàng
+                th.text-center Số đơn
+                th.text-center Ngày mua gần nhất
+                th.text-end Tổng chi tiêu
+                th.text-end Tỷ lệ
+            tbody
+              if topCustomers && topCustomers.length > 0
+                - var totalSpent = topCustomers.reduce(function(sum, c) { return sum + (c.totalSpent || 0); }, 0);
+                each customer, index in topCustomers
+                  - var customerName = (customer.customer && customer.customer.fullName) ? customer.customer.fullName : "Khách hàng đã xóa";
+                  - var firstChar = customerName.charAt(0).toUpperCase();
+                  - var customerEmail = (customer.customer && customer.customer.email) ? customer.customer.email : null;
+                  tr
+                    td.text-center
+                      if index === 0
+                        span.badge.bg-warning.rounded-circle
+                          i.fa-solid.fa-crown
+                      else if index === 1
+                        span.badge.bg-secondary.rounded-circle
+                          i.fa-solid.fa-medal
+                      else if index === 2
+                        span.badge.bg-bronze.rounded-circle
+                          i.fa-solid.fa-medal
+                      else
+                        span.text-muted= index + 1
+                    td
+                      .d-flex.align-items-center.gap-2
+                        .bg-primary.rounded-circle.d-flex.align-items-center.justify-content-center(style="width: 40px; height: 40px")
+                          span.text-white.fw-bold= firstChar
+                        div
+                          strong= customerName
+                          if customerEmail
+                            small.d-block.text-muted= customerEmail
+                    td.text-center
+                      span.badge.bg-light.text-dark= (customer.orderCount || 0) + " đơn"
+                    td.text-center
+                      if customer.lastOrderDate
+                        - var date = new Date(customer.lastOrderDate);
+                        span= date.toLocaleDateString("vi-VN")
+                      else
+                        span.text-muted -
+                    td.text-end
+                      strong.text-danger= (customer.totalSpent || 0).toLocaleString("vi-VN") + " đ"
+                    td.text-end
+                      - var percentage = totalSpent > 0 ? ((customer.totalSpent / totalSpent) * 100).toFixed(1) : 0;
+                      .d-flex.align-items-center.justify-content-end.gap-2
+                        .progress(style="height: 6px; width: 80px")
+                          .progress-bar.bg-warning(role="progressbar" style="width: " + percentage + "%")
+                        small.text-muted= percentage + "%"
+              else
+                tr
+                  td.text-center.text-muted.py-4(colspan="6")
+                    i.fa-solid.fa-users-slash.fa-3x.mb-2.d-block.opacity-25
+                    | Chưa có dữ liệu khách hàng
+
+    // Customer Table Link
+    .mt-4
+      span.text-muted Danh sách khách hàng mua hàng hiện đang hiển thị ngay trong bảng top bên trên.
+
+  style.
+    .bg-bronze {
+      background-color: #cd7f32 !important;
+      color: white !important;
+    }

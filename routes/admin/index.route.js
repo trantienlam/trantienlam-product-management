@@ -1,6 +1,7 @@
 const systemConfig = require("../../config/system");
 
 const authMiddleware = require("../../middlewares/admin/auth.middleware");
+const productMiddleware = require("../../middlewares/admin/product.middleware");
 
 const dashboardRoutes = require("./dashboard.route");
 const productRoutes = require("./product.route");
@@ -57,7 +58,7 @@ module.exports = (app) => {
   app.use(PATH_ADMIN + "/chat", authMiddleware.requireAuth, chatUploadRoute);
 
   app.use(PATH_ADMIN + "/orders", authMiddleware.requireAuth, orderRoutes);
-  app.use(PATH_ADMIN + "/reports", authMiddleware.requireAuth, reportRoutes);
+  app.use(PATH_ADMIN + "/reports", authMiddleware.requireAuth, productMiddleware, reportRoutes);
   app.use(PATH_ADMIN + "/reviews", authMiddleware.requireAuth, reviewRoutes);
   app.use(PATH_ADMIN + "/vouchers", authMiddleware.requireAuth, voucherRoutes);
 };

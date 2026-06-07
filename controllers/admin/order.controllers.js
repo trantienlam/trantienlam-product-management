@@ -268,11 +268,11 @@ module.exports.detail = async (req, res) => {
 // [DELETE/POST] /admin/orders/delete/:id
 module.exports.deleteItem = async (req, res) => {
   try {
-    console.log('=== DELETE ORDER DEBUG ===');
-    console.log('Method:', req.method);
-    console.log('Params ID:', req.params.id);
-    console.log('User:', res.locals.user ? res.locals.user.email : 'Unknown');
-    console.log('Role permissions:', res.locals.role ? res.locals.role.permission : 'No role');
+    // console.log('=== DELETE ORDER DEBUG ===');
+    // console.log('Method:', req.method);
+    // console.log('Params ID:', req.params.id);
+    // console.log('User:', res.locals.user ? res.locals.user.email : 'Unknown');
+    // console.log('Role permissions:', res.locals.role ? res.locals.role.permission : 'No role');
     
     const permissions = res.locals.role ? res.locals.role.permission : [];
     if (!permissions.includes("orders_delete")) {
@@ -282,7 +282,7 @@ module.exports.deleteItem = async (req, res) => {
     }
 
     const id = req.params.id;
-    console.log('Looking for order with ID:', id);
+    //console.log('Looking for order with ID:', id);
 
     // Kiểm tra đơn hàng tồn tại
     const order = await Order.findById(id);
@@ -292,17 +292,17 @@ module.exports.deleteItem = async (req, res) => {
       return res.redirect("back");
     }
 
-    console.log('Order found:', {
-      _id: order._id,
-      status: order.status,
-      amount: order.amount,
-      createdAt: order.createdAt
-    });
+    // console.log('Order found:', {
+    //   _id: order._id,
+    //   status: order.status,
+    //   amount: order.amount,
+    //   createdAt: order.createdAt
+    // });
 
     // Xóa đơn hàng
     const result = await Order.deleteOne({ _id: id });
 
-    console.log('Delete result:', result);
+    //console.log('Delete result:', result);
     
     if (result.deletedCount === 0) {
       console.log('DELETE FAILED: deletedCount = 0');
