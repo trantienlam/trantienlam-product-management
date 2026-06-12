@@ -56,6 +56,7 @@ block main
               th Hình ảnh 
               th Tiêu đề
               th Giá
+              th Đã bán
               th Vị trí
               th Trạng thái 
               th Người tạo
@@ -80,6 +81,11 @@ block main
                   )
                 td #{item.title}
                 td #{item.price}$
+                td 
+                  if(item.soldCount && item.soldCount > 0)
+                    span.text-success.font-weight-bold #{item.soldCount}
+                  else
+                    span.text-muted 0
                 td 
                   input(
                     type="number"

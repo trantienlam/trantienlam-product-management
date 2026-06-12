@@ -11,6 +11,10 @@ mixin product-item(item)
               | Nổi bật
           if(item.discountPercentage > 0)
             .inner-discount-tag -#{item.discountPercentage}%
+          if(item.soldCount > 0)
+            .inner-sold-badge
+              i.bi.bi-lightning-fill
+              | Đã bán #{item.soldCount}
           .product-item__hover
             i.bi.bi-eye
             | Xem chi tiết

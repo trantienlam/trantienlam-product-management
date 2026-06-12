@@ -4,94 +4,89 @@ include ../../mixins/alert.pug
 block main
   +alert-success(5000)
 
-  .page-header
-    .container
-      .page-header__content
-        .page-header__left
-          .page-header__icon
-            i.fa-solid.fa-warehouse
-          .page-header__text
-            h1 Báo cáo tồn kho
-            p Thống kê tình trạng kho hàng
+  //- ===== Report Header =====
+  .report-hero.report-hero--inventory
+    .report-hero__bg
+    .report-hero__content
+      .report-hero__icon
+        i.fa-solid.fa-warehouse
+      .report-hero__text
+        h1 Báo cáo tồn kho
+        p Thống kê tình trạng kho hàng &amp; cảnh báo sản phẩm
 
-  .container
-    // Navigation tabs
-    ul.nav.nav-tabs.mb-4
-      li.nav-item
-        a.nav-link(href=`${prefixAdmin}/reports`)
-          i.fa-solid.fa-chart-line.me-1
-          | Doanh thu
-      li.nav-item
-        a.nav-link(href=`${prefixAdmin}/reports/products`)
-          i.fa-solid.fa-box-open.me-1
-          | Sản phẩm
-      li.nav-item
-        a.nav-link(href=`${prefixAdmin}/reports/customers`)
-          i.fa-solid.fa-users.me-1
-          | Khách hàng
-      li.nav-item
-        a.nav-link.active(href=`${prefixAdmin}/reports/inventory`)
-          i.fa-solid.fa-warehouse.me-1
-          | Tồn kho
+  .container-fluid.px-4.py-4
 
-    // Inventory Statistics Cards
-    .row.mb-4
-      .col-md-3
-        .card.border-0.shadow-sm.bg-primary.text-white
-          .card-body.text-center.py-4
-            i.fa-solid.fa-boxes-stacked.fa-3x.mb-3
-            h2.display-4.fw-bold= inventoryStats.totalProducts || 0
-            p.mb-0 Tổng sản phẩm
-      .col-md-3
-        .card.border-0.shadow-sm.bg-secondary.text-white
-          .card-body.text-center.py-4
-            i.fa-solid.fa-cubes.fa-3x.mb-3
-            h2.display-4.fw-bold= (inventoryStats.totalStock || 0).toLocaleString("vi-VN")
-            p.mb-0 Tổng tồn kho
-      .col-md-3
-        .card.border-0.shadow-sm.bg-warning.text-dark
-          .card-body.text-center.py-4
-            i.fa-solid.fa-chart-line.fa-3x.mb-3
-            h2.display-4.fw-bold= Math.round(inventoryStats.avgStock || 0)
-            p.mb-0 TB sản phẩm
-      .col-md-3
-        .card.border-0.shadow-sm.bg-success.text-white
-          .card-body.text-center.py-4
-            i.fa-solid.fa-check-circle.fa-3x.mb-3
-            h2.display-4.fw-bold= inventoryStats.normalStock || 0
-            p.mb-0 Bình thường
+    //- ===== Navigation Pills =====
+    .report-nav-pills.mb-4
+      a.report-nav-pill(href=`${prefixAdmin}/reports`)
+        i.fa-solid.fa-chart-line.me-1
+        | Doanh thu
+      a.report-nav-pill(href=`${prefixAdmin}/reports/products`)
+        i.fa-solid.fa-box-open.me-1
+        | Sản phẩm
+      a.report-nav-pill(href=`${prefixAdmin}/reports/customers`)
+        i.fa-solid.fa-users.me-1
+        | Khách hàng
+      a.report-nav-pill.active(href=`${prefixAdmin}/reports/inventory`)
+        i.fa-solid.fa-warehouse.me-1
+        | Tồn kho
 
-    // Status Cards
-    .row.mb-4
-      .col-md-6
-        .card.border-danger
-          .card-body.d-flex.align-items-center
-            .me-3
-              .bg-danger.rounded-circle.d-flex.align-items-center.justify-content-center(style="width: 60px; height: 60px")
-                i.fa-solid.fa-exclamation-circle.fa-2x.text-white
-            div
-              h2.fw-bold.text-danger.mb-0= inventoryStats.outOfStock || 0
-              p.text-muted.mb-0 Sản phẩm hết hàng
-      .col-md-6
-        .card.border-warning
-          .card-body.d-flex.align-items-center
-            .me-3
-              .bg-warning.rounded-circle.d-flex.align-items-center.justify-content-center(style="width: 60px; height: 60px")
-                i.fa-solid.fa-exclamation-triangle.fa-2x.text-dark
-            div
-              h2.fw-bold.text-warning.mb-0= inventoryStats.lowStock || 0
-              p.text-muted.mb-0 Sản phẩm sắp hết (≤ 10)
+    //- ===== Stat Cards Row 1 =====
+    .report-stat-grid.mb-3
+      .report-stat-card.report-stat-card--primary
+        .report-stat-card__icon
+          i.fa-solid.fa-boxes-stacked
+        .report-stat-card__body
+          .report-stat-card__label Tổng sản phẩm
+          .report-stat-card__value= inventoryStats.totalProducts || 0
+          .report-stat-card__sub Tất cả sản phẩm
+      .report-stat-card.report-stat-card--secondary
+        .report-stat-card__icon
+          i.fa-solid.fa-cubes
+        .report-stat-card__body
+          .report-stat-card__label Tổng tồn kho
+          .report-stat-card__value= (inventoryStats.totalStock || 0).toLocaleString("vi-VN")
+          .report-stat-card__sub Số lượng items
+      .report-stat-card.report-stat-card--success
+        .report-stat-card__icon
+          i.fa-solid.fa-check-circle
+        .report-stat-card__body
+          .report-stat-card__label Bình thường
+          .report-stat-card__value= inventoryStats.normalStock || 0
+          .report-stat-card__sub Kho &gt; 10 cái
+      .report-stat-card.report-stat-card--avg
+        .report-stat-card__icon
+          i.fa-solid.fa-chart-line
+        .report-stat-card__body
+          .report-stat-card__label TB / sản phẩm
+          .report-stat-card__value= Math.round(inventoryStats.avgStock || 0)
+          .report-stat-card__sub Số lượng trung bình
 
-    // Out of Stock Products
+    //- ===== Status Alert Row =====
+    .report-status-row.mb-4
+      .report-status-card.report-status-card--danger
+        .report-status-card__dot
+        i.fa-solid.fa-exclamation-circle
+        .report-status-card__body
+          .report-status-card__value= inventoryStats.outOfStock || 0
+          .report-status-card__label Sản phẩm hết hàng
+      .report-status-card.report-status-card--warning
+        .report-status-card__dot
+        i.fa-solid.fa-exclamation-triangle
+        .report-status-card__body
+          .report-status-card__value= inventoryStats.lowStock || 0
+          .report-status-card__label Sản phẩm sắp hết (≤ 10)
+
+    //- ===== Out of Stock =====
     if outOfStockProducts && outOfStockProducts.length > 0
-      .card.shadow-sm.mb-4.border-danger
-        .card-header.bg-danger.text-white.d-flex.align-items-center
+      .report-table-card.report-table-card--danger.mb-4
+        .report-table-card__header.report-table-card__header--danger
           i.fa-solid.fa-times-circle.me-2
-          h5.mb-0 Sản phẩm đã hết hàng (#{outOfStockProducts.length})
-        .card-body.p-0
+          | Sản phẩm đã hết hàng (#{outOfStockProducts.length})
+        .report-table-card__body.p-0
           .table-responsive
-            table.table.table-hover.mb-0
-              thead.bg-light
+            table.table.table-hover.report-table.mb-0
+              thead
                 tr
                   th Sản phẩm
                   th.text-center Danh mục
@@ -103,46 +98,46 @@ block main
                 each product in outOfStockProducts
                   tr
                     td
-                      .d-flex.align-items-center.gap-2
+                      .report-product-cell
                         if product.thumbnail
-                          img(src=product.thumbnail alt=product.title style="width: 40px; height: 40px; object-fit: cover" class="rounded")
+                          img.report-product-thumb(src=product.thumbnail alt=product.title)
                         else
-                          .bg-light.rounded.d-flex.align-items-center.justify-content-center(style="width: 40px; height: 40px")
+                          .report-product-thumb.report-product-thumb--placeholder
                             i.fa-solid.fa-image.text-muted
-                        strong= product.title
+                        strong.report-product-name= product.title
                     td.text-center
                       if product.category
-                        span.badge.bg-light.text-dark= product.category.title
+                        span.report-category-badge= product.category.title
                       else
                         span.text-muted Chưa phân loại
                     td.text-center
-                      small.text-muted.text-decoration-line-through= product.price.toLocaleString("vi-VN") + " đ"
+                      del.report-price-old= product.price.toLocaleString("vi-VN") + " đ"
                     td.text-center
                       - var priceNew = productHelper.priceNewProduct(product);
-                      strong.text-success= Number(priceNew).toLocaleString("vi-VN") + " đ"
+                      strong.report-price-new= Number(priceNew).toLocaleString("vi-VN") + " đ"
                     td.text-center
-                      span.badge.bg-danger= "0"
+                      span.badge.bg-danger 0
                     td.text-end
-                      a.btn.btn-sm.btn-outline-primary(href=`${prefixAdmin}/products/edit/${product._id}`)
+                      a.btn.btn-sm.btn-outline-danger(href=`${prefixAdmin}/products/edit/${product._id}`)
                         i.fa-solid.fa-plus.me-1
                         | Nhập kho
 
-    // Low Stock Products
+    //- ===== Low Stock =====
     if lowStockProducts && lowStockProducts.length > 0
-      .card.shadow-sm.mb-4.border-warning
-        .card-header.bg-warning.text-dark.d-flex.align-items-center
+      .report-table-card.report-table-card--warning.mb-4
+        .report-table-card__header.report-table-card__header--warning
           i.fa-solid.fa-exclamation-triangle.me-2
-          h5.mb-0 Sản phẩm sắp hết hàng (#{lowStockProducts.length})
-        .card-body.p-0
+          | Sản phẩm sắp hết hàng (#{lowStockProducts.length})
+        .report-table-card__body.p-0
           .table-responsive
-            table.table.table-hover.mb-0
-              thead.bg-light
+            table.table.table-hover.report-table.mb-0
+              thead
                 tr
                   th Sản phẩm
                   th.text-center Kho
                   th.text-center Giá gốc
                   th.text-center Giá KM
-                  th.text-center Trạng thái kho
+                  th.text-center Trạng thái
                   th.text-end Hành động
               tbody
                 each product in lowStockProducts
@@ -150,20 +145,20 @@ block main
                   - var stockBadgeClass = product.stock <= 5 ? "bg-danger" : "bg-warning text-dark";
                   tr
                     td
-                      .d-flex.align-items-center.gap-2
+                      .report-product-cell
                         if product.thumbnail
-                          img(src=product.thumbnail alt=product.title style="width: 40px; height: 40px; object-fit: cover" class="rounded")
+                          img.report-product-thumb(src=product.thumbnail alt=product.title)
                         else
-                          .bg-light.rounded.d-flex.align-items-center.justify-content-center(style="width: 40px; height: 40px")
+                          .report-product-thumb.report-product-thumb--placeholder
                             i.fa-solid.fa-image.text-muted
-                        strong= product.title
+                        strong.report-product-name= product.title
                     td.text-center
                       strong= product.stock
                     td.text-center
-                      small.text-muted.text-decoration-line-through= product.price.toLocaleString("vi-VN") + " đ"
+                      del.report-price-old= product.price.toLocaleString("vi-VN") + " đ"
                     td.text-center
                       - var priceNew2 = productHelper.priceNewProduct(product);
-                      strong.text-success= Number(priceNew2).toLocaleString("vi-VN") + " đ"
+                      strong.report-price-new= Number(priceNew2).toLocaleString("vi-VN") + " đ"
                     td.text-center
                       span.badge(class=stockBadgeClass)= stockStatus
                     td.text-end
@@ -171,16 +166,17 @@ block main
                         i.fa-solid.fa-plus.me-1
                         | Nhập kho
 
-    // High Stock Products
+    //- ===== High Stock =====
     if highStockProducts && highStockProducts.length > 0
-      .card.shadow-sm
-        .card-header.bg-success.text-white.d-flex.align-items-center
-          i.fa-solid.fa-boxes-stacked.me-2
-          h5.mb-0 Sản phẩm tồn kho cao (> 100)
-        .card-body.p-0
+      .report-table-card.mb-4
+        .report-table-card__header
+          .report-table-card__title
+            i.fa-solid.fa-boxes-stacked.me-2.text-success
+            | Sản phẩm tồn kho cao (&gt; 100)
+        .report-table-card__body.p-0
           .table-responsive
-            table.table.table-hover.mb-0
-              thead.bg-light
+            table.table.table-hover.report-table.mb-0
+              thead
                 tr
                   th Sản phẩm
                   th.text-center Kho
@@ -194,29 +190,169 @@ block main
                   - var stockValue = product.stock * Number(priceNew3);
                   tr
                     td
-                      .d-flex.align-items-center.gap-2
+                      .report-product-cell
                         if product.thumbnail
-                          img(src=product.thumbnail alt=product.title style="width: 40px; height: 40px; object-fit: cover" class="rounded")
+                          img.report-product-thumb(src=product.thumbnail alt=product.title)
                         else
-                          .bg-light.rounded.d-flex.align-items-center.justify-content-center(style="width: 40px; height: 40px")
+                          .report-product-thumb.report-product-thumb--placeholder
                             i.fa-solid.fa-image.text-muted
-                        strong= product.title
+                        strong.report-product-name= product.title
                     td.text-center
                       span.badge.bg-success= product.stock
                     td.text-center
-                      small.text-muted.text-decoration-line-through= product.price.toLocaleString("vi-VN") + " đ"
+                      del.report-price-old= product.price.toLocaleString("vi-VN") + " đ"
                     td.text-center
-                      strong.text-success= Number(priceNew3).toLocaleString("vi-VN") + " đ"
+                      strong.report-price-new= Number(priceNew3).toLocaleString("vi-VN") + " đ"
                     td.text-end
-                      strong.text-primary= stockValue.toLocaleString("vi-VN") + " đ"
+                      strong.report-stock-value= stockValue.toLocaleString("vi-VN") + " đ"
                     td.text-end
                       a.btn.btn-sm.btn-outline-info(href=`${prefixAdmin}/products/edit/${product._id}`)
                         i.fa-solid.fa-edit.me-1
                         | Chi tiết
 
-    // No data message
+    //- ===== Success message if all ok ----
     if (!outOfStockProducts || outOfStockProducts.length === 0)
       if (!lowStockProducts || lowStockProducts.length === 0)
-        .alert.alert-success
-          i.fa-solid.fa-check-circle.me-2
+        .report-success-banner
+          i.fa-solid.fa-check-circle.me-3
           | Tuyệt vời! Tất cả sản phẩm đều có kho hàng đầy đủ.
+
+  style.
+    /* ---- Report Hero ---- */
+    .report-hero {
+      position: relative; padding: 36px 32px 32px; overflow: hidden; color: #fff;
+    }
+    .report-hero--inventory { background: linear-gradient(135deg, #0f766e 0%, #115e59 50%, #14b8a6 100%); }
+    .report-hero__bg {
+      position: absolute; inset: 0; pointer-events: none;
+      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+    .report-hero__content { position: relative; z-index: 1; display: flex; align-items: center; gap: 20px; }
+    .report-hero__icon {
+      width: 60px; height: 60px; border-radius: 16px;
+      background: rgba(255,255,255,0.15); backdrop-filter: blur(8px);
+      display: flex; align-items: center; justify-content: center; font-size: 26px; flex-shrink: 0;
+    }
+    .report-hero__text h1 { font-size: 24px; font-weight: 700; margin: 0 0 4px; letter-spacing: -0.3px; }
+    .report-hero__text p { margin: 0; opacity: 0.85; font-size: 14px; }
+
+    /* ---- Nav Pills ---- */
+    .report-nav-pills {
+      display: flex; gap: 6px; flex-wrap: wrap;
+      background: #fff; padding: 6px; border-radius: 14px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06); border: 1px solid #eef0f3;
+    }
+    .report-nav-pill {
+      padding: 8px 18px; border-radius: 10px; font-size: 14px; font-weight: 500;
+      color: #6c757d; text-decoration: none; transition: all 0.2s;
+      display: inline-flex; align-items: center;
+    }
+    .report-nav-pill:hover { background: #f1f3f5; color: #343a40; text-decoration: none; }
+    .report-nav-pill.active {
+      background: linear-gradient(135deg, #0f766e, #14b8a6);
+      color: #fff; font-weight: 600; box-shadow: 0 2px 8px rgba(15,118,110,0.35);
+    }
+
+    /* ---- Stat Cards ---- */
+    .report-stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+    }
+    .report-stat-card {
+      background: #fff; border-radius: 16px; padding: 20px;
+      display: flex; align-items: flex-start; gap: 16px;
+      border: 1px solid #eef0f3;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .report-stat-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.08); }
+    .report-stat-card__icon {
+      width: 48px; height: 48px; border-radius: 14px;
+      display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0;
+    }
+    .report-stat-card--primary .report-stat-card__icon { background: #ede9fe; color: #7c3aed; }
+    .report-stat-card--secondary .report-stat-card__icon { background: #f1f5f9; color: #475569; }
+    .report-stat-card--success .report-stat-card__icon { background: #ecfdf5; color: #059669; }
+    .report-stat-card--avg .report-stat-card__icon { background: #e0f2fe; color: #0284c7; }
+    .report-stat-card__label { font-size: 12px; color: #9ca3af; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+    .report-stat-card__value { font-size: 22px; font-weight: 700; color: #111827; line-height: 1.2; margin-bottom: 4px; }
+    .report-stat-card__sub { font-size: 12px; color: #6b7280; }
+
+    /* ---- Status Row ---- */
+    .report-status-row {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+    }
+    @media (max-width: 576px) { .report-status-row { grid-template-columns: 1fr; } }
+    .report-status-card {
+      background: #fff; border-radius: 14px; padding: 18px 20px;
+      display: flex; align-items: center; gap: 16px;
+      border: 1px solid #eef0f3;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    }
+    .report-status-card > i { font-size: 28px; flex-shrink: 0; }
+    .report-status-card--danger { border-color: #fecdd3; }
+    .report-status-card--danger > i { color: #e11d48; }
+    .report-status-card--warning { border-color: #fde68a; }
+    .report-status-card--warning > i { color: #ca8a04; }
+    .report-status-card__dot {
+      width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+      animation: pulse-dot 2s infinite;
+    }
+    .report-status-card--danger .report-status-card__dot { background: #e11d48; }
+    .report-status-card--warning .report-status-card__dot { background: #ca8a04; }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.8); }
+    }
+    .report-status-card__value { font-size: 28px; font-weight: 800; color: #111827; line-height: 1; }
+    .report-status-card__label { font-size: 13px; color: #6b7280; }
+
+    /* ---- Table Card ---- */
+    .report-table-card {
+      background: #fff; border-radius: 16px;
+      border: 1px solid #eef0f3;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+      overflow: hidden;
+    }
+    .report-table-card--danger { border-color: #fecdd3; }
+    .report-table-card--warning { border-color: #fde68a; }
+    .report-table-card__header {
+      padding: 16px 20px;
+      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;
+      border-bottom: 1px solid #f3f4f6;
+    }
+    .report-table-card__header--danger { background: #fff1f2; border-bottom-color: #fecdd3; color: #9f1239; }
+    .report-table-card__header--warning { background: #fefce8; border-bottom-color: #fde68a; color: #713f12; }
+    .report-table-card__title { font-size: 15px; font-weight: 600; color: #374151; display: flex; align-items: center; }
+    .report-table-card thead th {
+      background: #f9fafb; font-size: 12px; font-weight: 600; color: #6b7280;
+      text-transform: uppercase; letter-spacing: 0.5px;
+      padding: 12px 16px; border-bottom: 1px solid #e5e7eb;
+    }
+    .report-table tbody td { padding: 13px 16px; font-size: 14px; vertical-align: middle; color: #374151; border-bottom: 1px solid #f3f4f6; }
+    .report-table tbody tr:last-child td { border-bottom: none; }
+    .report-table tbody tr:hover { background-color: #f9fafb; }
+    .report-product-cell { display: flex; align-items: center; gap: 12px; }
+    .report-product-thumb { width: 42px; height: 42px; border-radius: 10px; object-fit: cover; border: 1px solid #e5e7eb; flex-shrink: 0; }
+    .report-product-thumb--placeholder { background: #f9fafb; display: flex; align-items: center; justify-content: center; }
+    .report-product-name { font-size: 14px; font-weight: 500; }
+    .report-category-badge { display: inline-block; padding: 3px 10px; background: #f1f5f9; color: #475569; border-radius: 8px; font-size: 12px; }
+    .report-price-old { font-size: 13px; color: #9ca3af; }
+    .report-price-new { color: #059669; font-weight: 600; }
+    .report-stock-value { color: #7c3aed; font-weight: 700; }
+
+    /* ---- Success Banner ---- */
+    .report-success-banner {
+      display: flex; align-items: center; justify-content: center;
+      padding: 20px; background: #ecfdf5; color: #065f46;
+      border-radius: 14px; border: 1px solid #a7f3d0;
+      font-size: 15px; font-weight: 500;
+    }
+    .report-success-banner i { font-size: 22px; color: #059669; flex-shrink: 0; }
+
+    @media (max-width: 576px) {
+      .report-hero__content { flex-direction: column; text-align: center; }
+      .report-stat-grid { grid-template-columns: 1fr 1fr; }
+      .report-stat-card__value { font-size: 18px; }
+    }

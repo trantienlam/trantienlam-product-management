@@ -90,6 +90,19 @@ block main
               .col-md-6.mb-3
                 .product-info-item
                   .product-info-label
+                    i.fa-solid.fa-lightning-charge
+                    | Đã bán
+                  .product-info-value
+                    if(product.soldCount && product.soldCount > 0)
+                      span.text-success.font-weight-bold
+                        i.fa-solid.fa-fire-flame-curved
+                        | #{product.soldCount} sản phẩm
+                    else
+                      span.text-muted Chưa có đơn hàng
+
+              .col-md-6.mb-3
+                .product-info-item
+                  .product-info-label
                     i.fa-solid.fa-layer-group
                     | Vị trí hiển thị
                   .product-info-value

@@ -4,125 +4,106 @@ include ../../mixins/alert.pug
 block main
   +alert-success(5000)
 
-  .page-header
-    .container
-      .page-header__content
-        .page-header__left
-          .page-header__icon
-            i.fa-solid.fa-chart-column
-          .page-header__text
-            h1 Báo cáo doanh thu
-            p Thống kê doanh thu và sản phẩm đã bán theo ngày, tháng, năm
+  //- ===== Report Header =====
+  .report-hero.report-hero--revenue
+    .report-hero__bg
+    .report-hero__content
+      .report-hero__icon
+        i.fa-solid.fa-chart-line
+      .report-hero__text
+        h1 Báo cáo doanh thu
+        p Thống kê doanh thu &amp; sản phẩm đã bán theo ngày / tháng / năm
 
-  .container
-    // Navigation tabs
-    ul.nav.nav-tabs.mb-4
-      li.nav-item
-        a.nav-link.active(href=`${prefixAdmin}/reports`)
-          i.fa-solid.fa-chart-line.me-1
-          | Doanh thu
-      li.nav-item
-        a.nav-link(href=`${prefixAdmin}/reports/products`)
-          i.fa-solid.fa-box-open.me-1
-          | Sản phẩm
-      li.nav-item
-        a.nav-link(href=`${prefixAdmin}/reports/customers`)
-          i.fa-solid.fa-users.me-1
-          | Khách hàng
-      li.nav-item
-        a.nav-link(href=`${prefixAdmin}/reports/inventory`)
-          i.fa-solid.fa-warehouse.me-1
-          | Tồn kho
+  .container-fluid.px-4.py-4
 
-    // Filter và Actions
-    .d-flex.justify-content-between.align-items-center.mb-4
-      form(method="GET" action=`${prefixAdmin}/reports`)
-        .d-flex.gap-2.align-items-center
-          label.mb-0.me-2
-            i.fa-solid.fa-calendar-days.me-1
-            | Xem theo:
-          select.form-select.form-select-sm(name="reportType" onchange="this.form.submit()" style="width: auto")
-            option(value="day" selected=salesReport.reportType === "day") Theo ngày
-            option(value="month" selected=salesReport.reportType === "month") Theo tháng
-            option(value="year" selected=salesReport.reportType === "year") Theo năm
+    //- ===== Navigation Pills =====
+    .report-nav-pills.mb-4
+      a.report-nav-pill.active(href=`${prefixAdmin}/reports`)
+        i.fa-solid.fa-chart-line.me-1
+        | Doanh thu
+      a.report-nav-pill(href=`${prefixAdmin}/reports/products`)
+        i.fa-solid.fa-box-open.me-1
+        | Sản phẩm
+      a.report-nav-pill(href=`${prefixAdmin}/reports/customers`)
+        i.fa-solid.fa-users.me-1
+        | Khách hàng
+      a.report-nav-pill(href=`${prefixAdmin}/reports/inventory`)
+        i.fa-solid.fa-warehouse.me-1
+        | Tồn kho
 
-      .d-flex.gap-2
-        a.btn.btn-success.btn-sm(href=`${prefixAdmin}/reports/export/excel?type=revenue`)
+    //- ===== Filter & Actions =====
+    .report-toolbar.mb-4
+      form.report-toolbar__filter(method="GET" action=`${prefixAdmin}/reports`)
+        i.fa-solid.fa-calendar-days.me-2.text-muted
+        select.form-select.form-select-sm(name="reportType" onchange="this.form.submit()")
+          option(value="day" selected=(salesReport.reportType === "day")) Theo ngày
+          option(value="month" selected=(salesReport.reportType === "month")) Theo tháng
+          option(value="year" selected=(salesReport.reportType === "year")) Theo năm
+      .report-toolbar__actions
+        a.btn.btn-outline-success.btn-sm(href=`${prefixAdmin}/reports/export/excel?type=revenue`)
           i.fa-solid.fa-file-excel.me-1
-          | Xuất Excel
+          | Excel
         a.btn.btn-outline-secondary.btn-sm(href=`${prefixAdmin}/reports/export?type=revenue&format=csv`)
           i.fa-solid.fa-download.me-1
-          | Xuất CSV
+          | CSV
 
-    // Stats Cards Row 1
-    .row.mb-4
-      .col-md-3
-        .card.stat-card.stat-card--success
-          .card-body
-            .stat-card__icon
-              i.fa-solid.fa-sun
-            .stat-card__content
-              .stat-card__label Hôm nay
-              .stat-card__value.text-success= salesReport.summary.day.revenue.toLocaleString("vi-VN") + " đ"
-              .stat-card__sub= "Đã bán " + salesReport.summary.day.soldQuantity + " sản phẩm"
-      .col-md-3
-        .card.stat-card.stat-card--info
-          .card-body
-            .stat-card__icon
-              i.fa-solid.fa-calendar
-            .stat-card__content
-              .stat-card__label Tháng này
-              .stat-card__value.text-info= salesReport.summary.month.revenue.toLocaleString("vi-VN") + " đ"
-              .stat-card__sub= "Đã bán " + salesReport.summary.month.soldQuantity + " sản phẩm"
-      .col-md-3
-        .card.stat-card.stat-card--primary
-          .card-body
-            .stat-card__icon
-              i.fa-solid.fa-calendar-check
-            .stat-card__content
-              .stat-card__label Năm này
-              .stat-card__value.text-primary= salesReport.summary.year.revenue.toLocaleString("vi-VN") + " đ"
-              .stat-card__sub= "Đã bán " + salesReport.summary.year.soldQuantity + " sản phẩm"
-      .col-md-3
-        .card.stat-card.stat-card--warning
-          .card-body
-            .stat-card__icon
-              i.fa-solid.fa-shopping-cart
-            .stat-card__content
-              .stat-card__label Đơn hàng tháng
-              .stat-card__value= orderStats.totalOrders
-              .stat-card__sub= "Đang xử lý: " + orderStats.pendingOrders
+    //- ===== Stat Cards =====
+    .report-stat-grid.mb-4
+      .report-stat-card.report-stat-card--today
+        .report-stat-card__icon
+          i.fa-solid.fa-sun
+        .report-stat-card__body
+          .report-stat-card__label Hôm nay
+          .report-stat-card__value= salesReport.summary.day.revenue.toLocaleString("vi-VN") + " đ"
+          .report-stat-card__sub Đã bán #{salesReport.summary.day.soldQuantity} sản phẩm
+      .report-stat-card.report-stat-card--month
+        .report-stat-card__icon
+          i.fa-solid.fa-calendar
+        .report-stat-card__body
+          .report-stat-card__label Tháng này
+          .report-stat-card__value= salesReport.summary.month.revenue.toLocaleString("vi-VN") + " đ"
+          .report-stat-card__sub Đã bán #{salesReport.summary.month.soldQuantity} sản phẩm
+      .report-stat-card.report-stat-card--year
+        .report-stat-card__icon
+          i.fa-solid.fa-calendar-check
+        .report-stat-card__body
+          .report-stat-card__label Năm này
+          .report-stat-card__value= salesReport.summary.year.revenue.toLocaleString("vi-VN") + " đ"
+          .report-stat-card__sub Đã bán #{salesReport.summary.year.soldQuantity} sản phẩm
+      .report-stat-card.report-stat-card--orders
+        .report-stat-card__icon
+          i.fa-solid.fa-shopping-cart
+        .report-stat-card__body
+          .report-stat-card__label Đơn hàng tháng
+          .report-stat-card__value #{orderStats.totalOrders} đơn
+          .report-stat-card__sub #{orderStats.pendingOrders} đang chờ
 
-    // Chart Section
-    .row.mb-4
-      .col-lg-8
-        .card.shadow-sm
-          .card-header.bg-white
-            h5.mb-0
-              i.fa-solid.fa-chart-line.me-2
-              | Biểu đồ doanh thu 30 ngày gần nhất
-          .card-body
-            canvas#revenueChart(style="max-height: 300px")
-      .col-lg-4
-        .card.shadow-sm
-          .card-header.bg-white
-            h5.mb-0
-              i.fa-solid.fa-chart-pie.me-2
-              | Tổng quan tháng
-          .card-body
-            canvas#statsChart(style="max-height: 300px")
+    //- ===== Charts =====
+    .report-charts-grid.mb-4
+      .report-chart-card
+        .report-chart-card__header
+          i.fa-solid.fa-chart-line.me-2
+          | Doanh thu 30 ngày gần nhất
+        .report-chart-card__body
+          canvas#revenueChart
+      .report-chart-card.report-chart-card--pie
+        .report-chart-card__header
+          i.fa-solid.fa-chart-pie.me-2
+          | Tổng quan tháng
+        .report-chart-card__body
+          canvas#statsChart
 
-    // Report Table
-    .card.shadow-sm
-      .card-header.bg-white.d-flex.justify-content-between.align-items-center
-        h5.mb-0
+    //- ===== Detail Table =====
+    .report-table-card
+      .report-table-card__header
+        .report-table-card__title
           i.fa-solid.fa-table.me-2
           | Chi tiết doanh thu
-        span.text-muted= "Hiển thị " + (salesReport.rows ? salesReport.rows.length : 0) + " kỳ báo cáo"
-      .card-body.p-0
+        span.report-table-card__count #{salesReport.rows ? salesReport.rows.length : 0} kỳ báo cáo
+      .report-table-card__body.p-0
         .table-responsive
-          table.table.table-hover.mb-0
-            thead.bg-light
+          table.table.table-hover.report-table.mb-0
+            thead
               tr
                 th Kỳ báo cáo
                 th.text-center Sản phẩm đã bán
@@ -133,38 +114,35 @@ block main
                 - var totalRevenue = 0;
                 each row in salesReport.rows
                   - totalRevenue += row.revenue;
-                each row, index in salesReport.rows
+                each row in salesReport.rows
+                  - var percentage = totalRevenue > 0 ? ((row.revenue / totalRevenue) * 100).toFixed(1) : 0;
                   tr
                     td
-                      span.badge.bg-light.text-dark= row.label
+                      .report-period-badge= row.label
                     td.text-center
-                      span.fw-semibold= row.soldQuantity.toLocaleString("vi-VN")
+                      span.report-quantity= row.soldQuantity.toLocaleString("vi-VN")
                     td.text-end
-                      span.fw-bold.text-danger= row.revenue.toLocaleString("vi-VN") + " đ"
+                      span.report-money= row.revenue.toLocaleString("vi-VN") + " đ"
                     td.text-end
-                      - var percentage = totalRevenue > 0 ? ((row.revenue / totalRevenue) * 100).toFixed(1) : 0;
-                      .progress(style="height: 6px; width: 100px")
-                        .progress-bar.bg-success(role="progressbar" style=`width: ${percentage}%`)
-                      small.text-muted= percentage + "%"
+                      .report-progress-cell
+                        .report-progress-bar
+                          .report-progress-fill(style=`width: ${percentage}%`)
+                        span.report-progress-pct= percentage + "%"
               else
                 tr
-                  td.text-center.text-muted.py-4(colspan="4")
-                    i.fa-solid.fa-inbox.fa-3x.mb-2.d-block.opacity-25
-                    | Chưa có dữ liệu báo cáo
+                  td.text-center.text-muted.py-5(colspan="4")
+                    .report-empty
+                      i.fa-solid.fa-inbox
+                      | Chưa có dữ liệu báo cáo
 
   // Chart.js
   script(src="https://cdn.jsdelivr.net/npm/chart.js")
 
   script.
-    // Data from server
     const chartLabels = !{JSON.stringify(chartData.labels)};
     const chartRevenues = !{JSON.stringify(chartData.revenues)};
     const chartOrders = !{JSON.stringify(chartData.orders)};
 
-    // Format numbers for display
-    const formattedRevenues = chartRevenues.map(v => v);
-
-    // Revenue Chart
     const revenueCtx = document.getElementById('revenueChart').getContext('2d');
     new Chart(revenueCtx, {
       type: 'line',
@@ -173,78 +151,60 @@ block main
         datasets: [
           {
             label: 'Doanh thu (VNĐ)',
-            data: formattedRevenues,
-            borderColor: '#28a745',
-            backgroundColor: 'rgba(40, 167, 69, 0.1)',
+            data: chartRevenues,
+            borderColor: '#4a90d9',
+            backgroundColor: 'rgba(74, 144, 217, 0.08)',
             fill: true,
-            tension: 0.3,
+            tension: 0.4,
             yAxisID: 'y'
           },
           {
             label: 'Số đơn hàng',
             data: chartOrders,
-            borderColor: '#007bff',
-            backgroundColor: 'rgba(0, 123, 255, 0.1)',
+            borderColor: '#06d6a0',
+            backgroundColor: 'rgba(6, 214, 160, 0.05)',
             fill: false,
-            tension: 0.3,
+            tension: 0.4,
             yAxisID: 'y1'
           }
         ]
       },
       options: {
         responsive: true,
-        maintainAspectRatio: true,
-        interaction: {
-          mode: 'index',
-          intersect: false
-        },
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
         plugins: {
           tooltip: {
             callbacks: {
               label: function(context) {
                 if (context.datasetIndex === 0) {
-                  return 'Doanh thu: ' + context.raw.toLocaleString('vi-VN') + ' đ';
+                  return 'Doanh thu: ' + Number(context.raw).toLocaleString('vi-VN') + ' đ';
                 }
                 return 'Đơn hàng: ' + context.raw;
               }
             }
           },
-          legend: {
-            position: 'top'
-          }
+          legend: { position: 'top' }
         },
         scales: {
           y: {
             type: 'linear',
             display: true,
             position: 'left',
-            title: {
-              display: true,
-              text: 'Doanh thu (VNĐ)'
-            },
-            ticks: {
-              callback: function(value) {
-                return value.toLocaleString('vi-VN');
-              }
-            }
+            title: { display: true, text: 'Doanh thu (VNĐ)' },
+            ticks: { callback: function(value) { return Number(value).toLocaleString('vi-VN'); } }
           },
           y1: {
             type: 'linear',
             display: true,
             position: 'right',
-            title: {
-              display: true,
-              text: 'Số đơn hàng'
-            },
-            grid: {
-              drawOnChartArea: false
-            }
+            title: { display: true, text: 'Số đơn hàng' },
+            grid: { drawOnChartArea: false }
           }
         }
       }
     });
 
-    // Stats Pie Chart
     const orderStats = !{JSON.stringify(orderStats)};
     const statsCtx = document.getElementById('statsChart').getContext('2d');
     new Chart(statsCtx, {
@@ -259,22 +219,169 @@ block main
             orderStats.deliveredOrders || 0,
             orderStats.cancelledOrders || 0
           ],
-          backgroundColor: [
-            '#ffc107',
-            '#17a2b8',
-            '#007bff',
-            '#28a745',
-            '#dc3545'
-          ]
+          backgroundColor: ['#ffc107', '#17a2b8', '#007bff', '#28a745', '#dc3545'],
+          borderWidth: 0,
+          hoverOffset: 6
         }]
       },
       options: {
         responsive: true,
-        maintainAspectRatio: true,
+        maintainAspectRatio: false,
+        cutout: '62%',
         plugins: {
-          legend: {
-            position: 'bottom'
-          }
+          legend: { position: 'bottom', labels: { padding: 16, usePointStyle: true, pointStyleWidth: 10 } }
         }
       }
     });
+
+  style.
+    /* ---- Report Hero ---- */
+    .report-hero {
+      position: relative;
+      padding: 36px 32px 32px;
+      overflow: hidden;
+      color: #fff;
+    }
+    .report-hero--revenue { background: linear-gradient(135deg, #1a5db0 0%, #2980b9 50%, #27ae60 100%); }
+    .report-hero__bg {
+      position: absolute; inset: 0; pointer-events: none;
+      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+    .report-hero__content { position: relative; z-index: 1; display: flex; align-items: center; gap: 20px; }
+    .report-hero__icon {
+      width: 60px; height: 60px; border-radius: 16px;
+      background: rgba(255,255,255,0.15); backdrop-filter: blur(8px);
+      display: flex; align-items: center; justify-content: center; font-size: 26px; flex-shrink: 0;
+    }
+    .report-hero__text h1 { font-size: 24px; font-weight: 700; margin: 0 0 4px; letter-spacing: -0.3px; }
+    .report-hero__text p { margin: 0; opacity: 0.85; font-size: 14px; }
+
+    /* ---- Nav Pills ---- */
+    .report-nav-pills {
+      display: flex; gap: 6px; flex-wrap: wrap;
+      background: #fff; padding: 6px; border-radius: 14px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06); border: 1px solid #eef0f3;
+    }
+    .report-nav-pill {
+      padding: 8px 18px; border-radius: 10px; font-size: 14px; font-weight: 500;
+      color: #6c757d; text-decoration: none; transition: all 0.2s;
+      display: inline-flex; align-items: center;
+    }
+    .report-nav-pill:hover { background: #f1f3f5; color: #343a40; text-decoration: none; }
+    .report-nav-pill.active {
+      background: linear-gradient(135deg, #2980b9, #27ae60);
+      color: #fff; font-weight: 600; box-shadow: 0 2px 8px rgba(41,128,185,0.35);
+    }
+
+    /* ---- Toolbar ---- */
+    .report-toolbar {
+      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;
+    }
+    .report-toolbar__filter { display: flex; align-items: center; gap: 10px; }
+    .report-toolbar__actions { display: flex; gap: 8px; }
+    .report-toolbar__filter .form-select {
+      border-radius: 10px; border-color: #d1d5db; font-size: 14px;
+      padding: 6px 12px; color: #374151; background-color: #fff;
+      transition: border-color 0.2s;
+    }
+    .report-toolbar__filter .form-select:focus { border-color: #4a90d9; box-shadow: 0 0 0 3px rgba(74,144,217,0.12); }
+
+    /* ---- Stat Cards ---- */
+    .report-stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+    }
+    .report-stat-card {
+      background: #fff; border-radius: 16px; padding: 20px;
+      display: flex; align-items: flex-start; gap: 16px;
+      border: 1px solid #eef0f3;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .report-stat-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.08); }
+    .report-stat-card__icon {
+      width: 48px; height: 48px; border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; flex-shrink: 0;
+    }
+    .report-stat-card--today .report-stat-card__icon { background: #fff8e6; color: #f59e0b; }
+    .report-stat-card--month .report-stat-card__icon { background: #e6f7ff; color: #0284c7; }
+    .report-stat-card--year .report-stat-card__icon { background: #ecfdf5; color: #059669; }
+    .report-stat-card--orders .report-stat-card__icon { background: #f0f0ff; color: #6366f1; }
+    .report-stat-card__label { font-size: 12px; color: #9ca3af; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+    .report-stat-card__value { font-size: 20px; font-weight: 700; color: #111827; line-height: 1.2; margin-bottom: 4px; }
+    .report-stat-card__sub { font-size: 12px; color: #6b7280; }
+
+    /* ---- Chart Cards ---- */
+    .report-charts-grid {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 16px;
+    }
+    @media (max-width: 991px) { .report-charts-grid { grid-template-columns: 1fr; } }
+    .report-chart-card {
+      background: #fff; border-radius: 16px;
+      border: 1px solid #eef0f3;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+      overflow: hidden;
+    }
+    .report-chart-card__header {
+      padding: 16px 20px;
+      font-size: 15px; font-weight: 600; color: #374151;
+      border-bottom: 1px solid #f3f4f6;
+      display: flex; align-items: center;
+    }
+    .report-chart-card__body {
+      padding: 20px;
+      position: relative;
+    }
+    .report-chart-card:not(.report-chart-card--pie) .report-chart-card__body {
+      height: 300px;
+    }
+    .report-chart-card--pie .report-chart-card__body {
+      height: 300px;
+    }
+
+    /* ---- Table Card ---- */
+    .report-table-card {
+      background: #fff; border-radius: 16px;
+      border: 1px solid #eef0f3;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+      overflow: hidden;
+    }
+    .report-table-card__header {
+      padding: 16px 20px;
+      display: flex; justify-content: space-between; align-items: center;
+      border-bottom: 1px solid #f3f4f6;
+    }
+    .report-table-card__title { font-size: 15px; font-weight: 600; color: #374151; display: flex; align-items: center; }
+    .report-table-card__count { font-size: 13px; color: #9ca3af; }
+    .report-table thead th {
+      background: #f9fafb; font-size: 12px; font-weight: 600; color: #6b7280;
+      text-transform: uppercase; letter-spacing: 0.5px;
+      padding: 12px 16px; border-bottom: 1px solid #e5e7eb;
+    }
+    .report-table tbody td { padding: 13px 16px; font-size: 14px; vertical-align: middle; color: #374151; border-bottom: 1px solid #f3f4f6; }
+    .report-table tbody tr:last-child td { border-bottom: none; }
+    .report-table tbody tr:hover { background-color: #f9fafb; }
+    .report-period-badge {
+      display: inline-block; padding: 4px 10px;
+      background: #f0f7ff; color: #2563eb;
+      border-radius: 8px; font-size: 13px; font-weight: 500;
+    }
+    .report-quantity { font-weight: 600; color: #374151; }
+    .report-money { font-weight: 700; color: #dc2626; }
+    .report-progress-cell { display: flex; align-items: center; gap: 8px; justify-content: flex-end; }
+    .report-progress-bar { flex: 1; max-width: 80px; height: 6px; background: #f3f4f6; border-radius: 99px; overflow: hidden; }
+    .report-progress-fill { height: 100%; background: linear-gradient(90deg, #4a90d9, #06d6a0); border-radius: 99px; }
+    .report-progress-pct { font-size: 12px; color: #9ca3af; min-width: 36px; text-align: right; }
+    .report-empty { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+    .report-empty i { font-size: 40px; color: #d1d5db; }
+    .report-empty { color: #9ca3af; font-size: 14px; }
+
+    @media (max-width: 576px) {
+      .report-hero__content { flex-direction: column; text-align: center; }
+      .report-stat-grid { grid-template-columns: 1fr 1fr; }
+      .report-stat-card__value { font-size: 16px; }
+    }

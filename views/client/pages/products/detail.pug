@@ -94,6 +94,10 @@ block main
               span.stock-badge.stock-badge--out
                 i.bi.bi-x-circle-fill
                 | Hết hàng
+            if(product.soldCount && product.soldCount > 0)
+              span.sold-badge
+                i.bi.bi-lightning-fill
+                | Đã bán #{product.soldCount} sản phẩm
 
           //- Divider
           hr.product-detail__hr

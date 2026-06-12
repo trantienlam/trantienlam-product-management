@@ -4,77 +4,77 @@ include ../../mixins/alert.pug
 block main
   +alert-success(5000)
 
-  .page-header
-    .container
-      .page-header__content
-        .page-header__left
-          .page-header__icon
-            i.fa-solid.fa-box-open
-          .page-header__text
-            h1 Báo cáo sản phẩm
-            p Thống kê sản phẩm bán chạy và tồn kho
+  //- ===== Report Header =====
+  .report-hero.report-hero--product
+    .report-hero__bg
+    .report-hero__content
+      .report-hero__icon
+        i.fa-solid.fa-box-open
+      .report-hero__text
+        h1 Báo cáo sản phẩm
+        p Thống kê sản phẩm bán chạy, sắp hết hàng &amp; hết hàng
 
-  .container
-    // Navigation tabs
-    ul.nav.nav-tabs.mb-4
-      li.nav-item
-        a.nav-link(href=`${prefixAdmin}/reports`)
-          i.fa-solid.fa-chart-line.me-1
-          | Doanh thu
-      li.nav-item
-        a.nav-link.active(href=`${prefixAdmin}/reports/products`)
-          i.fa-solid.fa-box-open.me-1
-          | Sản phẩm
-      li.nav-item
-        a.nav-link(href=`${prefixAdmin}/reports/customers`)
-          i.fa-solid.fa-users.me-1
-          | Khách hàng
-      li.nav-item
-        a.nav-link(href=`${prefixAdmin}/reports/inventory`)
-          i.fa-solid.fa-warehouse.me-1
-          | Tồn kho
+  .container-fluid.px-4.py-4
 
-    // Quick Stats
-    .row.mb-4
-      .col-md-4
-        .card.border-0.shadow-sm.bg-danger.text-white
-          .card-body.text-center.py-4
-            i.fa-solid.fa-box-open.fa-3x.mb-3
-            h2.display-4.fw-bold= outOfStockProducts
-            p.mb-0 Hết hàng
-      .col-md-4
-        .card.border-0.shadow-sm.bg-warning.text-dark
-          .card-body.text-center.py-4
-            i.fa-solid.fa-exclamation-triangle.fa-3x.mb-3
-            h2.display-4.fw-bold= lowStockProducts.length
-            p.mb-0 Sắp hết hàng
-      .col-md-4
-        .card.border-0.shadow-sm.bg-success.text-white
-          .card-body.text-center.py-4
-            i.fa-solid.fa-chart-line.fa-3x.mb-3
-            h2.display-4.fw-bold= topProducts.length
-            p.mb-0 Top sản phẩm
+    //- ===== Navigation Pills =====
+    .report-nav-pills.mb-4
+      a.report-nav-pill(href=`${prefixAdmin}/reports`)
+        i.fa-solid.fa-chart-line.me-1
+        | Doanh thu
+      a.report-nav-pill.active(href=`${prefixAdmin}/reports/products`)
+        i.fa-solid.fa-box-open.me-1
+        | Sản phẩm
+      a.report-nav-pill(href=`${prefixAdmin}/reports/customers`)
+        i.fa-solid.fa-users.me-1
+        | Khách hàng
+      a.report-nav-pill(href=`${prefixAdmin}/reports/inventory`)
+        i.fa-solid.fa-warehouse.me-1
+        | Tồn kho
 
-    // Top Selling Products
-    .card.shadow-sm.mb-4
-      .card-header.bg-white.d-flex.justify-content-between.align-items-center
-        h5.mb-0
+    //- ===== Stat Cards =====
+    .report-stat-grid.mb-4
+      .report-stat-card.report-stat-card--danger
+        .report-stat-card__icon
+          i.fa-solid.fa-box-open
+        .report-stat-card__body
+          .report-stat-card__label Hết hàng
+          .report-stat-card__value #{outOfStockProducts}
+          .report-stat-card__sub Cần nhập kho gấp
+      .report-stat-card.report-stat-card--warning
+        .report-stat-card__icon
+          i.fa-solid.fa-exclamation-triangle
+        .report-stat-card__body
+          .report-stat-card__label Sắp hết hàng
+          .report-stat-card__value #{lowStockProducts ? lowStockProducts.length : 0}
+          .report-stat-card__sub Còn ≤ 10 sản phẩm
+      .report-stat-card.report-stat-card--success
+        .report-stat-card__icon
+          i.fa-solid.fa-trophy
+        .report-stat-card__body
+          .report-stat-card__label Top bán chạy
+          .report-stat-card__value #{topProducts ? topProducts.length : 0}
+          .report-stat-card__sub Sản phẩm đang theo dõi
+
+    //- ===== Top Selling Products =====
+    .report-table-card.mb-4
+      .report-table-card__header
+        .report-table-card__title
           i.fa-solid.fa-trophy.text-warning.me-2
           | Top sản phẩm bán chạy
-        .d-flex.gap-2
-          form(method="GET" action=`${prefixAdmin}/reports/products`)
-            select.form-select.form-select-sm(name="sortBy" onchange="this.form.submit()" style="width: auto")
+        .report-table-card__actions
+          form(method="GET" action=`${prefixAdmin}/reports/products` style="display:inline")
+            select.form-select.form-select-sm(name="sortBy" onchange="this.form.submit()")
               option(value="revenue" selected=(sortBy === "revenue")) Theo doanh thu
               option(value="quantity" selected=(sortBy === "quantity")) Theo số lượng
           a.btn.btn-success.btn-sm(href=`${prefixAdmin}/reports/export/excel?type=products`)
             i.fa-solid.fa-file-excel.me-1
-            | Xuất Excel
-      .card-body.p-0
+            | Excel
+      .report-table-card__body.p-0
         .table-responsive
-          table.table.table-hover.mb-0
-            thead.bg-light
+          table.table.table-hover.report-table.mb-0
+            thead
               tr
-                th.text-center(style="width: 50px") #
+                th.text-center(style="width:50px") #
                 th Sản phẩm
                 th.text-center Đơn hàng
                 th.text-center Số lượng bán
@@ -85,96 +85,210 @@ block main
                 - var totalRevenue = topProducts.reduce(function(sum, p) { return sum + (p.totalRevenue || 0); }, 0);
                 each product, index in topProducts
                   - var percentage = totalRevenue > 0 ? ((product.totalRevenue / totalRevenue) * 100).toFixed(1) : 0;
+                  - var rankIcon = index === 0 ? 'fa-star' : (index === 1 || index === 2) ? 'fa-medal' : null;
+                  - var rankClass = index === 0 ? 'bg-warning' : (index === 1 ? 'bg-secondary' : (index === 2 ? 'bg-bronze' : ''));
                   tr
                     td.text-center
-                      if index === 0
-                        span.badge.bg-warning.rounded-circle
-                          i.fa-solid.fa-star
-                      else if index === 1
-                        span.badge.bg-secondary.rounded-circle
-                          i.fa-solid.fa-medal
-                      else if index === 2
-                        span.badge.bg-bronze.rounded-circle
-                          i.fa-solid.fa-medal
+                      if rankIcon
+                        span.badge.rounded-circle(class=rankClass)
+                          i.fa-solid(class=rankIcon)
                       else
-                        span.text-muted= index + 1
+                        span.text-muted.fw-bold= index + 1
                     td
-                      .d-flex.align-items-center.gap-2
+                      .report-product-cell
                         if product.productThumbnail
-                          img(src=product.productThumbnail alt=product.productName style="width: 40px; height: 40px; object-fit: cover" class="rounded")
+                          img.report-product-thumb(src=product.productThumbnail alt=product.productName)
                         else
-                          .bg-light.rounded.d-flex.align-items-center.justify-content-center(style="width: 40px; height: 40px")
+                          .report-product-thumb.report-product-thumb--placeholder
                             i.fa-solid.fa-image.text-muted
                         div
-                          strong= product.productName || "Sản phẩm không xác định"
-                    td.text-center= product.orderCount || 0
+                          strong.report-product-name= product.productName || "Sản phẩm không xác định"
                     td.text-center
-                      span.badge.bg-primary= (product.totalQuantity || 0).toLocaleString("vi-VN")
+                      span.report-order-count= (product.orderCount || 0)
+                    td.text-center
+                      span.report-badge-primary= (product.totalQuantity || 0).toLocaleString("vi-VN")
                     td.text-end
-                      strong.text-danger= (product.totalRevenue || 0).toLocaleString("vi-VN") + " đ"
+                      span.report-money= (product.totalRevenue || 0).toLocaleString("vi-VN") + " đ"
                     td.text-end
-                      .d-flex.align-items-center.justify-content-end.gap-2
-                        .progress(style="height: 6px; width: 80px")
-                          .progress-bar.bg-success(role="progressbar" style="width: " + percentage + "%")
-                        small.text-muted= percentage + "%"
+                      .report-progress-cell
+                        .report-progress-bar
+                          .report-progress-fill(style=`width: ${percentage}%`)
+                        span.report-progress-pct= percentage + "%"
               else
                 tr
-                  td.text-center.text-muted.py-4(colspan="6")
-                    i.fa-solid.fa-inbox.fa-3x.mb-2.d-block.opacity-25
-                    | Chưa có dữ liệu sản phẩm
+                  td.text-center.text-muted.py-5(colspan="6")
+                    .report-empty
+                      i.fa-solid.fa-inbox
+                      | Chưa có dữ liệu sản phẩm
 
-    // Low Stock Alert
+    //- ===== Low Stock Alert =====
     if lowStockProducts && lowStockProducts.length > 0
-      .card.shadow-sm.border-warning.mb-4
-        .card-header.bg-warning.text-dark.d-flex.align-items-center
+      .report-table-card.report-table-card--warning.mb-4
+        .report-table-card__header.report-table-card__header--warning
           i.fa-solid.fa-exclamation-triangle.me-2
-          h5.mb-0 Sản phẩm sắp hết hàng (còn ≤ 10)
-        .card-body.p-0
+          | Sản phẩm sắp hết hàng (còn ≤ 10)
+        .report-table-card__body.p-0
           .table-responsive
-            table.table.table-hover.mb-0
-              thead.bg-light
+            table.table.table-hover.report-table.mb-0
+              thead
                 tr
                   th Sản phẩm
                   th.text-center Kho
                   th.text-end Giá gốc
                   th.text-end Giá KM
-                  th.text-end Trạng thái
+                  th.text-end Hành động
               tbody
                 each product in lowStockProducts
+                  - var stockClass = product.stock <= 5 ? 'bg-danger' : 'bg-warning text-dark';
                   tr
                     td
-                      .d-flex.align-items-center.gap-2
+                      .report-product-cell
                         if product.thumbnail
-                          img(src=product.thumbnail alt=product.title style="width: 40px; height: 40px; object-fit: cover" class="rounded")
+                          img.report-product-thumb(src=product.thumbnail alt=product.title)
                         else
-                          .bg-light.rounded.d-flex.align-items-center.justify-content-center(style="width: 40px; height: 40px")
+                          .report-product-thumb.report-product-thumb--placeholder
                             i.fa-solid.fa-image.text-muted
-                        strong= product.title
+                        strong.report-product-name= product.title
                     td.text-center
-                      if product.stock <= 5
-                        span.badge.bg-danger= product.stock + " cái"
-                      else
-                        span.badge.bg-warning.text-dark= product.stock + " cái"
+                      span.badge(class=stockClass)= product.stock + " cái"
                     td.text-end
-                      small.text-muted.text-decoration-line-through= product.price.toLocaleString("vi-VN") + " đ"
+                      del.report-price-old= product.price.toLocaleString("vi-VN") + " đ"
                     td.text-end
                       - var priceNew = productHelper.priceNewProduct(product);
-                      strong.text-success= Number(priceNew).toLocaleString("vi-VN") + " đ"
+                      strong.report-price-new= Number(priceNew).toLocaleString("vi-VN") + " đ"
                     td.text-end
                       a.btn.btn-sm.btn-outline-primary(href=`${prefixAdmin}/products/edit/${product._id}`)
                         i.fa-solid.fa-edit.me-1
                         | Cập nhật
 
-    // Out of Stock
+    //- ===== Out of Stock Alert =====
     if outOfStockProducts > 0
-      .alert.alert-danger.d-flex.align-items-center
-        i.fa-solid.fa-exclamation-circle.fa-2x.me-3
+      .report-alert(report-alert--danger)
+        i.fa-solid.fa-exclamation-circle.me-3
         div
-          strong= outOfStockProducts + " sản phẩm đã hết hàng! "
-          a.alert-link(href=`${prefixAdmin}/products?stock=0`) Nhấn để xem chi tiết
+          strong #{outOfStockProducts} sản phẩm đã hết hàng!
+          a(href=`${prefixAdmin}/products?stock=0`)  Nhấn để xem chi tiết
 
   style.
-    .bg-bronze {
-      background-color: #cd7f32 !important;
-      color: white !important;
+    .bg-bronze { background-color: #cd7f32 !important; }
+    /* ---- Report Hero ---- */
+    .report-hero {
+      position: relative; padding: 36px 32px 32px; overflow: hidden; color: #fff;
+    }
+    .report-hero--product { background: linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #ec4899 100%); }
+    .report-hero__bg {
+      position: absolute; inset: 0; pointer-events: none;
+      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+    .report-hero__content { position: relative; z-index: 1; display: flex; align-items: center; gap: 20px; }
+    .report-hero__icon {
+      width: 60px; height: 60px; border-radius: 16px;
+      background: rgba(255,255,255,0.15); backdrop-filter: blur(8px);
+      display: flex; align-items: center; justify-content: center; font-size: 26px; flex-shrink: 0;
+    }
+    .report-hero__text h1 { font-size: 24px; font-weight: 700; margin: 0 0 4px; letter-spacing: -0.3px; }
+    .report-hero__text p { margin: 0; opacity: 0.85; font-size: 14px; }
+
+    /* ---- Nav Pills ---- */
+    .report-nav-pills {
+      display: flex; gap: 6px; flex-wrap: wrap;
+      background: #fff; padding: 6px; border-radius: 14px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06); border: 1px solid #eef0f3;
+    }
+    .report-nav-pill {
+      padding: 8px 18px; border-radius: 10px; font-size: 14px; font-weight: 500;
+      color: #6c757d; text-decoration: none; transition: all 0.2s;
+      display: inline-flex; align-items: center;
+    }
+    .report-nav-pill:hover { background: #f1f3f5; color: #343a40; text-decoration: none; }
+    .report-nav-pill.active {
+      background: linear-gradient(135deg, #7c3aed, #ec4899);
+      color: #fff; font-weight: 600; box-shadow: 0 2px 8px rgba(124,58,237,0.35);
+    }
+
+    /* ---- Stat Cards ---- */
+    .report-stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+    }
+    .report-stat-card {
+      background: #fff; border-radius: 16px; padding: 20px;
+      display: flex; align-items: flex-start; gap: 16px;
+      border: 1px solid #eef0f3;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .report-stat-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.08); }
+    .report-stat-card__icon {
+      width: 48px; height: 48px; border-radius: 14px;
+      display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0;
+    }
+    .report-stat-card--danger .report-stat-card__icon { background: #fff1f2; color: #e11d48; }
+    .report-stat-card--warning .report-stat-card__icon { background: #fefce8; color: #ca8a04; }
+    .report-stat-card--success .report-stat-card__icon { background: #ecfdf5; color: #059669; }
+    .report-stat-card__label { font-size: 12px; color: #9ca3af; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+    .report-stat-card__value { font-size: 22px; font-weight: 700; color: #111827; line-height: 1.2; margin-bottom: 4px; }
+    .report-stat-card__sub { font-size: 12px; color: #6b7280; }
+
+    /* ---- Table Card ---- */
+    .report-table-card {
+      background: #fff; border-radius: 16px;
+      border: 1px solid #eef0f3;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+      overflow: hidden;
+    }
+    .report-table-card--warning { border-color: #fde68a; }
+    .report-table-card__header {
+      padding: 16px 20px;
+      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;
+      border-bottom: 1px solid #f3f4f6;
+    }
+    .report-table-card__header--warning { background: #fefce8; border-bottom-color: #fde68a; }
+    .report-table-card__title { font-size: 15px; font-weight: 600; color: #374151; display: flex; align-items: center; }
+    .report-table-card__actions { display: flex; gap: 8px; align-items: center; }
+    .report-table-card__actions .form-select {
+      border-radius: 8px; border-color: #d1d5db; font-size: 13px; padding: 5px 10px;
+    }
+    .report-table thead th {
+      background: #f9fafb; font-size: 12px; font-weight: 600; color: #6b7280;
+      text-transform: uppercase; letter-spacing: 0.5px;
+      padding: 12px 16px; border-bottom: 1px solid #e5e7eb;
+    }
+    .report-table tbody td { padding: 13px 16px; font-size: 14px; vertical-align: middle; color: #374151; border-bottom: 1px solid #f3f4f6; }
+    .report-table tbody tr:last-child td { border-bottom: none; }
+    .report-table tbody tr:hover { background-color: #f9fafb; }
+    .report-product-cell { display: flex; align-items: center; gap: 12px; }
+    .report-product-thumb { width: 42px; height: 42px; border-radius: 10px; object-fit: cover; border: 1px solid #e5e7eb; flex-shrink: 0; }
+    .report-product-thumb--placeholder { background: #f9fafb; display: flex; align-items: center; justify-content: center; }
+    .report-product-name { font-size: 14px; font-weight: 500; }
+    .report-order-count { font-weight: 600; }
+    .report-badge-primary { display: inline-block; padding: 3px 10px; background: #eff6ff; color: #2563eb; border-radius: 8px; font-weight: 600; font-size: 13px; }
+    .report-money { font-weight: 700; color: #dc2626; }
+    .report-price-old { font-size: 13px; color: #9ca3af; }
+    .report-price-new { color: #059669; font-weight: 600; }
+    .report-progress-cell { display: flex; align-items: center; gap: 8px; justify-content: flex-end; }
+    .report-progress-bar { flex: 1; max-width: 80px; height: 6px; background: #f3f4f6; border-radius: 99px; overflow: hidden; }
+    .report-progress-fill { height: 100%; background: linear-gradient(90deg, #4a90d9, #06d6a0); border-radius: 99px; }
+    .report-progress-pct { font-size: 12px; color: #9ca3af; min-width: 36px; text-align: right; }
+    .report-empty { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+    .report-empty i { font-size: 40px; color: #d1d5db; }
+    .report-empty { color: #9ca3af; font-size: 14px; }
+
+    /* ---- Alert ---- */
+    .report-alert {
+      display: flex; align-items: center; padding: 16px 20px;
+      border-radius: 14px; font-size: 14px;
+    }
+    .report-alert--danger {
+      background: #fff1f2; color: #be123c;
+      border: 1px solid #fecdd3;
+    }
+    .report-alert i { font-size: 20px; flex-shrink: 0; }
+    .report-alert a { color: inherit; font-weight: 600; text-decoration: underline; }
+
+    @media (max-width: 576px) {
+      .report-hero__content { flex-direction: column; text-align: center; }
+      .report-stat-grid { grid-template-columns: 1fr 1fr; }
+      .report-stat-card__value { font-size: 18px; }
     }

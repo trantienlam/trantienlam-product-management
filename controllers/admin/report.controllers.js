@@ -38,20 +38,19 @@ async function getRevenueAndSoldInRange(baseMatch, start, end) {
         createdAt: { $gte: start, $lt: end },
       },
     },
-    { $unwind: "$products" },
+    { $unwind: { path: "$products", preserveNullAndEmptyArrays: true } },
+    {
+      $group: {
+        _id: "$_id",
+        revenue: { $sum: { $ifNull: ["$products.totalPrice", 0] } },
+        quantity: { $sum: { $ifNull: ["$products.quantity", 0] } },
+      },
+    },
     {
       $group: {
         _id: null,
-        revenue: {
-          $sum: {
-            $ifNull: ["$products.totalPrice", 0],
-          },
-        },
-        soldQuantity: {
-          $sum: {
-            $ifNull: ["$products.quantity", 0],
-          },
-        },
+        revenue: { $sum: "$revenue" },
+        soldQuantity: { $sum: "$quantity" },
       },
     },
   ]);
@@ -194,7 +193,7 @@ module.exports.index = async (req, res) => {
 
   // Order stats for the month
   const monthOrderStats = await getOrderStatsInRange(
-    {},
+    paidOrderMatch,
     dateRanges.month.start,
     dateRanges.month.end
   );
@@ -220,8 +219,8 @@ module.exports.index = async (req, res) => {
 async function getChartData() {
   const dateRanges = getDateRanges();
 
-  // Last 30 days revenue data
-  const dailyRevenue = await Order.aggregate([
+  // Step 1: aggregate per order (handles orders with empty products)
+  const orderTotals = await Order.aggregate([
     {
       $match: {
         paymentStatus: "paid",
@@ -230,15 +229,30 @@ async function getChartData() {
       },
     },
     {
+      $unwind: {
+        path: "$products",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
       $group: {
-        _id: {
-          $dateToString: {
-            format: "%Y-%m-%d",
-            date: "$createdAt",
-            timezone: "Asia/Ho_Chi_Minh",
+        _id: "$_id",
+        dateStr: {
+          $first: {
+            $dateToString: {
+              format: "%Y-%m-%d",
+              date: "$createdAt",
+              timezone: "Asia/Ho_Chi_Minh",
+            },
           },
         },
-        revenue: { $sum: "$amount" },
+        revenue: { $sum: { $ifNull: ["$products.totalPrice", 0] } },
+      },
+    },
+    {
+      $group: {
+        _id: "$dateStr",
+        revenue: { $sum: "$revenue" },
         orders: { $sum: 1 },
       },
     },
@@ -255,7 +269,7 @@ async function getChartData() {
 
   for (let d = new Date(startDate); d < endDate; d.setDate(d.getDate() + 1)) {
     const dateStr = d.toISOString().split("T")[0];
-    const dayData = dailyRevenue.find((r) => r._id === dateStr);
+    const dayData = orderTotals.find((r) => r._id === dateStr);
 
     labels.push(`${d.getDate()}/${d.getMonth() + 1}`);
     revenues.push(dayData ? dayData.revenue : 0);

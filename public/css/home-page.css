@@ -829,6 +829,22 @@
   border-radius: 16px;
   box-shadow: 0 12px 26px rgba(239, 68, 68, 0.28);
 }
+.home-page .product-item .inner-sold-badge {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  background: rgba(230, 74, 25, 0.88);
+  color: #fff;
+  padding: 4px 10px;
+  font-weight: 700;
+  font-size: 11px;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  z-index: 3;
+  box-shadow: 0 4px 12px rgba(230, 74, 25, 0.4);
+}
 .home-page .product-item__hover {
   position: absolute;
   left: 18px;
@@ -1262,6 +1278,12 @@
   background: linear-gradient(135deg, #ef4444, #f87171);
   border-radius: 10px;
   box-shadow: 0 4px 12px rgba(239, 68, 68, 0.35);
+}
+.home-page .product-item .inner-sold-badge {
+  bottom: 6px;
+  left: 6px;
+  padding: 3px 8px;
+  font-size: 10px;
 }
 .home-page .product-item .inner-content {
   display: flex;

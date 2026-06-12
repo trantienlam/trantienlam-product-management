@@ -4,70 +4,73 @@ include ../../mixins/alert.pug
 block main
   +alert-success(5000)
 
-  .page-header
-    .container
-      .page-header__content
-        .page-header__left
-          .page-header__icon
-            i.fa-solid.fa-users
-          .page-header__text
-            h1 Báo cáo khách hàng
-            p Thống kê khách hàng và lịch sử mua hàng
+  //- ===== Report Header =====
+  .report-hero.report-hero--customer
+    .report-hero__bg
+    .report-hero__content
+      .report-hero__icon
+        i.fa-solid.fa-users
+      .report-hero__text
+        h1 Báo cáo khách hàng
+        p Thống kê khách hàng, lịch sử mua hàng &amp; tổng chi tiêu
 
-  .container
-    // Navigation tabs
-    ul.nav.nav-tabs.mb-4
-      li.nav-item
-        a.nav-link(href=`${prefixAdmin}/reports`)
-          i.fa-solid.fa-chart-line.me-1
-          | Doanh thu
-      li.nav-item
-        a.nav-link(href=`${prefixAdmin}/reports/products`)
-          i.fa-solid.fa-box-open.me-1
-          | Sản phẩm
-      li.nav-item
-        a.nav-link.active(href=`${prefixAdmin}/reports/customers`)
-          i.fa-solid.fa-users.me-1
-          | Khách hàng
-      li.nav-item
-        a.nav-link(href=`${prefixAdmin}/reports/inventory`)
-          i.fa-solid.fa-warehouse.me-1
-          | Tồn kho
+  .container-fluid.px-4.py-4
 
-    // Customer Statistics
-    .row.mb-4
-      .col-md-4
-        .card.border-0.shadow-sm.bg-primary.text-white
-          .card-body.text-center.py-4
-            i.fa-solid.fa-users.fa-3x.mb-3
-            h2.display-4.fw-bold= customerStats.totalCustomers || 0
-            p.mb-0 Khách hàng đã mua
-      .col-md-4
-        .card.border-0.shadow-sm.bg-success.text-white
-          .card-body.text-center.py-4
-            i.fa-solid.fa-money-bill-wave.fa-3x.mb-3
-            h2.display-5.fw-bold= (customerStats.totalRevenue || 0).toLocaleString("vi-VN") + " đ"
-            p.mb-0 Tổng doanh thu
-      .col-md-4
-        .card.border-0.shadow-sm.bg-info.text-white
-          .card-body.text-center.py-4
-            i.fa-solid.fa-chart-bar.fa-3x.mb-3
-            h2.display-4.fw-bold= (customerStats.avgSpent || 0).toLocaleString("vi-VN") + " đ"
-            p.mb-0 Chi tiêu TB/KH
+    //- ===== Navigation Pills =====
+    .report-nav-pills.mb-4
+      a.report-nav-pill(href=`${prefixAdmin}/reports`)
+        i.fa-solid.fa-chart-line.me-1
+        | Doanh thu
+      a.report-nav-pill(href=`${prefixAdmin}/reports/products`)
+        i.fa-solid.fa-box-open.me-1
+        | Sản phẩm
+      a.report-nav-pill.active(href=`${prefixAdmin}/reports/customers`)
+        i.fa-solid.fa-users.me-1
+        | Khách hàng
+      a.report-nav-pill(href=`${prefixAdmin}/reports/inventory`)
+        i.fa-solid.fa-warehouse.me-1
+        | Tồn kho
 
-    // Top Customers
-    .card.shadow-sm
-      .card-header.bg-white.d-flex.justify-content-between.align-items-center
-        h5.mb-0
+    //- ===== Stat Cards =====
+    .report-stat-grid.mb-4
+      .report-stat-card.report-stat-card--primary
+        .report-stat-card__icon
+          i.fa-solid.fa-users
+        .report-stat-card__body
+          .report-stat-card__label Khách hàng đã mua
+          .report-stat-card__value= customerStats.totalCustomers || 0
+          .report-stat-card__sub Khách có đơn paid
+      .report-stat-card.report-stat-card--success
+        .report-stat-card__icon
+          i.fa-solid.fa-money-bill-wave
+        .report-stat-card__body
+          .report-stat-card__label Tổng doanh thu
+          .report-stat-card__value= (customerStats.totalRevenue || 0).toLocaleString("vi-VN") + " đ"
+          .report-stat-card__sub Từ khách hàng mua hàng
+      .report-stat-card.report-stat-card--info
+        .report-stat-card__icon
+          i.fa-solid.fa-chart-bar
+        .report-stat-card__body
+          .report-stat-card__label Chi tiêu TB / KH
+          .report-stat-card__value= (customerStats.avgSpent || 0).toLocaleString("vi-VN") + " đ"
+          .report-stat-card__sub Trung bình mỗi khách
+
+    //- ===== Top Customers =====
+    .report-table-card
+      .report-table-card__header
+        .report-table-card__title
           i.fa-solid.fa-crown.text-warning.me-2
           | Top khách hàng chi tiêu cao nhất
-        
-      .card-body.p-0
+        .report-table-card__actions
+          a.btn.btn-success.btn-sm(href=`${prefixAdmin}/reports/export/excel?type=customers`)
+            i.fa-solid.fa-file-excel.me-1
+            | Excel
+      .report-table-card__body.p-0
         .table-responsive
-          table.table.table-hover.mb-0
-            thead.bg-light
+          table.table.table-hover.report-table.mb-0
+            thead
               tr
-                th.text-center(style="width: 50px") #
+                th.text-center(style="width:50px") #
                 th Khách hàng
                 th.text-center Số đơn
                 th.text-center Ngày mua gần nhất
@@ -80,55 +83,160 @@ block main
                   - var customerName = (customer.customer && customer.customer.fullName) ? customer.customer.fullName : "Khách hàng đã xóa";
                   - var firstChar = customerName.charAt(0).toUpperCase();
                   - var customerEmail = (customer.customer && customer.customer.email) ? customer.customer.email : null;
+                  - var percentage = totalSpent > 0 ? ((customer.totalSpent / totalSpent) * 100).toFixed(1) : 0;
+                  - var rankIcon = index === 0 ? 'fa-crown' : (index === 1 || index === 2) ? 'fa-medal' : null;
+                  - var rankClass = index === 0 ? 'bg-warning' : (index === 1 ? 'bg-secondary' : (index === 2 ? 'bg-bronze' : ''));
                   tr
                     td.text-center
-                      if index === 0
-                        span.badge.bg-warning.rounded-circle
-                          i.fa-solid.fa-crown
-                      else if index === 1
-                        span.badge.bg-secondary.rounded-circle
-                          i.fa-solid.fa-medal
-                      else if index === 2
-                        span.badge.bg-bronze.rounded-circle
-                          i.fa-solid.fa-medal
+                      if rankIcon
+                        span.badge.rounded-circle(class=rankClass)
+                          i.fa-solid(class=rankIcon)
                       else
-                        span.text-muted= index + 1
+                        span.text-muted.fw-bold= index + 1
                     td
-                      .d-flex.align-items-center.gap-2
-                        .bg-primary.rounded-circle.d-flex.align-items-center.justify-content-center(style="width: 40px; height: 40px")
-                          span.text-white.fw-bold= firstChar
+                      .report-customer-cell
+                        .report-customer-avatar= firstChar
                         div
-                          strong= customerName
+                          strong.report-customer-name= customerName
                           if customerEmail
-                            small.d-block.text-muted= customerEmail
+                            small.report-customer-email= customerEmail
                     td.text-center
-                      span.badge.bg-light.text-dark= (customer.orderCount || 0) + " đơn"
+                      span.report-badge-orders= (customer.orderCount || 0) + " đơn"
                     td.text-center
                       if customer.lastOrderDate
                         - var date = new Date(customer.lastOrderDate);
-                        span= date.toLocaleDateString("vi-VN")
+                        span.report-date= date.toLocaleDateString("vi-VN")
                       else
-                        span.text-muted -
+                        span.text-muted —
                     td.text-end
-                      strong.text-danger= (customer.totalSpent || 0).toLocaleString("vi-VN") + " đ"
+                      span.report-money= (customer.totalSpent || 0).toLocaleString("vi-VN") + " đ"
                     td.text-end
-                      - var percentage = totalSpent > 0 ? ((customer.totalSpent / totalSpent) * 100).toFixed(1) : 0;
-                      .d-flex.align-items-center.justify-content-end.gap-2
-                        .progress(style="height: 6px; width: 80px")
-                          .progress-bar.bg-warning(role="progressbar" style="width: " + percentage + "%")
-                        small.text-muted= percentage + "%"
+                      .report-progress-cell
+                        .report-progress-bar
+                          .report-progress-fill.report-progress-fill--orange(style=`width: ${percentage}%`)
+                        span.report-progress-pct= percentage + "%"
               else
                 tr
-                  td.text-center.text-muted.py-4(colspan="6")
-                    i.fa-solid.fa-users-slash.fa-3x.mb-2.d-block.opacity-25
-                    | Chưa có dữ liệu khách hàng
+                  td.text-center.text-muted.py-5(colspan="6")
+                    .report-empty
+                      i.fa-solid.fa-users-slash
+                      | Chưa có dữ liệu khách hàng
 
-    // Customer Table Link
-    .mt-4
-      span.text-muted Danh sách khách hàng mua hàng hiện đang hiển thị ngay trong bảng top bên trên.
+    //- ===== Note =====
+    .mt-4.text-center
+      span.report-note
+        i.fa-solid.fa-circle-info.me-1
+        | Danh sách khách hàng đang hiển thị trong bảng top bên trên
 
   style.
-    .bg-bronze {
-      background-color: #cd7f32 !important;
-      color: white !important;
+    .bg-bronze { background-color: #cd7f32 !important; }
+    /* ---- Report Hero ---- */
+    .report-hero {
+      position: relative; padding: 36px 32px 32px; overflow: hidden; color: #fff;
+    }
+    .report-hero--customer { background: linear-gradient(135deg, #0891b2 0%, #0e7490 50%, #06b6d4 100%); }
+    .report-hero__bg {
+      position: absolute; inset: 0; pointer-events: none;
+      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+    .report-hero__content { position: relative; z-index: 1; display: flex; align-items: center; gap: 20px; }
+    .report-hero__icon {
+      width: 60px; height: 60px; border-radius: 16px;
+      background: rgba(255,255,255,0.15); backdrop-filter: blur(8px);
+      display: flex; align-items: center; justify-content: center; font-size: 26px; flex-shrink: 0;
+    }
+    .report-hero__text h1 { font-size: 24px; font-weight: 700; margin: 0 0 4px; letter-spacing: -0.3px; }
+    .report-hero__text p { margin: 0; opacity: 0.85; font-size: 14px; }
+
+    /* ---- Nav Pills ---- */
+    .report-nav-pills {
+      display: flex; gap: 6px; flex-wrap: wrap;
+      background: #fff; padding: 6px; border-radius: 14px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06); border: 1px solid #eef0f3;
+    }
+    .report-nav-pill {
+      padding: 8px 18px; border-radius: 10px; font-size: 14px; font-weight: 500;
+      color: #6c757d; text-decoration: none; transition: all 0.2s;
+      display: inline-flex; align-items: center;
+    }
+    .report-nav-pill:hover { background: #f1f3f5; color: #343a40; text-decoration: none; }
+    .report-nav-pill.active {
+      background: linear-gradient(135deg, #0891b2, #06b6d4);
+      color: #fff; font-weight: 600; box-shadow: 0 2px 8px rgba(8,145,178,0.35);
+    }
+
+    /* ---- Stat Cards ---- */
+    .report-stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+    }
+    .report-stat-card {
+      background: #fff; border-radius: 16px; padding: 20px;
+      display: flex; align-items: flex-start; gap: 16px;
+      border: 1px solid #eef0f3;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .report-stat-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.08); }
+    .report-stat-card__icon {
+      width: 48px; height: 48px; border-radius: 14px;
+      display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0;
+    }
+    .report-stat-card--primary .report-stat-card__icon { background: #ede9fe; color: #7c3aed; }
+    .report-stat-card--success .report-stat-card__icon { background: #ecfdf5; color: #059669; }
+    .report-stat-card--info .report-stat-card__icon { background: #e0f2fe; color: #0284c7; }
+    .report-stat-card__label { font-size: 12px; color: #9ca3af; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+    .report-stat-card__value { font-size: 20px; font-weight: 700; color: #111827; line-height: 1.2; margin-bottom: 4px; }
+    .report-stat-card__sub { font-size: 12px; color: #6b7280; }
+
+    /* ---- Table Card ---- */
+    .report-table-card {
+      background: #fff; border-radius: 16px;
+      border: 1px solid #eef0f3;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+      overflow: hidden;
+    }
+    .report-table-card__header {
+      padding: 16px 20px;
+      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;
+      border-bottom: 1px solid #f3f4f6;
+    }
+    .report-table-card__title { font-size: 15px; font-weight: 600; color: #374151; display: flex; align-items: center; }
+    .report-table-card__actions { display: flex; gap: 8px; }
+    .report-table thead th {
+      background: #f9fafb; font-size: 12px; font-weight: 600; color: #6b7280;
+      text-transform: uppercase; letter-spacing: 0.5px;
+      padding: 12px 16px; border-bottom: 1px solid #e5e7eb;
+    }
+    .report-table tbody td { padding: 13px 16px; font-size: 14px; vertical-align: middle; color: #374151; border-bottom: 1px solid #f3f4f6; }
+    .report-table tbody tr:last-child td { border-bottom: none; }
+    .report-table tbody tr:hover { background-color: #f9fafb; }
+
+    .report-customer-cell { display: flex; align-items: center; gap: 12px; }
+    .report-customer-avatar {
+      width: 40px; height: 40px; border-radius: 50%;
+      background: linear-gradient(135deg, #7c3aed, #ec4899);
+      color: #fff; font-weight: 700; font-size: 16px;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .report-customer-name { font-size: 14px; font-weight: 500; }
+    .report-customer-email { color: #9ca3af; font-size: 12px; }
+    .report-badge-orders { display: inline-block; padding: 3px 10px; background: #f0f9ff; color: #0369a1; border-radius: 8px; font-weight: 600; font-size: 13px; }
+    .report-date { font-size: 13px; color: #374151; }
+    .report-money { font-weight: 700; color: #dc2626; }
+    .report-progress-cell { display: flex; align-items: center; gap: 8px; justify-content: flex-end; }
+    .report-progress-bar { flex: 1; max-width: 80px; height: 6px; background: #f3f4f6; border-radius: 99px; overflow: hidden; }
+    .report-progress-fill { height: 100%; background: linear-gradient(90deg, #4a90d9, #06d6a0); border-radius: 99px; }
+    .report-progress-fill--orange { background: linear-gradient(90deg, #f59e0b, #f97316); }
+    .report-progress-pct { font-size: 12px; color: #9ca3af; min-width: 36px; text-align: right; }
+    .report-empty { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+    .report-empty i { font-size: 40px; color: #d1d5db; }
+    .report-empty { color: #9ca3af; font-size: 14px; }
+    .report-note { font-size: 13px; color: #9ca3af; }
+
+    @media (max-width: 576px) {
+      .report-hero__content { flex-direction: column; text-align: center; }
+      .report-stat-grid { grid-template-columns: 1fr 1fr; }
+      .report-stat-card__value { font-size: 18px; }
     }
