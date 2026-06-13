@@ -222,7 +222,23 @@ block main
             each item in records 
               td(class="text-center")
                 input(type="checkbox")
-        
+          
+          tr 
+            td(colspan="4")
+              b Cài đặt
+          tr(data-name="caidat_view")
+            td Xem cài đặt 
+            each item in records  
+              td(class="text-center") 
+                input(type="checkbox")
+          tr 
+            td(colspan="4")
+              b Báo cáo
+          tr(data-name="baocao_view")
+            td Xem báo cáo
+            each item in records 
+              td(class="text-center")
+                input(type="checkbox")
           
       form(
         id="form-change-permissions"

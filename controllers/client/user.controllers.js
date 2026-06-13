@@ -1,6 +1,7 @@
 const md5 = require("md5");
 const User = require("../../models/user.model");
 const ForgotPassword = require("../../models/forgot-password.model");
+const RegisterOtp = require("../../models/register-otp.model");
 const generaHelper = require("../../helpers/generate");
 const sendMailHelper = require("../../helpers/sendMail");
 const Cart = require("../../models/cart.model");
@@ -13,7 +14,6 @@ module.exports.register = async (req, res) => {
 
 // [POST] /user/regiter
 module.exports.registerPost = async (req, res) => {
-  // console.log(req.body);
   const exitsEmail = await User.findOne({
     email: req.body.email,
     deleted: false,
@@ -23,13 +23,69 @@ module.exports.registerPost = async (req, res) => {
     res.redirect("back");
     return;
   }
-  req.body.password = md5(req.body.password);
 
-  const user = new User(req.body);
+  const otp = generaHelper.generateRandomNumber(6);
+  const registerOtp = new RegisterOtp({
+    email: req.body.email,
+    otp: otp,
+    fullName: req.body.fullName,
+    password: md5(req.body.password),
+    phone: req.body.phone,
+  });
+  await registerOtp.save();
+
+  const subject = "Mã OTP xác minh đăng ký tài khoản";
+  const html = `
+    Mã OTP xác minh đăng ký của bạn là: <b>${otp}</b>.<br/>
+    Thời hạn sử dụng là 5 phút. Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email.
+  `;
+  sendMailHelper.sendMail(req.body.email, subject, html);
+
+  req.flash("success", "Đã gửi mã OTP về email của bạn");
+  res.redirect(`/user/register/otp?email=${encodeURIComponent(req.body.email)}`);
+};
+
+//[GET] /user/register/otp
+module.exports.registerOtp = async (req, res) => {
+  const email = req.query.email || "";
+  res.render("client/pages/user/register-otp", {
+    pageTitle: "Xác minh OTP đăng ký",
+    email,
+  });
+};
+
+//[POST] /user/register/otp
+module.exports.registerOtpPost = async (req, res) => {
+  const { email, otp } = req.body;
+  const registerOtp = await RegisterOtp.findOne({ email, otp });
+
+  if (!registerOtp) {
+    req.flash("error", "Mã OTP không hợp lệ");
+    res.redirect("back");
+    return;
+  }
+
+  const exitsEmail = await User.findOne({
+    email: registerOtp.email,
+    deleted: false,
+  });
+  if (exitsEmail) {
+    req.flash("error", "Email đã tồn tại");
+    res.redirect("/user/register");
+    return;
+  }
+
+  const user = new User({
+    fullName: registerOtp.fullName,
+    email: registerOtp.email,
+    password: registerOtp.password,
+    phone: registerOtp.phone,
+  });
   await user.save();
 
-  // console.log(user);
-  // res.cookie("tokenUser", user.tokenUser);
+  await RegisterOtp.deleteOne({ _id: registerOtp._id });
+
+  req.flash("success", "Đăng ký tài khoản thành công, vui lòng đăng nhập");
   res.redirect("/user/login");
 };
 

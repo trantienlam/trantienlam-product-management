@@ -35,24 +35,25 @@
           span.sidebar-text Đơn hàng
 
       // Báo cáo - có submenu
-      .sidebar-dropdown
-        a.sidebar-link(href=`${prefixAdmin}/reports`)
-          i.sidebar-icon.fa-solid.fa-chart-column
-          span.sidebar-text Báo cáo
-          i.sidebar-arrow.fa-solid.fa-chevron-right
-        .sidebar-dropdown-menu
-          a.sidebar-dropdown-item(href=`${prefixAdmin}/reports`)
-            i.fa-solid.fa-chart-line.me-2
-            | Doanh thu
-          a.sidebar-dropdown-item(href=`${prefixAdmin}/reports/products`)
-            i.fa-solid.fa-box-open.me-2
-            | Sản phẩm
-          a.sidebar-dropdown-item(href=`${prefixAdmin}/reports/customers`)
-            i.fa-solid.fa-users.me-2
-            | Khách hàng
-          a.sidebar-dropdown-item(href=`${prefixAdmin}/reports/inventory`)
-            i.fa-solid.fa-warehouse.me-2
-            | Tồn kho
+      if(role.permission.includes("baocao_view"))
+        .sidebar-dropdown
+          a.sidebar-link(href=`${prefixAdmin}/reports`)
+            i.sidebar-icon.fa-solid.fa-chart-column
+            span.sidebar-text Báo cáo
+            i.sidebar-arrow.fa-solid.fa-chevron-right
+          .sidebar-dropdown-menu
+            a.sidebar-dropdown-item(href=`${prefixAdmin}/reports`)
+              i.fa-solid.fa-chart-line.me-2
+              | Doanh thu
+            a.sidebar-dropdown-item(href=`${prefixAdmin}/reports/products`)
+              i.fa-solid.fa-box-open.me-2
+              | Sản phẩm
+            a.sidebar-dropdown-item(href=`${prefixAdmin}/reports/customers`)
+              i.fa-solid.fa-users.me-2
+              | Khách hàng
+            a.sidebar-dropdown-item(href=`${prefixAdmin}/reports/inventory`)
+              i.fa-solid.fa-warehouse.me-2
+              | Tồn kho
           
       if(role.permission.includes("reviews_view"))
         a.sidebar-link(href=`${prefixAdmin}/reviews`)
@@ -83,10 +84,10 @@
         a.sidebar-link(href=`${prefixAdmin}/roles/permissions`)
           i.sidebar-icon.fa-solid.fa-key
           span.sidebar-text Phân quyền
-          
-      a.sidebar-link(href=`${prefixAdmin}/settings/general`)
-        i.sidebar-icon.fa-solid.fa-gear
-        span.sidebar-text Cài đặt
+      if(role.permission.includes("caidat_view"))
+        a.sidebar-link(href=`${prefixAdmin}/settings/general`)
+          i.sidebar-icon.fa-solid.fa-gear
+          span.sidebar-text Cài đặt
 
   .sidebar-footer
     a.sidebar-link.sidebar-link--logout(href=`${prefixAdmin}/auth/logout`)

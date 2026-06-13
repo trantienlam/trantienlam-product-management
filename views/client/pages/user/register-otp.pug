@@ -1,0 +1,56 @@
+extends ../../layouts/default.pug
+include ../../mixins/alert.pug
+
+block main
+  +alert-success(5000)
+  +alert-error(3000)
+
+  .auth-page
+    .container
+      .auth-card
+
+        .auth-card__header
+          .auth-card__logo
+            i.bi.bi-envelope-check-fill
+          h1.auth-card__title Xác minh Email
+          p.auth-card__subtitle
+            | Chúng tôi đã gửi mã OTP đến
+            br
+            strong= email
+
+        .auth-card__body
+          form.auth-form(action="/user/register/otp" method="POST")
+            input(type="hidden" name="email" value=email)
+
+            .form-group
+              label.form-label(for="otp") Mã xác minh (OTP)
+              .auth-form__input-wrap
+                i.bi.bi-shield-lock-fill.input-icon
+                input#otp.form-control(
+                  type="text"
+                  name="otp"
+                  placeholder="Nhập 6 số mã OTP"
+                  required
+                  maxlength="6"
+                  minlength="6"
+                  autocomplete="one-time-code"
+                  inputmode="numeric"
+                  pattern="[0-9]{6}"
+                )
+
+            .otp-timer.text-center.mb-3
+              p.text-muted.small
+                i.bi.bi-clock
+                |  Mã OTP có hiệu lực trong 
+                strong 5 phút
+
+            button.auth-btn-primary(type="submit") Xác minh
+
+          .otp-resend.text-center.mt-4
+            p.text-muted.small
+              | Không nhận được mã? 
+              a.text-primary(href="/user/register") Đăng ký lại
+
+        .auth-card__footer
+          | Đã có tài khoản? 
+          a(href="/user/login") Đăng nhập ngay
