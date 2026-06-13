@@ -1,6 +1,11 @@
 const Product = require("../../models/product.model");
 const productsHelper = require("../../helpers/products");
 
+// Escape special regex characters to prevent invalid regex errors
+function escapeRegex(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 // [GET] /search
 module.exports.index = async (req, res) => {
   const keyword = (req.query.keyword || "").trim();
@@ -18,7 +23,8 @@ module.exports.index = async (req, res) => {
     if (words.length > 0) {
       // Tạo regex AND: mỗi từ phải xuất hiện trong title
       // Ví dụ: "đá mài CNC" → /đá/i + /mài/i + /cnc/i
-      const regexParts = words.map((w) => new RegExp(w, "i"));
+      // Escape special regex characters in each word to prevent invalid regex errors
+      const regexParts = words.map((w) => new RegExp(escapeRegex(w), "i"));
 
       const products = await Product.find({
         $and: regexParts.map((r) => ({ title: r })),

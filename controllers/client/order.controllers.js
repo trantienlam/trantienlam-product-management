@@ -164,11 +164,16 @@ module.exports.cancel = async (req, res) => {
     return res.redirect(`/orders/detail/${orderId}`);
   }
 
-  // Restore stock
+  // Restore stock and soldCount
   for (const item of order.products) {
     await Product.updateOne(
       { _id: item.product_id },
-      { $inc: { stock: item.quantity } }
+      {
+        $inc: {
+          stock: item.quantity,
+          soldCount: -item.quantity,
+        },
+      },
     );
   }
 

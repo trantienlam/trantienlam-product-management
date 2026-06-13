@@ -351,7 +351,12 @@ module.exports.order = async (req, res) => {
 
       await Product.updateOne(
         { _id: product_id },
-        { $inc: { stock: -qty } },
+        {
+          $inc: {
+            stock: -qty,
+            soldCount: qty,
+          },
+        },
       );
 
       const orderData = {
@@ -433,7 +438,12 @@ module.exports.order = async (req, res) => {
 
       await Product.updateOne(
         { _id: item.product_id },
-        { $inc: { stock: -item.quantity } }
+        {
+          $inc: {
+            stock: -item.quantity,
+            soldCount: item.quantity,
+          },
+        },
       );
 
       products.push(objectProduct);
